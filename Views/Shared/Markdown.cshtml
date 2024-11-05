@@ -1,0 +1,15 @@
+﻿@using Markdig
+@{
+Layout = "Layout";
+}
+
+@{
+var writer = new StringWriter();
+RenderBody().WriteTo(writer, HtmlEncoder);
+var pipeline = new MarkdownPipelineBuilder()
+.UseAdvancedExtensions().Build();
+var markdown = writer.ToString();
+var html = Markdown.ToHtml(markdown[1..], pipeline);
+}
+
+@Html.Raw(html)
