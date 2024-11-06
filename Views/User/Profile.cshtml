@@ -1,0 +1,140 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model AccountModel
+@{
+    ViewData["Description"] = "User's profile";
+    ViewData["Title"] = "Profile";
+    Layout = "Layout";
+
+    var disabled = Model.Account.HasPermission(Permission.Administrator) ? "" : "disabled";
+}
+
+<div class="tabs mb-0 mt-1">
+    <ul class="ml-0">
+        <li class="is-active tab" data-target="account">
+            <a>
+                <span class="icon is-small">
+                    <i class="fa-solid fa-user"></i>
+                </span>
+                <span>Account</span>
+            </a>
+        </li>
+        <li class="tab" data-target="security">
+            <a>
+                <span class="icon is-small">
+                    <i class="fa-solid fa-key"></i>
+                </span>
+                <span>Security</span>
+            </a>
+        </li>
+        <li class="tab" data-target="perms">
+            <a>
+                <span class="icon is-small">
+                    <i class="fa-solid fa-lock"></i>
+                </span>
+                <span>Permissions</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="section">
+    <div class="content">
+        @if (!string.IsNullOrWhiteSpace(Model.Message)) {
+            <div class="notification @(Model.Success ? "is-success" : "is-danger")">
+                <button class="delete"></button>
+                @Model.Message
+            </div>
+        }
+        
+        <div id="account" class="tab-content">
+            <h2>Personal information</h2>
+            <form method="POST">
+                <input class="input" type="hidden" name="type" value="changeUsername">
+                <div class="field">
+                    <label class="label">Username</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="text" id="username" name="username" value="@Model.Target.Username">
+                        <span class="icon is-small is-left">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <input type="submit" class="button is-primary" value="Apply changes"/>
+                </div>
+            </form>
+
+            <h2>Account deletion</h2>
+            <p><b>This action is not reversible!</b> There is no confirmation, if you click it - the account would be deleted!</p>
+
+            <form method="POST">
+                <input class="input" type="hidden" name="type" value="deleteAccount">
+                <div class="control">
+                    <input type="submit" class="button is-danger" value="Delete my account"/>
+                </div>
+            </form>
+        </div>
+
+        <div id="security" class="tab-content" style="display: none;">
+            <h2>Change your password</h2>
+            <form method="POST">
+                <input class="input" type="hidden" name="type" value="changePassword">
+                <div class="field">
+                    <label class="label">Old password</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="password" name="password">
+                        <span class="icon is-small is-left">
+                            <i class="fa-solid fa-key"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">New password</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="password" name="password2">
+                        <span class="icon is-small is-left">
+                            <i class="fa-solid fa-key"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <input type="submit" class="button is-primary" value="Apply changes"/>
+                </div>
+            </form>
+
+            <h2>Your API key</h2>
+            <p>For security reasons, you can't view your current API key.</p>
+
+            <form method="POST">
+                <input type="hidden" name="type" value="generateApiKey"/>
+                <input type="submit" class="button is-primary" value="Generate new key">
+            </form>
+        </div>
+
+        <div id="perms" class="tab-content" style="display: none;">
+            <h2>Modify permissions</h2>
+            <form method="POST">
+                <input class="input" type="hidden" name="type" value="changePermissions">
+                @foreach (Permission value in Enum.GetValuesAsUnderlyingType<Permission>()) {
+                    <div class="field">
+                        <label class="b-checkbox checkbox">
+                            <input type="checkbox" name="perm-@((int)value)" @(Model.Target.Permissions.Contains(value) ? "checked" : "") @disabled>
+                            <span class="check"></span>
+                            <span class="control-label">@value.GetType().GetEnumName(value)!.Humanize()</span>
+                        </label>
+                    </div>
+                }
+
+                <div class="control">
+                    <input type="submit" class="button is-primary" value="Apply changes" @disabled/>
+                    @if (!Model.Target.HasPermission(Permission.Administrator)) {
+                        <p class="help">Only administrators can change permissions!</p>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

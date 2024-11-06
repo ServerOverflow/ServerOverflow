@@ -1,11 +1,14 @@
 ﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    var account = await Context.GetAccount();
+}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ServerOverflow | @ViewData["Title"]</title>
+    <title>ServerOverflow > @ViewData["Title"]</title>
     <meta content="ServerOverflow" property="og:title" />
     <meta content="@(ViewData["Description"] ?? ViewData["Title"])" property="og:description" />
     <meta content="/img/logo.png" property="og:image" />
@@ -13,12 +16,13 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/lib/fontawesome/fontawesome.min.css"/>
     <link rel="stylesheet" href="~/lib/bulma/bulma.min.css"/>
+    <link rel="stylesheet" href="~/lib/bulma-checkbox/bulma.min.css"/>
 </head>
 <body class="theme-dark">
 <header class="header">
     <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
-            <a class="navbar-item" asp-controller="Home" asp-action="Index">ServerOverflow</a>
+            <a class="navbar-item is-size-4" asp-controller="Home" asp-action="Index">ServerOverflow</a>
             <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
                 <span aria-hidden="true"></span>
                 <span aria-hidden="true"></span>
@@ -31,6 +35,28 @@
             <div class="navbar-start">
                 <a class="navbar-item" asp-controller="Home" asp-action="Index">Home</a>
                 <a class="navbar-item" asp-controller="Home" asp-action="FAQ">FAQ</a>
+            </div>
+            <div class="navbar-end">
+                @if (account != null) {
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">@account.Username</a>
+
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" asp-controller="User" asp-action="Profile">Profile</a>
+                            <a class="navbar-item" asp-controller="User" asp-action="Manage">Manage</a>
+                            <hr class="navbar-divider">
+                            <a class="navbar-item" asp-controller="User" asp-action="Logout">Logout</a>
+                        </div>
+                    </div>
+                }
+                else {
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <a class="button is-primary" asp-controller="User" asp-action="Register"><strong>Register</strong></a>
+                            <a class="button is-light" asp-controller="User" asp-action="Login">Login</a>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </nav>
