@@ -130,7 +130,7 @@
 
                 <div class="control">
                     <input type="submit" class="button is-primary" value="Apply changes" @disabled/>
-                    @if (!Model.Target.HasPermission(Permission.Administrator)) {
+                    @if (!Model.Account.HasPermission(Permission.Administrator)) {
                         <p class="help">Only administrators can change permissions!</p>
                     }
                 </div>
