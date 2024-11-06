@@ -26,5 +26,5 @@ jobs:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
-          SCRIPT_BEFORE: systemctl stop ServerOverflow
-          SCRIPT_AFTER: systemctl start ServerOverflow
+          SCRIPT_BEFORE: sudo systemctl stop ServerOverflow
+          SCRIPT_AFTER: sudo systemctl start ServerOverflow
