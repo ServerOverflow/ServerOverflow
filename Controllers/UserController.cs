@@ -70,9 +70,6 @@ public class UserController : Controller {
     public async Task<IActionResult> Manage() {
         var account = await HttpContext.GetAccount();
         if (account == null) return Redirect("/user/login");
-        if (!account.HasPermission(Permission.Administrator))
-            return Unauthorized();
-        
         var model = new AccountModel {
             Account = account,
             Target = account
@@ -85,6 +82,11 @@ public class UserController : Controller {
         
         switch (type.ToString()) {
             case "deleteInvitation": { // Delete Invitation
+                if (!account.HasPermission(Permission.Administrator)) {
+                    model.Message = "Only administrators can delete invitation codes!";
+                    break;
+                }
+                
                 if (!HttpContext.Request.Form.TryGetValue(
                         "id", out var id))
                     break;
@@ -95,6 +97,11 @@ public class UserController : Controller {
                 break;
             }
             case "createInvitation": { // Create Invitation
+                if (!account.HasPermission(Permission.Administrator)) {
+                    model.Message = "Only administrators can create invitation codes!";
+                    break;
+                }
+                
                 if (!HttpContext.Request.Form.TryGetValue(
                         "badge", out var badge))
                     break;
@@ -105,6 +112,11 @@ public class UserController : Controller {
                 break;
             }
             case "deleteExclusion": { // Delete Exclusion
+                if (!account.HasPermission(Permission.ModifyExclusions)) {
+                    model.Message = "Modify exclusions permission is required to delete exclusions!";
+                    break;
+                }
+                
                 if (!HttpContext.Request.Form.TryGetValue(
                         "id", out var id))
                     break;
@@ -115,6 +127,11 @@ public class UserController : Controller {
                 break;
             }
             case "createExclusion": { // Create Exclusion
+                if (!account.HasPermission(Permission.ModifyExclusions)) {
+                    model.Message = "Modify exclusions permission is required to create exclusions!";
+                    break;
+                }
+                
                 if (!HttpContext.Request.Form.TryGetValue(
                         "ranges", out var ranges))
                     break;
@@ -128,6 +145,11 @@ public class UserController : Controller {
                 break;
             }
             case "modifyExclusion": { // Modify Exclusion
+                if (!account.HasPermission(Permission.ModifyExclusions)) {
+                    model.Message = "Modify exclusions permission is required to modify exclusions!";
+                    break;
+                }
+                
                 if (!HttpContext.Request.Form.TryGetValue(
                         "id", out var id))
                     break;

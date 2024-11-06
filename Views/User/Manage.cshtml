@@ -65,7 +65,7 @@
             <tr>
                 <th>@(i + 1)</th>
                 <td>
-                    <code>@invites[i].Code</code>
+                    <code>@(Model.Account.HasPermission(Permission.Administrator) ? invites[i].Code : "REDACTED")</code>
                 </td>
                 <td>@invites[i].BadgeText</td>
                 <td>@(creator?.Username ?? "Unknown")</td>
