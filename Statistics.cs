@@ -102,7 +102,7 @@ public class Statistics {
                 Stats.ForgeServers.Add((int)await Controller.Servers.Count(x => x.Ping.IsForge));
                 Stats.CustomSoftware.Add((int)await Controller.Servers.Count(x => 
                     x.Ping.Version != null && x.Ping.Version.Name != null &&
-                    x.Ping.Version.Name.Contains("Vanilla")));
+                    x.Ping.Version.Name.Contains(' ')));
                 Stats.AntiDDoS.Add((int)await Controller.Servers.Count(x => 
                     (x.Ping.Description != null && (
                         x.Ping.Description.Contains("Blad pobierania statusu. Polacz sie bezposrednio!") ||
