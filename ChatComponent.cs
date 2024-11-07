@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 
@@ -8,7 +9,7 @@ namespace ServerOverflow;
 /// </summary>
 public class ChatComponent {
     [JsonPropertyName("extra")]
-    public List<ChatComponent>? Extra { get; set; }
+    public List<object>? Extra { get; set; }
     
     [JsonPropertyName("strikethrough")]
     public bool Strikethrough { get; set; }
@@ -62,7 +63,11 @@ public class ChatComponent {
     public string ToHtml(bool clean = false) {
         if (Extra == null) return GetComponentHtml(clean);
         return Extra.Aggregate(GetComponentHtml(clean), 
-            (str, i) => str + i.ToHtml());
+            (str, i) => str + (
+                i is JsonElement el 
+                ? el.Deserialize<ChatComponent>()!.ToHtml() 
+                : ColorEncoding.ToHtml((string)i)
+            ));
     }
 
     /// <summary>
