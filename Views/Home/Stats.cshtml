@@ -6,25 +6,71 @@
 
 <div class="section">
     <div class="content">
-        <h2>General statistics</h2>
-        <p>This graph is updated hourly. Only entries for the last 24 hours are shown.</p>
-        <div id="general"></div>
-        
-        <h2>Modding statistics</h2>
-        <p>This graph is updated hourly. Only entries for the last 24 hours are shown.</p>
-        <div id="modding"></div>
-        
-        <h2>Custom software</h2>
-        <p>Only the 10 most popular are shown.</p>
-        <div id="software"></div>
+        <div class="card">
+            <header class="card-header">
+                <span class="card-header-title is-block">
+                    <span class="is-size-4">General statistics</span>
+                </span>
+            </header>
+            <div class="card-content">
+                <p>This graph is updated hourly. Only entries for the last 24 hours are shown.</p>
+                <div id="general"></div>
+            </div>
+        </div>
 
-        <h2>Minecraft versions</h2>
-        <p>Only the 10 most popular are shown.</p>
-        <div id="versions"></div>
-        
-        <h2>Forge mods</h2>
-        <p>Only the 10 most popular are shown.</p>
-        <div id="mods"></div>
+        <div class="card">
+            <header class="card-header">
+                <span class="card-header-title is-block">
+                    <span class="is-size-4">Modding statistics</span>
+                </span>
+            </header>
+            <div class="card-content">
+                <p>This graph is updated hourly. Only entries for the last 24 hours are shown.</p>
+                <div id="modding"></div>
+            </div>
+        </div>
+
+        <div class="columns">
+            <div class="column is-one-third">
+                <div class="card">
+                    <header class="card-header">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Custom software</span>
+                        </span>
+                    </header>
+                    <div class="card-content">
+                        <p>Only the 10 most popular are shown.</p>
+                        <div id="software"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-one-third">
+                <div class="card">
+                    <header class="card-header">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Minecraft versions</span>
+                        </span>
+                    </header>
+                    <div class="card-content">
+                        <p>Only the 10 most popular are shown.</p>
+                        <div id="versions"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-one-third">
+                <div class="card">
+                    <header class="card-header">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Forge mods</span>
+                        </span>
+                    </header>
+                    <div class="card-content">
+                        <p>Only the 10 most popular are shown.</p>
+                        <div id="mods"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -144,7 +190,7 @@
         series: getValues(software),
         chart: {
             foreColor: '#ccc',
-            width: 500,
+            width: '100%',
             type: 'pie',
         },
         labels: getLabels(software)
@@ -154,7 +200,7 @@
         series: getValues(versions),
         chart: {
             foreColor: '#ccc',
-            width: 500,
+            width: '100%',
             type: 'pie',
         },
         labels: getLabels(versions),
@@ -167,7 +213,7 @@
         series: getValues(forgeMods),
         chart: {
             foreColor: '#ccc',
-            width: 500,
+            width: '100%',
             type: 'pie',
         },
         labels: getLabels(forgeMods),
