@@ -166,9 +166,9 @@ public class Statistics {
                             }
                     }
 
-                Stats.SoftwarePopularity = software.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-                Stats.VersionPopularity = versions.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-                Stats.ForgeModsPopularity = mods.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+                Stats.SoftwarePopularity = software.OrderByDescending(x => x.Value).Take(10).ToDictionary(x => x.Key, x => x.Value);
+                Stats.VersionPopularity = versions.OrderByDescending(x => x.Value).Take(10).ToDictionary(x => x.Key, x => x.Value);
+                Stats.ForgeModsPopularity = mods.OrderByDescending(x => x.Value).Take(10).ToDictionary(x => x.Key, x => x.Value);
                 Stats.CollectAt = DateTime.UtcNow + TimeSpan.FromHours(1); watch.Stop();
                 Log.Information("Took {0} to collect statistics", watch.Elapsed);
                 Stats.Save();
