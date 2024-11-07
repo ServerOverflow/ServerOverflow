@@ -259,7 +259,7 @@
                         var players = server.Players.Where(
                             x => server.Ping.Players.Sample == null || 
                                  server.Ping.Players.Sample.All(y => y.UUID?.Replace("-", "") != x.Key));
-                        <h4>Offline players (@players.Count()</h4>
+                        <h4>Offline players (@players.Count())</h4>
                         foreach (var player in players) {
                             <div class="box">
                                 <div class="columns is-mobile">
