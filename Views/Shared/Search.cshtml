@@ -5,7 +5,7 @@
 
 <div class="section">
     <form method="GET">
-        <div class="field has-addons">
+        <div class="field has-addons mb-4">
             <div class="control is-medium is-expanded">
                 <input class="input" type="text" name="q" placeholder="Input your query here" value="@Model.Query">
             </div>
@@ -16,7 +16,7 @@
     </form>
     
     @if (Model.Items != null) {
-        <nav class="pagination is-centered mt-4">
+        <nav class="pagination is-centered">
             <a href="?q=@Model.Query&page=@(Model.CurrentPage - 10)" 
                class="pagination-previous @(Model.CurrentPage - 10 > 0 ? "" : "is-disabled")">&lt;&lt;</a>
             <a href="s?q=@Model.Query&page=@(Model.CurrentPage - 1)" 
