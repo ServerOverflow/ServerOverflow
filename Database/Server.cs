@@ -122,6 +122,11 @@ public class PassiveFingerprint {
     /// Was the SLP field order incorrect
     /// </summary>
     public bool IncorrectOrder { get; set; }
+    
+    /// <summary>
+    /// The incorrect order of fields
+    /// </summary>
+    public string? FieldOrder { get; set; }
 }
 
 /// <summary>

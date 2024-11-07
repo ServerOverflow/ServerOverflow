@@ -177,6 +177,10 @@
                                         <div class="is-size-6 has-text-grey-light">Incorrect Order</div>
                                         <b class="is-size-5">@(server.Fingerprint.Passive.IncorrectOrder ? "True" : "False")</b>
                                     </div>
+                                    <div class="column">
+                                        <div class="is-size-6 has-text-grey-light">Field Order</div>
+                                        <b class="is-size-5">@(server.Fingerprint.Passive.FieldOrder ?? "Correct")</b>
+                                    </div>
                                 </div>
                             }
                         </div>
