@@ -34,6 +34,12 @@ public class Server : Document {
     public DateTime? LastActive { get; set; }
 
     /// <summary>
+    /// Server list ping object
+    /// </summary>
+    [BsonElement("minecraft")]
+    public ServerListPing Ping { get; set; } = new();
+
+    /// <summary>
     /// Online mode guess
     /// </summary>
     public OnlineMode OnlineModeGuess { get; set; }
@@ -130,8 +136,14 @@ public class ServerListPing {
         /// Player sample
         /// </summary>
         public class SampleClass {
+            /// <summary>
+            /// Player's username
+            /// </summary>
             public string? Name { get; set; }
             
+            /// <summary>
+            /// Player's UUID
+            /// </summary>
             [BsonElement("id")]
             public string? UUID { get; set; }
         }
@@ -149,7 +161,7 @@ public class ServerListPing {
         /// <summary>
         /// Player samples
         /// </summary>
-        public List<SampleClass> Sample { get; set; }
+        public List<SampleClass> Sample { get; set; } = [];
     }
 
     /// <summary>
@@ -171,11 +183,11 @@ public class ServerListPing {
             /// </summary>
             public string? Version { get; set; }
         }
-        
+
         /// <summary>
         /// List of mods
         /// </summary>
-        public List<ModClass> ModList { get; set; }
+        public List<ModClass> ModList { get; set; } = [];
     }
         
     /// <summary>
@@ -197,12 +209,12 @@ public class ServerListPing {
             [BsonElement("modmarker")] 
             public string? Version { get; set; }
         }
-            
+
         /// <summary>
         /// List of mods
         /// </summary>
         [BsonElement("mods")]
-        public List<ModClass> ModList { get; set; }
+        public List<ModClass> ModList { get; set; } = [];
     }
     
     /// <summary>
@@ -247,6 +259,11 @@ public class ServerListPing {
     /// </summary>
     [BsonElement("enforcesSecureChat")] 
     public bool ChatReporting { get; set; }
+    
+    /// <summary>
+    /// Is this a forge server
+    /// </summary>
+    public bool IsForge { get; set; }
 
     /// <summary>
     /// Encodes the description into HTML

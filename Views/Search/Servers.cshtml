@@ -1,0 +1,196 @@
+﻿@model SearchModel<Server>
+@{
+    ViewData["Description"] = "Search servers";
+    ViewData["Title"] = "Servers";
+}
+
+<div class="section">
+    <div class="content">
+        @if (!string.IsNullOrWhiteSpace(Model.Message)) {
+            <div class="notification @(Model.Success ? "is-success" : "is-danger")">
+                <button class="delete"></button>
+                @Model.Message
+            </div>
+        }
+
+        @if (Model.Items == null) {
+            <div class="columns is-mobile is-centered">
+                <div class="column is-four-fifths">
+                    <form method="GET">
+                        <div class="field has-addons">
+                            <div class="control">
+                                <input class="input" type="text" value="@Model.Query" name="q">
+                            </div>
+                            <div class="control">
+                                <button class="button is-info">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <h2>Advanced query language</h2>
+            <p>ServerOverflow has an operator system, which works like this:</p>
+            <ul>
+                <li>Want to find a server with a specific MC version? You can use <code>version:1.19.2</code></li>
+                <li>Want to include servers with non-zero player count? You can use <code>-online:0</code></li>
+                <li>Want to be even more specific about it? You can use <code>version:"Paper 1.20.1"</code></li>
+                <li>Just want to search for keywords in MOTDs? Type it out <code>like so</code></li>
+                <li>Want to include only online servers? You can use <code>isOnline:true</code></li>
+                <li>Want to match multiple words? Put it in quotes <code>"like so"</code></li>
+            </ul>
+            <h2>List of operators</h2>
+            <ul>
+                <li><code>hasPlayer (string)</code> - match servers which has a specific player online (can be username or UUID)</li>
+                <li><code>allowsReporting (boolean)</code> - match servers that have or don't have chat reporting enabled</li>
+                <li><code>onlineMode (string)</code> - match servers by guessed online mode (online, offline, mixed)</li>
+                <li><code>hasMod (string)</code> - match servers that have a specific forge mod installed (mod ID)</li>
+                <li><code>hasForge (boolean)</code> - match servers that have or don't have Forge installed</li>
+                <li><code>online (integer)</code> - match servers with a specific current player count</li>
+                <li><code>protocol (integer)</code> - match servers with a specific protocol version</li>
+                <li><code>version (string)</code> - match servers with a specific version string</li>
+                <li><code>max (integer)</code> - match servers with a specific max player count</li>
+            </ul>
+            <h2>Operator types</h2>
+            <ul>
+                <li>Boolean - A binary true or false</li>
+                <li>Integer - A number without a sign</li>
+                <li>String - Basically just some text</li>
+            </ul>
+        } else {
+            <div class="columns is-mobile is-centered">
+                <div class="column is-four-fifths">
+                    <form method="GET">
+                        <div class="field has-addons">
+                            <div class="control">
+                                <input class="input" type="text" value="@Model.Query" name="q">
+                            </div>
+                            <div class="control">
+                                <button class="button is-info">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="columns is-mobile is-centered">
+                <div class="column">
+                    <nav class="pagination">
+                        <ul class="pagination-list">
+                            @if (Model.CurrentPage != 1) {
+                                <li><a href="/search/servers?q=@Model.Query&page=1" class="pagination-link">1</a></li>
+                            }
+                            @if (Model.CurrentPage - 5 > 0) {
+                                <li><a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage - 5)" class="pagination-link">@(Model.CurrentPage - 5)</a></li>
+                            }
+                            @if (Model.CurrentPage - 2 > 0) {
+                                <li><a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage - 2)" class="pagination-link">@(Model.CurrentPage - 2)</a></li>
+                            }
+                            @if (Model.CurrentPage - 1 > 0) {
+                                <li><a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage - 1)" class="pagination-link">@(Model.CurrentPage - 1)</a></li>
+                            }
+                            <li><a href="#" class="pagination-link is-current">@Model.CurrentPage</a></li>
+                            @if (Model.CurrentPage + 1 < Model.TotalPages) {
+                                <li><a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage + 1)" class="pagination-link">@(Model.CurrentPage + 1)</a></li>
+                            }
+                            @if (Model.CurrentPage + 2 < Model.TotalPages) {
+                                <li><a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage + 2)" class="pagination-link">@(Model.CurrentPage + 2)</a></li>
+                            }
+                            @if (Model.CurrentPage + 5 < Model.TotalPages) {
+                                <li><a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage + 5)" class="pagination-link">@(Model.CurrentPage + 5)</a></li>
+                            }
+                            @if (Model.CurrentPage != Model.TotalPages - 1) {
+                                <li><a href="/search/servers?q=@Model.Query&page=@(Model.TotalPages - 1)" class="pagination-link">@(Model.TotalPages - 1)</a></li>
+                            }
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+            @foreach (var server in Model.Items) {
+                <div class="card">
+                    <header class="card-header">
+                        <span class="card-header-title is-block">
+                            <div class="columns is-mobile">
+                                <div class="column">
+                                    <figure class="image is-96x96 is-server-icon">
+                                        <img src="@(server.Ping.Favicon ?? "/img/default.png")" alt="Favicon"/>
+                                    </figure>
+                                </div>
+                                <div class="column rows">
+                                    <div class="row is-full">
+                                        <a class="ip" href="https://mcsrvstat.us/server/@server.IP:@server.Port">
+                                            <b>@server.IP:@server.Port</b>
+                                        </a>
+                                    </div>
+                                    <div class="row is-full">
+                                        @Html.Raw(server.Ping.DescriptionToHtml())
+                                    </div>
+                                </div>
+                            </div>
+                        </span>
+                    </header>
+                    <div class="card-inner" style="display: none;">
+                        <div class="card-content">
+                            <div class="content">
+                                <div class="tags has-addons">
+                                    <span class="tag is-info">Chat Reporting</span>
+                                    @if (server.Ping.ChatReporting) {
+                                        <span class="tag is-danger">
+                                            <span class="icon is-small">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </span>
+                                        </span>
+                                    } else {
+                                        <span class="tag is-success">
+                                            <span class="icon is-small">
+                                                <i class="fa-solid fa-check"></i>
+                                            </span>
+                                        </span>
+                                    }
+                                </div>
+                                <div class="tags has-addons">
+                                    <span class="tag is-info">Forge</span>
+                                    @if (server.Ping.IsForge) {
+                                        <span class="tag is-danger">
+                                            <span class="icon is-small">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </span>
+                                        </span>
+                                    } else {
+                                        <span class="tag is-success">
+                                            <span class="icon is-small">
+                                                <i class="fa-solid fa-check"></i>
+                                            </span>
+                                        </span>
+                                    }
+                                </div>
+                                <div class="tags has-addons">
+                                    <span class="tag is-info">Protocol</span>
+                                    @if (server.Ping.Version?.Protocol != null) {
+                                        <span class="tag is-success">@server.Ping.Version?.Protocol</span>
+                                    } else {
+                                        <span class="tag is-dark">Unknown</span>
+                                    }
+                                </div>
+                                <div class="tags has-addons">
+                                    <span class="tag is-info">Version</span>
+                                    @if (server.Ping.Version?.Name != null) {
+                                        <span class="tag is-success">@server.Ping.Version?.Name</span>
+                                    } else {
+                                        <span class="tag is-dark">Unknown</span>
+                                    }
+                                </div>
+                                <div class="tags has-addons">
+                                    <span class="tag is-info">Players</span>
+                                    @if (server.Ping.Players is { Online: not null, Max: not null }) {
+                                        <span class="tag is-success">@server.Ping.Players.Online/@server.Ping.Players.Max</span>
+                                    } else {
+                                        <span class="tag is-dark">Unknown</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
