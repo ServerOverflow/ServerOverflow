@@ -27,7 +27,7 @@
                class="pagination-next is-right @(Model.CurrentPage + 10 < Model.TotalPages ? "" : "is-disabled")">&gt;&gt;</a>
             <ul class="pagination-list">
                 @if (Model.CurrentPage > 2) {
-                    <li><a href="/?q=@Model.Query&page=1" class="pagination-link">1</a></li>
+                    <li><a href="?q=@Model.Query&page=1" class="pagination-link">1</a></li>
                     <li><span class="pagination-ellipsis">&hellip;</span></li>
                 }
                 @if (Model.CurrentPage - 10 > 0) {
