@@ -40,7 +40,7 @@ public static class ColorEncoding {
     /// <returns>Converted HTML</returns>
     public static string ToHtml(string? str, bool clean = false) {
         if (str == null) return "";
-        var output = "<a>";
+        var output = "<span>";
         var expectChar = false;
         var ending = "";
         var character = '&';
@@ -72,7 +72,7 @@ public static class ColorEncoding {
 
             switch (i) {
                 case '\n':
-                    output += "</a></h5><h5><a>";
+                    output += "</span></h5><h5><span>";
                     break;
                 case '&':
                     character = '&';

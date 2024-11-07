@@ -59,9 +59,9 @@ public class ChatComponent {
         if (Text.Contains('§') || Text.Contains('&'))
             return ColorEncoding.ToHtml(Text, clean);
         var enc = HttpUtility.HtmlEncode(Text);
-        if (clean) return $"<a>{enc}</a>"; var code = "#FFFFFF";
+        if (clean) return $"<span>{enc}</span>"; var code = "#FFFFFF";
         if (_mapping.TryGetValue(Color, out var value)) code = value;
-        var output = $"<a style=\"color: {code};\">{enc}</a>";
+        var output = $"<span style=\"color: {code};\">{enc}</span>";
         if (Obfuscated) output = $"<obf>{output}</obf>";
         if (Strikethrough) output = $"<s>{output}</s>";
         if (Underlined) output = $"<u>{output}</u>";
