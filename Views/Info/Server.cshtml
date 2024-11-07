@@ -109,36 +109,36 @@
                     <div class="card-content">
                         <div class="columns">
                             <div class="column">
-                                <span class="is-size-6 has-text-grey-light">Last seen</span>
-                                <span>@((DateTime.UtcNow - server.LastSeen).Humanize())</span>
+                                <div class="is-size-6 has-text-grey-light">Last seen</div>
+                                <b class="is-size-5">@(server.LastSeen.Humanize())</b>
                             </div>
                             <div class="column">
-                                <span class="is-size-6 has-text-grey-light">Online mode (guess)</span>
-                                <span class="is-size-5">
+                                <div class="is-size-6 has-text-grey-light">Online mode (guess)</div>
+                                <b class="is-size-5">
                                     @(server.OnlineModeGuess switch {
                                         OnlineMode.Offline => "Disabled",
                                         OnlineMode.Online => "Enabled",
                                         OnlineMode.Mixed => "Either",
                                         _ => "Unknown"
                                     })
-                                </span>
+                                </b>
                             </div>
                         </div>
                         <div class="columns">
                             <div class="column">
-                                <span class="is-size-6 has-text-grey-light">Last seen empty</span>
+                                <div class="is-size-6 has-text-grey-light">Last seen empty</div>
                                 @if (server.LastEmpty != null) {
-                                    <span class="is-size-5">@((DateTime.UtcNow - server.LastEmpty.Value).Humanize())</span>
+                                    <b class="is-size-5">@(server.LastEmpty.Value.Humanize())</b>
                                 } else {
-                                    <span class="is-size-5">Never</span>
+                                    <b class="is-size-5">Never</b>
                                 }
                             </div>
                             <div class="column">
-                                <span class="is-size-6 has-text-grey-light">Last seen active</span>
+                                <div class="is-size-6 has-text-grey-light">Last seen active</div>
                                 @if (server.LastActive != null) {
-                                    <span class="is-size-5">@((DateTime.UtcNow - server.LastActive.Value).Humanize())</span>
+                                    <b class="is-size-5">@(server.LastActive.Value.Humanize())</b>
                                 } else {
-                                    <span class="is-size-5">Never</span>
+                                    <b class="is-size-5">Never</b>
                                 }
                             </div>
                         </div>
@@ -151,7 +151,7 @@
                         <span class="card-header-title is-block">
                             <span class="is-size-4">Passive Fingerprint</span>
                         </span>
-                        <button class="card-header-icon">
+                        <button class="card-header-icon card-expand">
                             <span class="icon">
                                 <i class="fas fa-angle-down" aria-hidden="true"></i>
                             </span>
@@ -164,18 +164,18 @@
                             } else {
                                 <div class="columns">
                                     <div class="column">
-                                        <span class="is-size-6 has-text-grey-light">Empty Favicon</span>
-                                        <span>@(server.Fingerprint.Passive.EmptyFavicon ? "True" : "False")</span>
+                                        <div class="is-size-6 has-text-grey-light">Empty Favicon</div>
+                                        <b class="is-size-5">@(server.Fingerprint.Passive.EmptyFavicon ? "True" : "False")</b>
                                     </div>
                                     <div class="column">
-                                        <span class="is-size-6 has-text-grey-light">Empty Sample</span>
-                                        <span>@(server.Fingerprint.Passive.EmptySample ? "True" : "False")</span>
+                                        <div class="is-size-6 has-text-grey-light">Empty Sample</div>
+                                        <b class="is-size-5">@(server.Fingerprint.Passive.EmptySample ? "True" : "False")</b>
                                     </div>
                                 </div>
                                 <div class="columns">
                                     <div class="column">
-                                        <span class="is-size-6 has-text-grey-light">Incorrect Order</span>
-                                        <span>@(server.Fingerprint.Passive.IncorrectOrder ? "True" : "False")</span>
+                                        <div class="is-size-6 has-text-grey-light">Incorrect Order</div>
+                                        <b class="is-size-5">@(server.Fingerprint.Passive.IncorrectOrder ? "True" : "False")</b>
                                     </div>
                                 </div>
                             }
@@ -189,7 +189,7 @@
                         <span class="card-header-title is-block">
                             <span class="is-size-4">Active Fingerprint</span>
                         </span>
-                        <button class="card-header-icon">
+                        <button class="card-header-icon card-expand">
                             <span class="icon">
                                 <i class="fas fa-angle-down" aria-hidden="true"></i>
                             </span>
@@ -202,12 +202,12 @@
                             } else {
                                 <div class="columns">
                                     <div class="column">
-                                        <span class="is-size-6 has-text-grey-light">Timestamp</span>
-                                        <span>@((DateTime.UtcNow - server.Fingerprint.Active.Timestamp).Humanize())</span>
+                                        <div class="is-size-6 has-text-grey-light">Timestamp</div>
+                                        <b class="is-size-5">@(server.Fingerprint.Active.Timestamp.Humanize())</b>
                                     </div>
                                     <div class="column">
-                                        <span class="is-size-6 has-text-grey-light">Software</span>
-                                        <span>@(server.Fingerprint.Active.Software)</span>
+                                        <div class="is-size-6 has-text-grey-light">Software</div>
+                                        <b class="is-size-5">@(server.Fingerprint.Active.Software)</b>
                                     </div>
                                 </div>
                             }
@@ -227,9 +227,8 @@
             <div class="card-content">
                 @if (server.Ping.Players == null) {
                     <span>Player information is not available</span>
-                }
-                else {
-                    <h2>Online players (@server.Ping.Players.Online)</h2>
+                } else {
+                    <h4>Online players (@server.Ping.Players.Online)</h4>
                     @if (server.Ping.Players.Sample != null)
                         foreach (var player in server.Ping.Players.Sample) {
                             var entry = server.Players![player.UUID!];
@@ -256,7 +255,7 @@
                         }
 
                     @if (server.Players != null) {
-                        <h2>Offline players (@server.Ping.Players.Online)</h2>
+                        <h4>Offline players (@server.Ping.Players.Online)</h4>
                         foreach (var player in server.Players!) {
                             if (server.Ping.Players.Sample != null &&
                                 server.Ping.Players.Sample.Any(x => x.UUID == player.Key)) continue;
