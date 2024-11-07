@@ -1,0 +1,109 @@
+﻿@model SearchModel<object>
+
+<div class="section">
+    <form method="GET">
+        <div class="field has-addons">
+            <div class="control is-medium is-expanded">
+                <input class="input" type="text" name="q" placeholder="Input your query here" value="@Model.Query">
+            </div>
+            <div class="control is-medium">
+                <button class="button is-info">Search</button>
+            </div>
+        </div>
+    </form>
+    
+    @if (Model.Items != null) {
+        <nav class="pagination is-centered mt-4">
+            <a href="?q=@Model.Query&page=@(Model.CurrentPage - 10)" 
+               class="pagination-previous @(Model.CurrentPage - 10 > 0 ? "" : "is-disabled")">&lt;&lt;</a>
+            <a href="s?q=@Model.Query&page=@(Model.CurrentPage - 1)" 
+               class="pagination-previous @(Model.CurrentPage - 1 > 0 ? "" : "is-disabled")">&lt;</a>
+            <a href="?q=@Model.Query&page=@(Model.CurrentPage + 1)"
+               class="pagination-next is-right @(Model.CurrentPage + 1 < Model.TotalPages ? "" : "is-disabled")">&gt;</a>
+            <a href="?q=@Model.Query&page=@(Model.CurrentPage + 10)"
+               class="pagination-next is-right @(Model.CurrentPage + 10 < Model.TotalPages ? "" : "is-disabled")">&gt;&gt;</a>
+            <ul class="pagination-list">
+                @if (Model.CurrentPage > 2) {
+                    <li><a href="/?q=@Model.Query&page=1" class="pagination-link">1</a></li>
+                    <li><span class="pagination-ellipsis">&hellip;</span></li>
+                }
+                @if (Model.CurrentPage - 10 > 0) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage - 10)" class="pagination-link">@(Model.CurrentPage - 10)</a></li>
+                }
+                @if (Model.CurrentPage - 5 > 0) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage - 5)" class="pagination-link">@(Model.CurrentPage - 5)</a></li>
+                }
+                @if (Model.CurrentPage - 1 > 0) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage - 1)" class="pagination-link">@(Model.CurrentPage - 1)</a></li>
+                }
+                <li><a class="pagination-link is-current">@Model.CurrentPage</a></li>
+                @if (Model.CurrentPage + 1 < Model.TotalPages) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage + 1)" class="pagination-link">@(Model.CurrentPage + 1)</a></li>
+                }
+                @if (Model.CurrentPage + 5 < Model.TotalPages) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage + 5)" class="pagination-link">@(Model.CurrentPage + 5)</a></li>
+                }
+                @if (Model.CurrentPage + 10 < Model.TotalPages) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage + 10)" class="pagination-link">@(Model.CurrentPage + 10)</a></li>
+                }
+                @if (Model.CurrentPage != Model.TotalPages - 1) {
+                    <li><span class="pagination-ellipsis">&hellip;</span></li>
+                    <li><a href="?q=@Model.Query&page=@(Model.TotalPages - 1)" class="pagination-link">@(Model.TotalPages - 1)</a></li>
+                }
+            </ul>
+        </nav>
+    }
+    
+    <div class="content">
+        @if (!string.IsNullOrWhiteSpace(Model.Message)) {
+            <div class="notification @(Model.Success ? "is-success" : "is-danger")">
+                <button class="delete"></button>
+                @Model.Message
+            </div>
+        }
+
+        @RenderBody()
+    </div>
+
+    @if (Model.Items != null) {
+        <nav class="pagination is-centered">
+            <a href="?q=@Model.Query&page=@(Model.CurrentPage - 10)"
+               class="pagination-previous @(Model.CurrentPage - 10 > 0 ? "" : "is-disabled")">&lt;&lt;</a>
+            <a href="s?q=@Model.Query&page=@(Model.CurrentPage - 1)"
+               class="pagination-previous @(Model.CurrentPage - 1 > 0 ? "" : "is-disabled")">&lt;</a>
+            <a href="?q=@Model.Query&page=@(Model.CurrentPage + 1)"
+               class="pagination-next is-right @(Model.CurrentPage + 1 < Model.TotalPages ? "" : "is-disabled")">&gt;</a>
+            <a href="?q=@Model.Query&page=@(Model.CurrentPage + 10)"
+               class="pagination-next is-right @(Model.CurrentPage + 10 < Model.TotalPages ? "" : "is-disabled")">&gt;&gt;</a>
+            <ul class="pagination-list">
+                @if (Model.CurrentPage > 2) {
+                    <li><a href="/?q=@Model.Query&page=1" class="pagination-link">1</a></li>
+                    <li><span class="pagination-ellipsis">&hellip;</span></li>
+                }
+                @if (Model.CurrentPage - 10 > 0) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage - 10)" class="pagination-link">@(Model.CurrentPage - 10)</a></li>
+                }
+                @if (Model.CurrentPage - 5 > 0) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage - 5)" class="pagination-link">@(Model.CurrentPage - 5)</a></li>
+                }
+                @if (Model.CurrentPage - 1 > 0) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage - 1)" class="pagination-link">@(Model.CurrentPage - 1)</a></li>
+                }
+                <li><a class="pagination-link is-current">@Model.CurrentPage</a></li>
+                @if (Model.CurrentPage + 1 < Model.TotalPages) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage + 1)" class="pagination-link">@(Model.CurrentPage + 1)</a></li>
+                }
+                @if (Model.CurrentPage + 5 < Model.TotalPages) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage + 5)" class="pagination-link">@(Model.CurrentPage + 5)</a></li>
+                }
+                @if (Model.CurrentPage + 10 < Model.TotalPages) {
+                    <li><a href="?q=@Model.Query&page=@(Model.CurrentPage + 10)" class="pagination-link">@(Model.CurrentPage + 10)</a></li>
+                }
+                @if (Model.CurrentPage != Model.TotalPages - 1) {
+                    <li><span class="pagination-ellipsis">&hellip;</span></li>
+                    <li><a href="?q=@Model.Query&page=@(Model.TotalPages - 1)" class="pagination-link">@(Model.TotalPages - 1)</a></li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
