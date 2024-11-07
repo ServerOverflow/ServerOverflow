@@ -35,12 +35,17 @@
             <div class="navbar-start">
                 <a class="navbar-item" asp-controller="Home" asp-action="Index">Home</a>
                 <a class="navbar-item" asp-controller="Home" asp-action="FAQ">FAQ</a>
+                <div class="navbar-item has-dropdown is-hoverable">
+                    <a class="navbar-link">Search</a>
+                    <div class="navbar-dropdown">
+                        <a class="navbar-item" asp-controller="Search" asp-action="Accounts">Accounts</a>
+                    </div>
+                </div>
             </div>
             <div class="navbar-end">
                 @if (account != null) {
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">@account.Username</a>
-
                         <div class="navbar-dropdown">
                             <a class="navbar-item" asp-controller="User" asp-action="Profile">Profile</a>
                             <a class="navbar-item" asp-controller="User" asp-action="Manage">Manage</a>

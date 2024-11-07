@@ -1,7 +1,10 @@
-﻿@{
+﻿@using Controller = ServerOverflow.Database.Controller
+@{
     ViewData["Description"] = "Home Page";
     ViewData["Title"] = "Home";
     Layout = "Markdown";
+
+    var amount = await Controller.Servers.EstimatedCount();
 }
 
 ## Welcome to ServerOverflow!
@@ -10,7 +13,8 @@ Check out the FAQ if you would like to opt out, or simply know more about how it
 
 ## Disclaimer
 Most of the features described in the FAQ or the home page don't exist yet, including statistics. \
-For now, the only thing that is functioning is the server scanner.
+For now, the only thing that is functioning is the server scanner. \
+Though, here's the amount servers we have in our DB: `@amount`
 
 ## Statistics
 The scanner periodically generates statistics reports that I think would be interesting to share. \

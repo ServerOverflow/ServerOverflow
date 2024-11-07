@@ -11,7 +11,8 @@ public static class Controller {
     public static readonly IMongoCollection<Account> Accounts;
     public static readonly IMongoCollection<Invitation> Invitations;
     public static readonly IMongoCollection<Exclusion> Exclusions;
-    //public static readonly IMongoCollection<Server> Servers;
+    public static readonly IMongoCollection<Server> Servers;
+    public static readonly IMongoCollection<BadIP> BadIPs;
     
     /// <summary>
     /// Initializes the MongoDB database
@@ -29,6 +30,7 @@ public static class Controller {
         Invitations = database.GetCollection<Invitation>("invitations");
         var matscan = client.GetDatabase("matscan");
         Exclusions = matscan.GetCollection<Exclusion>("exclusions");
-        //Servers = database.GetCollection<Server>("servers");
+        Servers = database.GetCollection<Server>("servers");
+        BadIPs = database.GetCollection<BadIP>("bad_servers");
     }
 }

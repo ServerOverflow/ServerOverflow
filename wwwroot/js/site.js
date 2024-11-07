@@ -36,6 +36,18 @@
         obj.parent().slideUp();
     });
 
+    $(".card-expand").click(function() {
+        let inner = $(this).parent().parent().find(".card-inner");
+        let expanded = inner.data("expanded");
+        if (expanded === true) {
+            inner.data("expanded", false);
+            inner.slideUp();
+        } else {
+            inner.data("expanded", true);
+            inner.slideDown();
+        }
+    });
+
     $(".open-modal").click(function() {
         let obj = $(this); let target = obj.data("target");
         $(target).show().fadeTo(200, 1);
