@@ -151,18 +151,7 @@
             width: 500,
             type: 'pie',
         },
-        labels: getLabels(software),
-        responsive: [{
-            breakpoint: 480,
-            options: {
-                chart: {
-                    width: 200
-                },
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }]
+        labels: getLabels(software)
     }).render();
 
     new ApexCharts($("#versions")[0], {
