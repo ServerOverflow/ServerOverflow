@@ -19,6 +19,12 @@ if (accounts == 0 && invites == 0) {
     Log.Warning("Use this code: {0}", invite.Code);
 }
 
+Log.Information("Scraping protocol versions");
+await Protocol.Generate();
+
+Log.Information("Starting statistics collector");
+new Thread(async () => await Statistics.ProcessorThread()).Start();
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {

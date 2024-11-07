@@ -103,15 +103,19 @@
                             </div>
                                     
                             <div class="control">
-                                @if (server.Ping.ChatReporting) {
-                                    <span class="tag is-info">Chat Reporting</span>
-                                }
+                                <div class="tags has-addons">
+                                    @if (server.Ping.ChatReporting) {
+                                        <span class="tag is-info">Chat Reporting</span>
+                                    }
+                                </div>
                             </div>
                                     
                             <div class="control">
-                                @if (server.Ping.IsForge) {
-                                    <span class="tag is-info">Forge</span>
-                                }
+                                <div class="tags has-addons">
+                                    @if (server.Ping.IsForge) {
+                                        <span class="tag is-info">Forge</span>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
