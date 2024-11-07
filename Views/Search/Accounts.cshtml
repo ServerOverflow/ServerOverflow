@@ -13,12 +13,12 @@
         @foreach (var account in accounts) {
             var invitee = account.Invitee != null ? await Account.Get(account.Invitee!.ToString()!) : null;
             <div class="card">
-                <header class="card-header">
+                <header class="card-header card-expand">
                     <span class="card-header-title is-block">
                         <a href="/user/profile/@account.Id">@account.Username</a>
                         <code>@account.BadgeText</code>
                     </span>
-                    <button class="card-header-icon card-expand">
+                    <button class="card-header-icon">
                         <span class="icon">
                             <i class="fas fa-angle-down" aria-hidden="true"></i>
                         </span>
