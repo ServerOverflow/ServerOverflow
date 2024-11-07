@@ -256,10 +256,11 @@
                         }
 
                     @if (server.Players != null) {
-                        <h4>Offline players (@server.Ping.Players.Online)</h4>
-                        foreach (var player in server.Players!) {
-                            if (server.Ping.Players.Sample != null &&
-                                server.Ping.Players.Sample.Any(x => x.UUID?.Replace("-", "") == player.Key)) continue;
+                        var players = server.Players.Where(
+                            x => server.Ping.Players.Sample == null || 
+                                 server.Ping.Players.Sample.All(y => y.UUID?.Replace("-", "") != x.Key));
+                        <h4>Offline players (@players.Count()</h4>
+                        foreach (var player in players) {
                             <div class="box">
                                 <div class="columns is-mobile">
                                     <div class="column is-narrow">
