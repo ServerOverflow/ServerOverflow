@@ -70,7 +70,6 @@
     let chatReporting = [@string.Join(",", Stats.ChatReporting.Take(24))];
     let totalServers = [@string.Join(",", Stats.TotalServers.Take(24))];
     let forgeServers = [@string.Join(",", Stats.ForgeServers.Take(24))];
-    let onlineMode = [@string.Join(",", Stats.OnlineMode.Take(24))];
     let antiDDoS = [@string.Join(",", Stats.AntiDDoS.Take(24))];
     
     new ApexCharts($("#general")[0], {
@@ -80,9 +79,6 @@
         }, {
             name: 'Chat reporting enabled',
             data: get(chatReporting, 24)
-        }, {
-            name: 'Online mode enabled',
-            data: get(onlineMode, 24)
         }, {
             name: 'Anti-DDoS proxy',
             data: get(antiDDoS, 24)
