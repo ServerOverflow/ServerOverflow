@@ -37,7 +37,7 @@
     });
 
     $(".card-expand").click(function() {
-        let inner = $(this).parent().parent().find(".card-inner");
+        let inner = $(this).parent().find(".card-inner");
         let expanded = inner.data("expanded");
         if (expanded === true) {
             inner.data("expanded", false);
