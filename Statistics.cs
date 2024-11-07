@@ -142,7 +142,7 @@ public class Statistics {
                             else versions[mapping] += 1;
                         }
                         
-                        if (server.Ping.ModernForgeMods != null)
+                        if (server.Ping.ModernForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.ModernForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
                                 if (!mods.TryGetValue(mod.ModId, out _))
@@ -150,7 +150,7 @@ public class Statistics {
                                 else mods[mod.ModId] += 1;
                             }
                         
-                        if (server.Ping.LegacyForgeMods != null)
+                        if (server.Ping.LegacyForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.LegacyForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
                                 if (!mods.TryGetValue(mod.ModId, out _))

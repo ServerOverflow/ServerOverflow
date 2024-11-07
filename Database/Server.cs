@@ -161,7 +161,7 @@ public class ServerListPing {
         /// <summary>
         /// Player samples
         /// </summary>
-        public List<SampleClass> Sample { get; set; } = [];
+        public List<SampleClass>? Sample { get; set; } = [];
     }
 
     /// <summary>
@@ -187,7 +187,7 @@ public class ServerListPing {
         /// <summary>
         /// List of mods
         /// </summary>
-        public List<ModClass> ModList { get; set; } = [];
+        public List<ModClass>? ModList { get; set; } = [];
     }
         
     /// <summary>
@@ -214,7 +214,7 @@ public class ServerListPing {
         /// List of mods
         /// </summary>
         [BsonElement("mods")]
-        public List<ModClass> ModList { get; set; } = [];
+        public List<ModClass>? ModList { get; set; } = [];
     }
     
     /// <summary>
