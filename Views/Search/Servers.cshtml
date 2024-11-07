@@ -13,21 +13,22 @@
             </div>
         }
 
-        @if (Model.Items == null) {
-            <div class="columns is-mobile is-centered">
-                <div class="column is-four-fifths">
-                    <form method="GET">
-                        <div class="field has-addons">
-                            <div class="control">
-                                <input class="input" type="text" value="@Model.Query" name="q">
-                            </div>
-                            <div class="control">
-                                <button class="button is-info">Search</button>
-                            </div>
+        <div class="columns is-mobile is-centered">
+            <div class="column is-four-fifths">
+                <form method="GET">
+                    <div class="field has-addons">
+                        <div class="control is-expanded">
+                            <input class="input" type="text" name="q" placeholder="Input your query here" value="@Model.Query">
                         </div>
-                    </form>
-                </div>
+                        <div class="control">
+                            <button class="button is-info">Search</button>
+                        </div>
+                    </div>
+                </form>
             </div>
+        </div>
+        
+        @if (Model.Items == null) {
             <h2>Advanced query language</h2>
             <p>ServerOverflow has an operator system, which works like this:</p>
             <ul>
@@ -57,20 +58,6 @@
                 <li>String - Basically just some text</li>
             </ul>
         } else {
-            <div class="columns is-mobile is-centered">
-                <div class="column is-four-fifths">
-                    <form method="GET">
-                        <div class="field has-addons">
-                            <div class="control">
-                                <input class="input" type="text" value="@Model.Query" name="q">
-                            </div>
-                            <div class="control">
-                                <button class="button is-info">Search</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
             <div class="columns is-mobile is-centered">
                 <div class="column">
                     <nav class="pagination">

@@ -32,7 +32,6 @@ public class SearchController : Controller {
         if (model.CurrentPage < 1)
             model.CurrentPage = 1;
         
-        
         try {
             var doc = Query.Servers(model.Query!);
             var find = Database.Controller.Servers.Find(doc);

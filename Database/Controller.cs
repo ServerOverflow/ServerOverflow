@@ -19,8 +19,11 @@ public static class Controller {
     /// </summary>
     static Controller() {
         Log.Information("Initializing MongoDB controller");
-        var camelCaseConventionPack = new ConventionPack { new CamelCaseElementNameConvention() };
-        ConventionRegistry.Register("CamelCase", camelCaseConventionPack, _ => true);
+        var pack = new ConventionPack {
+            new IgnoreExtraElementsConvention(true),
+            new CamelCaseElementNameConvention()
+        };
+        ConventionRegistry.Register("ServerOverflow", pack, _ => true);
         var client = new MongoClient(new MongoClientSettings {
             Server = new MongoServerAddress("localhost"),
             MaxConnectionPoolSize = 500
