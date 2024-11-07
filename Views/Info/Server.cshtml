@@ -234,9 +234,9 @@
                             if (server.Players == null || player.UUID == null) continue;
                             var entry = server.Players[player.UUID.Replace("-", "")];
                             <div class="box">
-                                <div class="columns is-mobile mb-0">
+                                <div class="columns is-mobile">
                                     <div class="column is-narrow">
-                                        <figure class="image is-96x96">
+                                        <figure class="image is-64x64">
                                             <img class="is-server-icon" src="https://mc-heads.net/avatar/@player.UUID" alt="Player head"/>
                                         </figure>
                                     </div>
@@ -248,7 +248,7 @@
                                         </div>
                                         <div class="row is-full">
                                             <span class="is-size-6 has-text-grey-light">Last seen</span>
-                                            <span>@((DateTime.UtcNow - entry.LastSeen).Humanize())</span>
+                                            <span>@(entry.LastSeen.Humanize())</span>
                                         </div>
                                     </div>
                                 </div>
@@ -261,9 +261,9 @@
                             if (server.Ping.Players.Sample != null &&
                                 server.Ping.Players.Sample.Any(x => x.UUID == player.Key)) continue;
                             <div class="box">
-                                <div class="columns is-mobile mb-0">
+                                <div class="columns is-mobile">
                                     <div class="column is-narrow">
-                                        <figure class="image is-96x96">
+                                        <figure class="image is-64x64">
                                             <img class="is-server-icon" src="https://mc-heads.net/avatar/@player.Key" alt="Player head"/>
                                         </figure>
                                     </div>
@@ -275,7 +275,7 @@
                                         </div>
                                         <div class="row is-full">
                                             <span class="is-size-6 has-text-grey-light">Last seen</span>
-                                            <span>@((DateTime.UtcNow - player.Value.LastSeen).Humanize())</span>
+                                            <span>@(player.Value.LastSeen.Humanize())</span>
                                         </div>
                                     </div>
                                 </div>
