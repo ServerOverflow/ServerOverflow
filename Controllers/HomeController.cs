@@ -12,6 +12,9 @@ public class HomeController : Controller {
     [Route("faq")]
     public IActionResult FAQ() => View();
     
+    [Route("stats")]
+    public IActionResult Stats() => View();
+    
     [Route("error")]
     public IActionResult Error() => View();
 }

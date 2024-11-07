@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="~/lib/bulma/bulma.min.css"/>
     <link rel="stylesheet" href="~/lib/bulma-checkbox/bulma.min.css"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <script src="~/lib/apexcharts/apexcharts.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
 </head>
 <body class="theme-dark">
 <header class="header">
@@ -35,6 +37,7 @@
             <div class="navbar-start">
                 <a class="navbar-item" asp-controller="Home" asp-action="Index">Home</a>
                 <a class="navbar-item" asp-controller="Home" asp-action="FAQ">FAQ</a>
+                <a class="navbar-item" asp-controller="Home" asp-action="Stats">Statistics</a>
                 <div class="navbar-item has-dropdown is-hoverable">
                     <a class="navbar-link">Search</a>
                     <div class="navbar-dropdown">
@@ -69,7 +72,6 @@
 </header>
 @RenderBody()
 
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 </body>
 </html>

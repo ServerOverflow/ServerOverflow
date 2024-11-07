@@ -68,17 +68,17 @@ public class Statistics {
     /// <summary>
     /// What custom software are the most popular
     /// </summary>
-    public List<string> SoftwarePopularity { get; set; } = ["Not populated yet, please wait for a bit :3"];
+    public Dictionary<string, int> SoftwarePopularity { get; set; } = new();
     
     /// <summary>
     /// What versions are the most popular
     /// </summary>
-    public List<string> VersionPopularity { get; set; } = ["Not populated yet, please wait for a bit :3"];
+    public Dictionary<string, int> VersionPopularity { get; set; } = new();
     
     /// <summary>
     /// What forge mods are the most popular
     /// </summary>
-    public List<string> ForgeModsPopularity { get; set; } = ["Not populated yet, please wait for a bit :3"];
+    public Dictionary<string, int> ForgeModsPopularity { get; set; } = new();
     
     /// <summary>
     /// When should statistics be collected again
@@ -95,7 +95,14 @@ public class Statistics {
                     await Task.Delay(Stats.CollectAt - DateTime.UtcNow);
                 Log.Information("Collecting server statistics");
                 var watch = new Stopwatch(); watch.Start();
-
+                
+                if (Stats.TotalServers.Count >= 720) Stats.TotalServers.RemoveAt(0);
+                if (Stats.ChatReporting.Count >= 720) Stats.ChatReporting.RemoveAt(0);
+                if (Stats.OnlineMode.Count >= 720) Stats.OnlineMode.RemoveAt(0);
+                if (Stats.ForgeServers.Count >= 720) Stats.ForgeServers.RemoveAt(0);
+                if (Stats.CustomSoftware.Count >= 720) Stats.CustomSoftware.RemoveAt(0);
+                if (Stats.AntiDDoS.Count >= 720) Stats.AntiDDoS.RemoveAt(0);
+                
                 Stats.TotalServers.Add((int)await Controller.Servers.Count(x => true));
                 Stats.ChatReporting.Add((int)await Controller.Servers.Count(x => x.Ping.ChatReporting));
                 Stats.OnlineMode.Add((int)await Controller.Servers.Count(x => x.OnlineModeGuess == Database.OnlineMode.Online));
@@ -159,9 +166,9 @@ public class Statistics {
                             }
                     }
 
-                Stats.SoftwarePopularity = software.OrderByDescending(x => x.Value).Select(x => x.Key).ToList();
-                Stats.VersionPopularity = versions.OrderByDescending(x => x.Value).Select(x => x.Key).ToList();
-                Stats.ForgeModsPopularity = mods.OrderByDescending(x => x.Value).Select(x => x.Key).ToList();
+                Stats.SoftwarePopularity = software.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+                Stats.VersionPopularity = versions.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+                Stats.ForgeModsPopularity = mods.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
                 Stats.CollectAt = DateTime.UtcNow + TimeSpan.FromHours(1); watch.Stop();
                 Log.Information("Took {0} to collect statistics", watch.Elapsed);
                 Stats.Save();
