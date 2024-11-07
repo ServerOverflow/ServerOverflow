@@ -21,6 +21,7 @@ public class Server : Document {
     /// <summary>
     /// When was the server last seen
     /// </summary>
+    [BsonElement("timestamp")]
     public DateTime LastSeen { get; set; }
     
     /// <summary>
