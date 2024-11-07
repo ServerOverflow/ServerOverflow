@@ -46,6 +46,14 @@
         
         return out;
     }
+
+    function getValues(dict) {
+        let list = [];
+        for (let i = 0; i < dict.length; i++)
+            list.push(dict[i][1]);
+
+        return list;
+    }
     
     function getLabels(dict) {
         let list = [];
@@ -84,7 +92,7 @@
             type: 'area'
         },
         dataLabels: {
-            enabled: true
+            enabled: false
         },
         stroke: {
             curve: 'smooth'
@@ -96,13 +104,6 @@
             enabledOnSeries: false,
             x: {
                 format: 'HH:mm'
-            }
-        },
-        yaxis: {
-            labels: {
-                formatter: function (value) {
-                    return `${value} servers`;
-        		}
             }
         }
     });
@@ -124,7 +125,7 @@
             type: 'area'
         },
         dataLabels: {
-            enabled: true
+            enabled: false
         },
         stroke: {
             curve: 'smooth'
@@ -137,19 +138,12 @@
             x: {
                 format: 'HH:mm'
             }
-        },
-        yaxis: {
-            labels: {
-                formatter: function (value) {
-                    return `${value} servers`;
-                }
-            }
         }
     });
     modding.render();
 
     let softwareChart = new ApexCharts($("#software")[0], {
-        series: [get(software, 10)],
+        series: [getValues(software, 10)],
         chart: {
             width: 380,
             type: 'pie',
@@ -170,7 +164,7 @@
     softwareChart.render();
 
     let versionsChart = new ApexCharts($("#versions")[0], {
-        series: [get(versions, 10)],
+        series: [getValues(versions, 10)],
         chart: {
             width: 380,
             type: 'pie',
@@ -191,7 +185,7 @@
     versionsChart.render();
 
     let modsChart = new ApexCharts($("#mods")[0], {
-        series: [get(forgeMods, 10)],
+        series: [getValues(forgeMods, 10)],
         chart: {
             width: 380,
             type: 'pie',
