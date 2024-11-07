@@ -231,7 +231,8 @@
                     <h4>Online players (@server.Ping.Players.Online)</h4>
                     @if (server.Ping.Players.Sample != null)
                         foreach (var player in server.Ping.Players.Sample) {
-                            var entry = server.Players![player.UUID!];
+                            if (server.Players == null || player.UUID == null) continue;
+                            var entry = server.Players[player.UUID.Replace("-", "")];
                             <div class="box">
                                 <div class="columns is-mobile mb-0">
                                     <div class="column is-narrow">
