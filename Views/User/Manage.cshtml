@@ -37,118 +37,6 @@
     </ul>
 </div>
 
-<div class="section">
-<div class="content">
-@if (!string.IsNullOrWhiteSpace(Model.Message)) {
-    <div class="notification @(Model.Success ? "is-success" : "is-danger")">
-        <button class="delete"></button>
-        @Html.Raw(Model.Message)
-    </div>
-}
-
-<div id="invites" class="tab-content">
-    <h2>All invitations</h2>
-    <table class="table is-striped">
-        <thead>
-        <tr>
-            <th>#</th>
-            <th>Code</th>
-            <th>Badge</th>
-            <th>Creator</th>
-            <th>Used</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        @for (var i = 0; i < invites.Count; i++) {
-            var creator = await Account.Get(invites[i].Creator.ToString()!);
-            <tr>
-                <th>@(i + 1)</th>
-                <td>
-                    <code>@(Model.Account.HasPermission(Permission.Administrator) ? invites[i].Code : "REDACTED")</code>
-                </td>
-                <td>@invites[i].BadgeText</td>
-                <td>@(creator?.Username ?? "Unknown")</td>
-                <td>
-                    <label class="b-checkbox checkbox">
-                        <input type="checkbox" disabled @(invites[i].Used ? "checked" : "")>
-                        <span class="check"></span>
-                    </label>
-                </td>
-                <td>
-                    <form method="POST">
-                        <input type="hidden" name="type" value="deleteInvitation"/>
-                        <input type="hidden" name="id" value="@invites[i].Id"/>
-                        <input type="submit" class="button is-danger is-small" value="Delete">
-                    </form>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-
-    <h2>Create new invitation</h2>
-    <form method="POST">
-        <input type="hidden" name="type" value="createInvitation"/>
-        <div class="field">
-            <label class="label">User Badge</label>
-            <div class="control has-icons-left">
-                <input class="input" type="text" id="badge" name="badge">
-                <span class="icon is-small is-left">
-                    <i class="fa-solid fa-id-badge"></i>
-                </span>
-            </div>
-        </div>
-
-        <div class="control">
-            <input type="submit" class="button is-link" value="Generate invite"/>
-        </div>
-    </form>
-</div>
-
-<div id="bot-accounts" class="tab-content" style="display: none;">
-    <h1>THIS IS A STUB</h1>
-    <h2>List of bot accounts</h2>
-    <table class="table is-striped">
-        <thead>
-        <tr>
-            <th>#</th>
-            <th>Username</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            <th>1</th>
-            <td>TheAirBlow</td>
-            <td>
-                <form method="POST">
-                    <input type="hidden" name="type" value="deleteAccount"/>
-                    <input type="hidden" name="uuid" value="7aa72c62-54bb-4155-ab18-c15c854d20cf"/>
-                    <input type="submit" class="button is-danger is-small" value="Delete">
-                </form>
-            </td>
-        </tr>
-        <tr>
-            <th>2</th>
-            <td>CabalousForce</td>
-            <td>
-                <form method="POST">
-                    <input type="hidden" name="type" value="deleteAccount"/>
-                    <input type="hidden" name="uuid" value="110bf942-9e0e-4016-aebb-87b49e902bb1"/>
-                    <input type="submit" class="button is-danger is-small" value="Delete">
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-
-    <p>Maximum speed: 24 joins per minute</p>
-    <a href="https://example.com/">
-        <button class="button is-primary">Add account</button>
-    </a>
-</div>
-
 @for (var i = 0; i < exclusions.Count; i++) {
     <form method="POST">
         <input type="hidden" name="type" value="modifyExclusion"/>
@@ -156,16 +44,16 @@
         <div class="modal is-active" id="exclusion-@i" style="display: none; opacity: 0;">
             <div class="modal-background"></div>
             <div class="modal-card">
-                <header class="modal-card-head mb-0">
+                <header class="modal-card-head">
                     <p class="modal-card-title"><i class="fa-solid fa-pen"></i> Edit exclusion</p>
-                    <button class="delete is-large close-button" data-target="#exclusion-@i"></button>
+                    <button type="button" class="delete is-large close-button" data-target="#exclusion-@i"></button>
                 </header>
                 <section class="modal-card-body">
                     <div class="content">
                         <div class="field">
                             <label class="label">IP ranges</label>
                             <div class="control">
-                                <textarea class="textarea" rows="2" name="ranges">@string.Join("\n", exclusions[i].Ranges)</textarea>
+                                <textarea class="textarea" rows="4" name="ranges">@string.Join("\n", exclusions[i].Ranges)</textarea>
                             </div>
                         </div>
 
@@ -188,63 +76,175 @@
     </form>
 }
 
-<div id="exclusions" class="tab-content" style="display: none;">
-    <h2>Scanner exclusion list</h2>
-    <table class="table is-striped">
-        <thead>
-        <tr>
-            <th>#</th>
-            <th>IP ranges</th>
-            <th>Comment</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        @for (var i = 0; i < exclusions.Count; i++) {
-            <tr>
-                <th>@(i + 1)</th>
-                <td>@exclusions[i].Ranges.Count total</td>
-                <td>@exclusions[i].Comment.Split("\n")[0]...</td>
-                <td>
-                    <form method="POST">
-                        <input type="hidden" name="type" value="deleteExclusion"/>
-                        <input type="hidden" name="id" value="@exclusions[i].Id"/>
-                        <div class="field has-addons">
-                            <p class="control">
-                                <input type="submit" class="button is-small is-danger" value="Delete"/>
-                            </p>
-                            <p class="control">
-                                <button type="button" class="button is-small is-info open-modal" data-target="#exclusion-@i">Edit</button>
-                            </p>
-                        </div>
-                    </form>
-                </td>
-            </tr>
+<div class="section">
+    <div class="content">
+        @if (!string.IsNullOrWhiteSpace(Model.Message)) {
+            <div class="notification @(Model.Success ? "is-success" : "is-danger")">
+                <button class="delete"></button>
+                @Html.Raw(Model.Message)
+            </div>
         }
-        </tbody>
-    </table>
 
-    <h2>Add new exclusion</h2>
-    <form method="POST">
-        <input type="hidden" name="type" value="createExclusion"/>
-        <div class="field">
-            <label class="label">IP ranges</label>
-            <div class="control">
-                <textarea class="textarea" rows="2" name="ranges"></textarea>
-            </div>
+        <div id="invites" class="tab-content">
+            <h2>All invitations</h2>
+            <table class="table is-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Code</th>
+                    <th>Badge</th>
+                    <th>Creator</th>
+                    <th>Used</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < invites.Count; i++) {
+                    var creator = await Account.Get(invites[i].Creator.ToString()!);
+                    <tr>
+                        <th>@(i + 1)</th>
+                        <td>
+                            <code>@(Model.Account.HasPermission(Permission.Administrator) ? invites[i].Code : "REDACTED")</code>
+                        </td>
+                        <td>@invites[i].BadgeText</td>
+                        <td>@(creator?.Username ?? "Unknown")</td>
+                        <td>
+                            <label class="b-checkbox checkbox">
+                                <input type="checkbox" disabled @(invites[i].Used ? "checked" : "")>
+                                <span class="check"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="type" value="deleteInvitation"/>
+                                <input type="hidden" name="id" value="@invites[i].Id"/>
+                                <input type="submit" class="button is-danger is-small" value="Delete">
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <h2>Create new invitation</h2>
+            <form method="POST">
+                <input type="hidden" name="type" value="createInvitation"/>
+                <div class="field">
+                    <label class="label">User Badge</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="text" id="badge" name="badge">
+                        <span class="icon is-small is-left">
+                            <i class="fa-solid fa-id-badge"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <input type="submit" class="button is-link" value="Generate invite"/>
+                </div>
+            </form>
         </div>
 
-        <div class="field">
-            <label class="label">Comment</label>
-            <div class="control">
-                <textarea class="textarea" rows="5" name="comment"></textarea>
-            </div>
+        <div id="bot-accounts" class="tab-content" style="display: none;">
+            <h1>THIS IS A STUB</h1>
+            <h2>List of bot accounts</h2>
+            <table class="table is-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th>1</th>
+                    <td>TheAirBlow</td>
+                    <td>
+                        <form method="POST">
+                            <input type="hidden" name="type" value="deleteAccount"/>
+                            <input type="hidden" name="uuid" value="7aa72c62-54bb-4155-ab18-c15c854d20cf"/>
+                            <input type="submit" class="button is-danger is-small" value="Delete">
+                        </form>
+                    </td>
+                </tr>
+                <tr>
+                    <th>2</th>
+                    <td>CabalousForce</td>
+                    <td>
+                        <form method="POST">
+                            <input type="hidden" name="type" value="deleteAccount"/>
+                            <input type="hidden" name="uuid" value="110bf942-9e0e-4016-aebb-87b49e902bb1"/>
+                            <input type="submit" class="button is-danger is-small" value="Delete">
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <p>Maximum speed: 24 joins per minute</p>
+            <a href="https://example.com/">
+                <button class="button is-primary">Add account</button>
+            </a>
         </div>
 
-        <div class="control">
-            <input type="submit" class="button is-primary" value="Create exclusion"/>
+        <div id="exclusions" class="tab-content" style="display: none;">
+            <h2>Scanner exclusion list</h2>
+            <table class="table is-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>IP ranges</th>
+                    <th>Comment</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < exclusions.Count; i++) {
+                    <tr>
+                        <th>@(i + 1)</th>
+                        <td>@exclusions[i].Ranges.Count total</td>
+                        <td>@exclusions[i].Comment.Split("\n")[0]...</td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="type" value="deleteExclusion"/>
+                                <input type="hidden" name="id" value="@exclusions[i].Id"/>
+                                <div class="field has-addons">
+                                    <p class="control">
+                                        <input type="submit" class="button is-small is-danger" value="Delete"/>
+                                    </p>
+                                    <p class="control">
+                                        <button type="button" class="button is-small is-info open-modal" data-target="#exclusion-@i">Edit</button>
+                                    </p>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <h2>Add new exclusion</h2>
+            <form method="POST">
+                <input type="hidden" name="type" value="createExclusion"/>
+                <div class="field">
+                    <label class="label">IP ranges</label>
+                    <div class="control">
+                        <textarea class="textarea" rows="4" name="ranges"></textarea>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Comment</label>
+                    <div class="control">
+                        <textarea class="textarea" rows="5" name="comment"></textarea>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <input type="submit" class="button is-primary" value="Create exclusion"/>
+                </div>
+            </form>
         </div>
-    </form>
-</div>
-</div>
+    </div>
 </div>
