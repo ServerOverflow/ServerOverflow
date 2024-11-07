@@ -1,4 +1,5 @@
-﻿@{
+﻿@using System.Web
+@{
     ViewData["Description"] = "Statistics";
     ViewData["Title"] = "Statistics";
 }
@@ -54,9 +55,9 @@
         return list;
     }
 
-    let forgeMods = [@string.Join(",", Stats.ForgeModsPopularity.Take(10).Select(x => $"[\"{x.Key}\",{x.Value}]"))];
-    let software = [@string.Join(",", Stats.SoftwarePopularity.Take(10).Select(x => $"[\"{x.Key}\",{x.Value}]"))];
-    let versions = [@string.Join(",", Stats.VersionPopularity.Take(10).Select(x => $"[\"{x.Key}\",{x.Value}]"))];
+    let forgeMods = [@Html.Raw(string.Join(",", Stats.ForgeModsPopularity.Take(10).Select(x => $"[\"{HttpUtility.HtmlEncode(x.Key)}\",{x.Value}]")))];
+    let software = [@Html.Raw(string.Join(",", Stats.SoftwarePopularity.Take(10).Select(x => $"[\"{HttpUtility.HtmlEncode(x.Key)}\",{x.Value}]")))];
+    let versions = [@Html.Raw(string.Join(",", Stats.VersionPopularity.Take(10).Select(x => $"[\"{HttpUtility.HtmlEncode(x.Key)}\",{x.Value}]")))];
     let customSoftware = [@string.Join(",", Stats.CustomSoftware.Take(24))];
     let chatReporting = [@string.Join(",", Stats.ChatReporting.Take(24))];
     let totalServers = [@string.Join(",", Stats.TotalServers.Take(24))];
