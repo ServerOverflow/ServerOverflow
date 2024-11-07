@@ -36,92 +36,94 @@
 } else {
     <div class="columns is-multiline">
         @foreach (Server server in Model.Items) {
-            <div class="column card is-half">
-                <header class="card-header">
-                    <span class="card-header-title is-block">
-                        <div class="columns is-mobile mb-0">
-                            <div class="column is-narrow">
-                                <figure class="image is-96x96">
-                                    <img class="is-server-icon" src="@(server.Ping.Favicon ?? "/img/default.png")" alt="Favicon"/>
-                                </figure>
+            <div class="column is-half">
+                <div class="card">
+                    <header class="card-header">
+                        <span class="card-header-title is-block">
+                            <div class="columns is-mobile mb-0">
+                                <div class="column is-narrow">
+                                    <figure class="image is-96x96">
+                                        <img class="is-server-icon" src="@(server.Ping.Favicon ?? "/img/default.png")" alt="Favicon"/>
+                                    </figure>
+                                </div>
+                                <div class="column rows">
+                                    <div class="row is-full">
+                                        <a class="is-size-4" href="/server/@server.Id">
+                                            <b>@server.IP:@server.Port</b>
+                                        </a>
+                                    </div>
+                                    <div class="row is-full">
+                                        @Html.Raw(server.Ping.DescriptionToHtml())
+                                    </div>
+                                </div>
                             </div>
-                            <div class="column rows">
-                                <div class="row is-full">
-                                    <a class="is-size-4" href="/server/@server.Id">
-                                        <b>@server.IP:@server.Port</b>
-                                    </a>
-                                </div>
-                                <div class="row is-full">
-                                    @Html.Raw(server.Ping.DescriptionToHtml())
-                                </div>
-                            </div>
-                        </div>
-                        <div class="content">
-                            <div class="field is-grouped is-grouped-multiline">
-                                <div class="control">
-                                    <div class="tags has-addons">
-                                        <span class="tag is-dark">Protocol</span>
-                                        @if (server.Ping.Version?.Protocol != null) {
-                                            <span class="tag is-success">@server.Ping.Version?.Protocol</span>
-                                        } else {
-                                            <span class="tag is-warning">
-                                                <span class="icon is-small">
-                                                    <i class="fa-solid fa-question"></i>
-                                                </span>
-                                            </span>
-                                        }
-                                    </div>
-                                </div>
-
-                                <div class="control">
-                                    <div class="tags has-addons">
-                                        <span class="tag is-dark">Version</span>
-                                        @if (server.Ping.Version?.Name != null) {
-                                            <span class="tag is-success">@server.Ping.Version?.Name</span>
-                                        } else {
-                                            <span class="tag is-warning">
-                                                <span class="icon is-small">
-                                                    <i class="fa-solid fa-question"></i>
-                                                </span>
-                                            </span>
-                                        }
-                                    </div>
-                                </div>
-
-                                <div class="control">
-                                    <div class="tags has-addons">
-                                        <span class="tag is-dark">Players</span>
-                                        @if (server.Ping.Players is { Online: not null, Max: not null }) {
-                                            <span class="tag is-success">@server.Ping.Players.Online/@server.Ping.Players.Max</span>
-                                        } else {
-                                            <span class="tag is-warning">
-                                                <span class="icon is-small">
-                                                    <i class="fa-solid fa-question"></i>
-                                                </span>
-                                            </span>
-                                        }
-                                    </div>
-                                </div>
-
-                                @if (server.Ping.ChatReporting) {
+                            <div class="content">
+                                <div class="field is-grouped is-grouped-multiline">
                                     <div class="control">
                                         <div class="tags has-addons">
-                                            <span class="tag is-info">Chat Reporting</span>
+                                            <span class="tag is-dark">Protocol</span>
+                                            @if (server.Ping.Version?.Protocol != null) {
+                                                <span class="tag is-success">@server.Ping.Version?.Protocol</span>
+                                            } else {
+                                                <span class="tag is-warning">
+                                                    <span class="icon is-small">
+                                                        <i class="fa-solid fa-question"></i>
+                                                    </span>
+                                                </span>
+                                            }
                                         </div>
                                     </div>
-                                }
 
-                                @if (server.Ping.IsForge) {
                                     <div class="control">
                                         <div class="tags has-addons">
-                                            <span class="tag is-info">Forge</span>
+                                            <span class="tag is-dark">Version</span>
+                                            @if (server.Ping.Version?.Name != null) {
+                                                <span class="tag is-success">@server.Ping.Version?.Name</span>
+                                            } else {
+                                                <span class="tag is-warning">
+                                                    <span class="icon is-small">
+                                                        <i class="fa-solid fa-question"></i>
+                                                    </span>
+                                                </span>
+                                            }
                                         </div>
                                     </div>
-                                }
+
+                                    <div class="control">
+                                        <div class="tags has-addons">
+                                            <span class="tag is-dark">Players</span>
+                                            @if (server.Ping.Players is { Online: not null, Max: not null }) {
+                                                <span class="tag is-success">@server.Ping.Players.Online/@server.Ping.Players.Max</span>
+                                            } else {
+                                                <span class="tag is-warning">
+                                                    <span class="icon is-small">
+                                                        <i class="fa-solid fa-question"></i>
+                                                    </span>
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    @if (server.Ping.ChatReporting) {
+                                        <div class="control">
+                                            <div class="tags has-addons">
+                                                <span class="tag is-info">Chat Reporting</span>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    @if (server.Ping.IsForge) {
+                                        <div class="control">
+                                            <div class="tags has-addons">
+                                                <span class="tag is-info">Forge</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
-                        </div>
-                    </span>
-                </header>
+                        </span>
+                    </header>
+                </div>
             </div>
         }
     </div>
