@@ -19,7 +19,7 @@
         <nav class="pagination is-centered">
             <a href="?q=@Model.Query&page=@(Model.CurrentPage - 10)" 
                class="pagination-previous @(Model.CurrentPage - 10 > 0 ? "" : "is-disabled")">&lt;&lt;</a>
-            <a href="s?q=@Model.Query&page=@(Model.CurrentPage - 1)" 
+            <a href="?q=@Model.Query&page=@(Model.CurrentPage - 1)" 
                class="pagination-previous @(Model.CurrentPage - 1 > 0 ? "" : "is-disabled")">&lt;</a>
             <a href="?q=@Model.Query&page=@(Model.CurrentPage + 1)"
                class="pagination-next is-right @(Model.CurrentPage + 1 < Model.TotalPages ? "" : "is-disabled")">&gt;</a>
