@@ -53,6 +53,14 @@ public class Server : Document {
     /// Dictionary of seen players
     /// </summary>
     public Dictionary<string, PlayerInfo>? Players { get; set; }
+    
+    /// <summary>
+    /// Fetches a server by its identifier
+    /// </summary>
+    /// <param name="id">Object identifier</param>
+    /// <returns>Server, may be null</returns>
+    public static async Task<Server?> Get(string id)
+        => await Controller.Servers.QueryFirst(x => x.Id.ToString() == id);
 }
 
 /// <summary>

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Controller = Microsoft.AspNetCore.Mvc.Controller;
 
 namespace ServerOverflow.Controllers;
 

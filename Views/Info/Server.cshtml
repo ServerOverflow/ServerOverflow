@@ -1,0 +1,289 @@
+@using Humanizer
+@model GenericModel<Server>
+@{
+    ViewData["Description"] = "Server information";
+    ViewData["Title"] = "Server";
+    var server = Model.Item!;
+}
+
+<div class="section">
+    <div class="content">
+        <div class="card">
+            <header class="card-header">
+                <span class="card-header-title is-block">
+                    <div class="columns is-mobile mb-0">
+                        <div class="column is-narrow">
+                            <figure class="image is-96x96">
+                                <img class="is-server-icon" src="@(server.Ping.Favicon ?? "/img/default.png")" alt="Favicon"/>
+                            </figure>
+                        </div>
+                        <div class="column rows">
+                            <div class="row is-full">
+                                <a class="is-size-4" href="https://mcsrvstat.us/server/@server.IP:@server.Port">
+                                    <b>@server.IP:@server.Port</b>
+                                </a>
+                            </div>
+                            <div class="row is-full">
+                                @Html.Raw(server.Ping.DescriptionToHtml())
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content">
+                        <div class="field is-grouped is-grouped-multiline">
+                            <div class="control">
+                                <div class="tags has-addons">
+                                    <span class="tag is-dark">Protocol</span>
+                                    @if (server.Ping.Version?.Protocol != null) {
+                                        <span class="tag is-success">@server.Ping.Version?.Protocol</span>
+                                    } else {
+                                        <span class="tag is-warning">
+                                            <span class="icon is-small">
+                                                <i class="fa-solid fa-question"></i>
+                                            </span>
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="control">
+                                <div class="tags has-addons">
+                                    <span class="tag is-dark">Version</span>
+                                    @if (server.Ping.Version?.Name != null) {
+                                        <span class="tag is-success">@server.Ping.Version?.Name</span>
+                                    } else {
+                                        <span class="tag is-warning">
+                                            <span class="icon is-small">
+                                                <i class="fa-solid fa-question"></i>
+                                            </span>
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="control">
+                                <div class="tags has-addons">
+                                    <span class="tag is-dark">Players</span>
+                                    @if (server.Ping.Players is { Online: not null, Max: not null }) {
+                                        <span class="tag is-success">@server.Ping.Players.Online/@server.Ping.Players.Max</span>
+                                    } else {
+                                        <span class="tag is-warning">
+                                            <span class="icon is-small">
+                                                <i class="fa-solid fa-question"></i>
+                                            </span>
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (server.Ping.ChatReporting) {
+                                <div class="control">
+                                    <div class="tags has-addons">
+                                        <span class="tag is-info">Chat Reporting</span>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (server.Ping.IsForge) {
+                                <div class="control">
+                                    <div class="tags has-addons">
+                                        <span class="tag is-info">Forge</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </span>
+            </header>
+        </div>
+
+        <div class="columns">
+            <div class="column is-half">
+                <div class="rows">
+                    <div class="row is-full">
+                        <div class="card">
+                            <header class="card-header">
+                                <span class="card-header-title is-block">
+                                    <span class="is-size-4">Server Information</span>
+                                </span>
+                            </header>
+                            <div class="card-content">
+                                <div class="columns">
+                                    <div class="column">
+                                        <span class="is-size-6 has-text-grey-light">Last seen</span>
+                                        <span>@((DateTime.UtcNow - server.LastSeen).Humanize())</span>
+                                    </div>
+                                    <div class="column">
+                                        <span class="is-size-6 has-text-grey-light">Online mode (guess)</span>
+                                        <span class="is-size-5">
+                                            @(server.OnlineModeGuess switch {
+                                                OnlineMode.Offline => "Disabled",
+                                                OnlineMode.Online => "Enabled",
+                                                OnlineMode.Mixed => "Either",
+                                                _ => "Unknown"
+                                            })
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="columns">
+                                    <div class="column">
+                                        <span class="is-size-6 has-text-grey-light">Last seen empty</span>
+                                        @if (server.LastEmpty != null) {
+                                            <span class="is-size-5">@((DateTime.UtcNow - server.LastEmpty.Value).Humanize())</span>
+                                        } else {
+                                            <span class="is-size-5">Never</span>
+                                        }
+                                    </div>
+                                    <div class="column">
+                                        <span class="is-size-6 has-text-grey-light">Last seen active</span>
+                                        @if (server.LastActive != null) {
+                                            <span class="is-size-5">@((DateTime.UtcNow - server.LastActive.Value).Humanize())</span>
+                                        } else {
+                                            <span class="is-size-5">Never</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row is-full">
+                        <div class="card">
+                            <header class="card-header">
+                                <span class="card-header-title is-block">
+                                    <span class="is-size-4">Passive Fingerprint</span>
+                                </span>
+                                <button class="card-header-icon">
+                                    <span class="icon">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </header>
+                            <div class="card-inner" style="display: none;">
+                                <div class="card-content">
+                                    @if (server.Fingerprint?.Passive == null) {
+                                        <span>Passive fingerprint was not captured</span>
+                                    } else {
+                                        <div class="columns">
+                                            <div class="column">
+                                                <span class="is-size-6 has-text-grey-light">Empty Favicon</span>
+                                                <span>@(server.Fingerprint.Passive.EmptyFavicon ? "True" : "False")</span>
+                                            </div>
+                                            <div class="column">
+                                                <span class="is-size-6 has-text-grey-light">Empty Sample</span>
+                                                <span>@(server.Fingerprint.Passive.EmptySample ? "True" : "False")</span>
+                                            </div>
+                                        </div>
+                                        <div class="columns">
+                                            <div class="column">
+                                                <span class="is-size-6 has-text-grey-light">Incorrect Order</span>
+                                                <span>@(server.Fingerprint.Passive.IncorrectOrder ? "True" : "False")</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row is-full">
+                        <div class="card">
+                            <header class="card-header">
+                                <span class="card-header-title is-block">
+                                    <span class="is-size-4">Active Fingerprint</span>
+                                </span>
+                                <button class="card-header-icon">
+                                    <span class="icon">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </header>
+                            <div class="card-inner" style="display: none;">
+                                <div class="card-content">
+                                    @if (server.Fingerprint?.Active == null) {
+                                        <span>Passive fingerprint was not captured</span>
+                                    } else {
+                                        <div class="columns">
+                                            <div class="column">
+                                                <span class="is-size-6 has-text-grey-light">Timestamp</span>
+                                                <span>@((DateTime.UtcNow - server.Fingerprint.Active.Timestamp).Humanize())</span>
+                                            </div>
+                                            <div class="column">
+                                                <span class="is-size-6 has-text-grey-light">Software</span>
+                                                <span>@(server.Fingerprint.Active.Software)</span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="card">
+                    <header class="card-header">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Players</span>
+                        </span>
+                    </header>
+                    <div class="card-content">
+                        @if (server.Ping.Players == null) {
+                            <span>Player information is not available</span>
+                        } else {
+                            <h2>Online players (@server.Ping.Players.Online)</h2>
+                            @if (server.Ping.Players.Sample != null)
+                                foreach (var player in server.Ping.Players.Sample) {
+                                    var entry = server.Players![player.UUID!];
+                                    <div class="box">
+                                        <div class="columns is-mobile mb-0">
+                                            <div class="column is-narrow">
+                                                <figure class="image is-96x96">
+                                                    <img class="is-server-icon" src="https://mc-heads.net/avatar/@player.UUID" alt="Player head"/>
+                                                </figure>
+                                            </div>
+                                            <div class="column rows">
+                                                <div class="row is-full">
+                                                    <a class="is-size-4" href="https://namemc.com/profile/@player.UUID">
+                                                        <b>@player.Name</b>
+                                                    </a>
+                                                </div>
+                                                <div class="row is-full">
+                                                    <span class="is-size-6 has-text-grey-light">Last seen</span>
+                                                    <span>@((DateTime.UtcNow - entry.LastSeen).Humanize())</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            
+                            @if (server.Players != null)
+                                <h2>Offline players (@server.Ping.Players.Online)</h2>
+                                foreach (var player in server.Players!) {
+                                    if (server.Ping.Players.Sample != null && 
+                                        server.Ping.Players.Sample.Any(x => x.UUID == player.Key)) continue;
+                                    <div class="box">
+                                        <div class="columns is-mobile mb-0">
+                                            <div class="column is-narrow">
+                                                <figure class="image is-96x96">
+                                                    <img class="is-server-icon" src="https://mc-heads.net/avatar/@player.Key" alt="Player head"/>
+                                                </figure>
+                                            </div>
+                                            <div class="column rows">
+                                                <div class="row is-full">
+                                                    <a class="is-size-4" href="https://namemc.com/profile/@player.Key">
+                                                        <b>@player.Value.Name</b>
+                                                    </a>
+                                                </div>
+                                                <div class="row is-full">
+                                                    <span class="is-size-6 has-text-grey-light">Last seen</span>
+                                                    <span>@((DateTime.UtcNow - player.Value.LastSeen).Humanize())</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
