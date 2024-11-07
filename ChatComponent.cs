@@ -65,8 +65,8 @@ public class ChatComponent {
         return Extra.Aggregate(GetComponentHtml(clean), 
             (str, i) => str + (
                 i is JsonElement el 
-                ? el.Deserialize<ChatComponent>()!.ToHtml() 
-                : ColorEncoding.ToHtml((string)i)
+                    ? el.Deserialize<ChatComponent>()!.ToHtml() 
+                    : ColorEncoding.ToHtml((string)i)
             ));
     }
 

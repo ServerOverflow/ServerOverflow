@@ -1,5 +1,6 @@
 using System.Text.Json;
 using MongoDB.Bson.Serialization.Attributes;
+using Serilog;
 
 namespace ServerOverflow.Database;
 
@@ -305,7 +306,11 @@ public class ServerListPing {
             if (str != null) return ColorEncoding.ToHtml(str);
         } catch { /* Ignore */ }
 
-        var obj = JsonSerializer.Deserialize<ChatComponent>(Description);
-        return obj?.ToHtml();
+        try {
+            var obj = JsonSerializer.Deserialize<ChatComponent>(Description);
+            return obj?.ToHtml();
+        } catch (Exception e) {
+            return "<b>Failed to deserialize the chat component!</b>";
+        }
     }
 }
