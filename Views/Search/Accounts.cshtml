@@ -7,28 +7,32 @@
     var accounts = await Controller.Accounts.QueryAll(x => true);
 }
 
-@foreach (var account in accounts) {
-    var invitee = account.Invitee != null ? await Account.Get(account.Invitee!.ToString()!) : null;
-    <div class="card">
-        <header class="card-header">
-            <p class="card-header-title">@account.Username <code>@account.BadgeText</code></p>
-            <button class="card-header-icon card-expand" aria-label="more options">
-                <span class="icon">
-                    <i class="fas fa-angle-down" aria-hidden="true"></i>
-                </span>
-            </button>
-        </header>
-        <div class="card-inner" style="display: none;">
-            <div class="card-content">
-                <div class="content">
-                    <p>
-                        Invited by <code>@(invitee?.Username ?? "Unknown")</code>, GUID: <code>@account.Id</code>
-                    </p>
+<div class="section">
+    <div class="content">
+        @foreach (var account in accounts) {
+            var invitee = account.Invitee != null ? await Account.Get(account.Invitee!.ToString()!) : null;
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">@account.Username <code>@account.BadgeText</code></p>
+                    <button class="card-header-icon card-expand" aria-label="more options">
+                        <span class="icon">
+                            <i class="fas fa-angle-down" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                </header>
+                <div class="card-inner" style="display: none;">
+                    <div class="card-content">
+                        <div class="content">
+                            <p>
+                                Invited by <code>@(invitee?.Username ?? "Unknown")</code>, GUID: <code>@account.Id</code>
+                            </p>
+                        </div>
+                    </div>
+                    <footer class="card-footer">
+                        <a href="/user/profile/@account.Id" class="card-footer-item">Open profile</a>
+                    </footer>
                 </div>
             </div>
-            <footer class="card-footer">
-                <a href="/user/profile/@account.Id" class="card-footer-item">Open profile</a>
-            </footer>
-        </div>
+        }
     </div>
-}
+</div>
