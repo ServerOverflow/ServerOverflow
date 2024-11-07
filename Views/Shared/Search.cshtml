@@ -49,9 +49,9 @@
                 @if (Model.CurrentPage + 10 < Model.TotalPages) {
                     <li><a href="?q=@Model.Query&page=@(Model.CurrentPage + 10)" class="pagination-link">@(Model.CurrentPage + 10)</a></li>
                 }
-                @if (Model.CurrentPage != Model.TotalPages - 1) {
+                @if (Model.CurrentPage != Model.TotalPages) {
                     <li><span class="pagination-ellipsis">&hellip;</span></li>
-                    <li><a href="?q=@Model.Query&page=@(Model.TotalPages - 1)" class="pagination-link">@(Model.TotalPages - 1)</a></li>
+                    <li><a href="?q=@Model.Query&page=@Model.TotalPages" class="pagination-link">@Model.TotalPages</a></li>
                 }
             </ul>
         </nav>

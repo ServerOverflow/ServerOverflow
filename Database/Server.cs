@@ -48,6 +48,11 @@ public class Server : Document {
     /// Server's fingerprint
     /// </summary>
     public Fingerprint? Fingerprint { get; set; }
+    
+    /// <summary>
+    /// Dictionary of seen players
+    /// </summary>
+    public Dictionary<string, PlayerInfo>? Players { get; set; }
 }
 
 /// <summary>
@@ -57,6 +62,21 @@ public enum OnlineMode {
     Offline = 0,
     Online = 1,
     Mixed = 2
+}
+
+/// <summary>
+/// Player information
+/// </summary>
+public class PlayerInfo {
+    /// <summary>
+    /// When was the player last seen
+    /// </summary>
+    public DateTime LastSeen { get; set; }
+    
+    /// <summary>
+    /// Player's username
+    /// </summary>
+    public string Name { get; set; }
 }
 
 /// <summary>

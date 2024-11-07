@@ -86,7 +86,7 @@ public static class Query {
                 default: throw new SyntaxErrorException(
                     $"Invalid operator \"{op}\"");
             }
-        }, "cleanDescription");
+        }, "minecraft.cleanDescription");
 
     /// <summary>
     /// The shared portion of advanced query language

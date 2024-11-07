@@ -36,17 +36,16 @@ public class SearchController : Controller {
             var doc = Query.Servers(model.Query!);
             var find = Database.Controller.Servers.Find(doc);
             model.TotalMatches = await find.CountDocumentsAsync();
-            model.TotalPages = (int)Math.Ceiling(model.TotalMatches / 50f);
-            if (model.CurrentPage >= model.TotalPages)
-                model.CurrentPage = model.TotalPages - 1;
-            using var cursor = await find.Skip(50 * model.CurrentPage).Limit(50).ToCursorAsync();
-            model.Items = [];
-            model.Items.AddRange(cursor.ToList());
-            if (model.Items is { Count: 0 }) {
+            if (model.TotalMatches == 0) {
                 model.Message = "No matches found for your query";
-                model.Success = false; 
-                model.Items = null;
+                model.Success = false;
+                return View(model);
             }
+            
+            model.TotalPages = (int)Math.Ceiling(model.TotalMatches / 50f);
+            if (model.CurrentPage > model.TotalPages) model.CurrentPage = model.TotalPages;
+            using var cursor = await find.Skip(50 * (model.CurrentPage-1)).Limit(50).ToCursorAsync();
+            model.Items = []; model.Items.AddRange(cursor.ToList());
         } catch (Exception e) {
             model.Message = e.Message;
             model.Success = false;
