@@ -8,23 +8,23 @@
     <div class="content">
         <h2>General statistics</h2>
         <p>This graph is updated hourly. Only entries for the last 24 hours are shown.</p>
-        <div id="general" class="chart"></div>
+        <div id="general"></div>
         
         <h2>Modding statistics</h2>
         <p>This graph is updated hourly. Only entries for the last 24 hours are shown.</p>
-        <div id="modding" class="chart"></div>
+        <div id="modding"></div>
         
         <h2>Custom software</h2>
         <p>Only the 10 most popular are shown.</p>
-        <div id="software" class="chart"></div>
+        <div id="software"></div>
 
         <h2>Minecraft versions</h2>
         <p>Only the 10 most popular are shown.</p>
-        <div id="versions" class="chart"></div>
+        <div id="versions"></div>
         
         <h2>Forge mods</h2>
         <p>Only the 10 most popular are shown.</p>
-        <div id="mods" class="chart"></div>
+        <div id="mods"></div>
     </div>
 </div>
 
@@ -73,7 +73,7 @@
     let onlineMode = [@string.Join(",", Stats.OnlineMode.Take(24))];
     let antiDDoS = [@string.Join(",", Stats.AntiDDoS.Take(24))];
     
-    let general = new ApexCharts($("#general")[0], {
+    new ApexCharts($("#general")[0], {
         series: [{
             name: 'All servers',
             data: get(totalServers, 24)
@@ -88,6 +88,7 @@
             data: get(antiDDoS, 24)
         }],
         chart: {
+            foreColor: '#ccc',
             height: 350,
             type: 'area'
         },
@@ -102,14 +103,14 @@
         },
         tooltip: {
             enabledOnSeries: false,
+            theme: 'dark',
             x: {
                 format: 'HH:mm'
             }
         }
-    });
-    general.render();
+    }).render();
 
-    let modding = new ApexCharts($("#modding")[0], {
+    new ApexCharts($("#modding")[0], {
         series: [{
             name: 'All servers',
             data: get(totalServers, 24)
@@ -121,6 +122,7 @@
             data: get(customSoftware, 24)
         }],
         chart: {
+            foreColor: '#ccc',
             height: 350,
             type: 'area'
         },
@@ -135,20 +137,21 @@
         },
         tooltip: {
             enabledOnSeries: false,
+            theme: 'dark',
             x: {
                 format: 'HH:mm'
             }
         }
-    });
-    modding.render();
+    }).render();
 
-    let softwareChart = new ApexCharts($("#software")[0], {
-        series: [getValues(software, 10)],
+    new ApexCharts($("#software")[0], {
+        series: getValues(software),
         chart: {
-            width: 380,
+            foreColor: '#ccc',
+            width: 500,
             type: 'pie',
         },
-        labels: [getLabels(software)],
+        labels: getLabels(software),
         responsive: [{
             breakpoint: 480,
             options: {
@@ -160,48 +163,31 @@
                 }
             }
         }]
-    });
-    softwareChart.render();
+    }).render();
 
-    let versionsChart = new ApexCharts($("#versions")[0], {
-        series: [getValues(versions, 10)],
+    new ApexCharts($("#versions")[0], {
+        series: getValues(versions),
         chart: {
+            foreColor: '#ccc',
+            width: 500,
+            type: 'pie',
+        },
+        labels: getLabels(versions),
+        tooltip: {
+            theme: 'dark'
+        }
+    }).render();
+
+    new ApexCharts($("#mods")[0], {
+        series: getValues(forgeMods),
+        chart: {
+            foreColor: '#ccc',
             width: 380,
             type: 'pie',
         },
-        labels: [getLabels(versions)],
-        responsive: [{
-            breakpoint: 480,
-            options: {
-                chart: {
-                    width: 200
-                },
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }]
-    });
-    versionsChart.render();
-
-    let modsChart = new ApexCharts($("#mods")[0], {
-        series: [getValues(forgeMods, 10)],
-        chart: {
-            width: 380,
-            type: 'pie',
-        },
-        labels: [getLabels(forgeMods)],
-        responsive: [{
-            breakpoint: 480,
-            options: {
-                chart: {
-                    width: 200
-                },
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }]
-    });
-    modsChart.render();
+        labels: getLabels(forgeMods),
+        tooltip: {
+            theme: 'dark'
+        }
+    }).render();
 </script>
