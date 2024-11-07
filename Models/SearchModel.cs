@@ -3,11 +3,11 @@ namespace ServerOverflow.Models;
 /// <summary>
 /// Generic pagination model
 /// </summary>
-public class SearchModel<T> : StatusModel {
+public class SearchModel : StatusModel {
     /// <summary>
     /// List of items that matched the query
     /// </summary>
-    public List<T>? Items { get; set; }
+    public List<object>? Items { get; set; }
     
     /// <summary>
     /// The query itself

@@ -1,5 +1,4 @@
-﻿@model SearchModel<Server>
-@{
+﻿@{
     ViewData["Description"] = "Search servers";
     ViewData["Title"] = "Servers";
     Layout = "Search";
@@ -35,7 +34,7 @@
         <li>String - Basically just some text</li>
     </ul>
 } else {
-    foreach (var server in Model.Items) {
+    foreach (Server server in Model.Items) {
         <div class="card">
             <header class="card-header">
                 <span class="card-header-title is-block">
