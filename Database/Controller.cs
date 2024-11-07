@@ -30,7 +30,7 @@ public static class Controller {
         Invitations = database.GetCollection<Invitation>("invitations");
         var matscan = client.GetDatabase("matscan");
         Exclusions = matscan.GetCollection<Exclusion>("exclusions");
-        Servers = database.GetCollection<Server>("servers");
-        BadIPs = database.GetCollection<BadIP>("bad_servers");
+        Servers = matscan.GetCollection<Server>("servers");
+        BadIPs = matscan.GetCollection<BadIP>("bad_servers");
     }
 }

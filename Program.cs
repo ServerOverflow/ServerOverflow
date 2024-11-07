@@ -19,8 +19,6 @@ if (accounts == 0 && invites == 0) {
     Log.Warning("Use this code: {0}", invite.Code);
 }
 
-Console.WriteLine(await Controller.Servers.EstimatedCount());
-Console.WriteLine(await Controller.Servers.Count(x => true));
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
