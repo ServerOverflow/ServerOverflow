@@ -33,7 +33,7 @@
             return;
         }
         
-        obj.parent().slideUp();
+        obj.parent().slideUp(200);
     });
 
     $(".card-expand").click(function() {
@@ -41,10 +41,10 @@
         let expanded = inner.data("expanded");
         if (expanded === true) {
             inner.data("expanded", false);
-            inner.slideUp();
+            inner.slideUp(200);
         } else {
             inner.data("expanded", true);
-            inner.slideDown();
+            inner.slideDown(200);
         }
     });
 
