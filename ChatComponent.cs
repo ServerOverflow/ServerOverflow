@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using System.Web;
 
 namespace ServerOverflow; 
@@ -6,13 +7,28 @@ namespace ServerOverflow;
 /// A Minecraft chat component
 /// </summary>
 public class ChatComponent {
+    [JsonPropertyName("extra")]
     public List<ChatComponent>? Extra { get; set; }
+    
+    [JsonPropertyName("strikethrough")]
     public bool Strikethrough { get; set; }
+    
+    [JsonPropertyName("underlined")]
     public bool Underlined { get; set; }
+    
+    [JsonPropertyName("obfuscated")]
     public bool Obfuscated { get; set; }
+    
+    [JsonPropertyName("color")]
     public string? Color { get; set; }
+    
+    [JsonPropertyName("text")]
     public string? Text { get; set; }
+    
+    [JsonPropertyName("italic")]
     public bool Italic { get; set; }
+    
+    [JsonPropertyName("bold")]
     public bool Bold { get; set; }
     
     /// <summary>
