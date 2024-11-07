@@ -58,13 +58,13 @@
                 <div class="column">
                     <nav class="pagination is-centered">
                         <a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage - 10)" 
-                           class="pagination-previous @(Model.CurrentPage - 10 > 0 ? "" : "is-disabled")"><<</a>
+                           class="pagination-previous @(Model.CurrentPage - 10 > 0 ? "" : "is-disabled")">&lt;&lt;</a>
                         <a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage - 1)" 
-                           class="pagination-previous @(Model.CurrentPage - 1 > 0 ? "" : "is-disabled")"><</a>
+                           class="pagination-previous @(Model.CurrentPage - 1 > 0 ? "" : "is-disabled")">&lt;</a>
                         <a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage + 1)"
-                           class="pagination-next is-right @(Model.CurrentPage + 1 < Model.TotalPages ? "" : "is-disabled")">></a>
+                           class="pagination-next is-right @(Model.CurrentPage + 1 < Model.TotalPages ? "" : "is-disabled")">&gt;</a>
                         <a href="/search/servers?q=@Model.Query&page=@(Model.CurrentPage + 10)"
-                           class="pagination-next is-right @(Model.CurrentPage + 10 < Model.TotalPages ? "" : "is-disabled")">>></a>
+                           class="pagination-next is-right @(Model.CurrentPage + 10 < Model.TotalPages ? "" : "is-disabled")">&gt;&gt;</a>
                         <ul class="pagination-list">
                             @if (Model.CurrentPage != 1) {
                                 <li><a href="/search/servers?q=@Model.Query&page=1" class="pagination-link">1</a></li>
