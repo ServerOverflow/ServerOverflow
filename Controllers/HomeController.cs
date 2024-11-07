@@ -11,9 +11,12 @@ public class HomeController : Controller {
     
     [Route("faq")]
     public IActionResult FAQ() => View();
-    
+
     [Route("stats")]
     public IActionResult Stats() => View();
+    
+    [Route("stats.json")]
+    public IActionResult StatsDownload() => File("stats.json", "application/json");
     
     [Route("error")]
     public IActionResult Error() => View();
