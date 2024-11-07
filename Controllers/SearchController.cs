@@ -40,7 +40,8 @@ public class SearchController : Controller {
             if (model.CurrentPage >= model.TotalPages)
                 model.CurrentPage = model.TotalPages - 1;
             using var cursor = await find.Skip(50 * model.CurrentPage).Limit(50).ToCursorAsync();
-            model.Items = [cursor.ToList()];
+            model.Items = [];
+            model.Items.AddRange(cursor.ToList());
             if (model.Items is { Count: 0 }) {
                 model.Message = "No matches found for your query";
                 model.Success = false; 
