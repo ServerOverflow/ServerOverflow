@@ -16,7 +16,7 @@ public class HomeController : Controller {
     public IActionResult Stats() => View();
     
     [Route("stats.json")]
-    public IActionResult StatsDownload() => File("stats.json", "application/json");
+    public IActionResult StatsDownload() => File(System.IO.File.ReadAllBytes("stats.json"), "application/json");
     
     [Route("error")]
     public IActionResult Error() => View();
