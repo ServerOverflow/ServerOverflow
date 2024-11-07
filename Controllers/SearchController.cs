@@ -20,7 +20,7 @@ public class SearchController : Controller {
         if (!account.HasPermission(Permission.SearchServers))
             return Unauthorized();
         
-        var model = new SearchModel<Server>();
+        var model = new SearchModel();
         if (!Request.Query.TryGetValue("q", out var query)) 
             return View(model);
         model.Query = query;
@@ -40,7 +40,7 @@ public class SearchController : Controller {
             if (model.CurrentPage >= model.TotalPages)
                 model.CurrentPage = model.TotalPages - 1;
             using var cursor = await find.Skip(50 * model.CurrentPage).Limit(50).ToCursorAsync();
-            model.Items = cursor.ToList();
+            model.Items = [cursor.ToList()];
             if (model.Items is { Count: 0 }) {
                 model.Message = "No matches found for your query";
                 model.Success = false; 
