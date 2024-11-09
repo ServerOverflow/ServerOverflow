@@ -95,10 +95,13 @@ public static class JoinBot {
                         requests.Add(new ReplaceOneModel<Server>(
                             Builders<Server>.Filter.Eq(y => y.Id, x.Id), x));
                     });
-                    await Controller.Servers.BulkWriteAsync(requests);
+                    
+                    if (requests.Count > 0)
+                        await Controller.Servers.BulkWriteAsync(requests);
                     
                     watch.Stop(); var count = cursor.Current.Count();
-                    Log.Information("Joined {0} servers in {1}", count, watch.Elapsed.Humanize());
+                    Log.Information("Joined {0} servers in {1} ({2} requests)", 
+                        count, watch.Elapsed.Humanize(), requests.Count);
                 }
                 
                 await Task.Delay(3600000);
