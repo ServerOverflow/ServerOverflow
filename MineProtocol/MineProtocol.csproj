@@ -6,8 +6,4 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Overby.Extensions.AsyncBinaryReaderWriter" Version="1.0.39" />
-    </ItemGroup>
-
 </Project>

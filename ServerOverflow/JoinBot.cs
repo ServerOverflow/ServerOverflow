@@ -29,26 +29,26 @@ public static class JoinBot {
             await client.ConnectAsync(ip, port).WaitAsync(TimeSpan.FromSeconds(5));
             await using var stream = client.GetStream();
             stream.ReadTimeout = 5000;
-            using var writer = new AsyncBinaryWriter(stream);
-            using var reader = new AsyncBinaryReader(stream);
+            await using var writer = new BinaryWriter(stream);
+            using var reader = new BinaryReader(stream);
             using var packMemory = new MemoryStream();
-            using var packWriter = new AsyncBinaryWriter(packMemory);
+            await using var packWriter = new BinaryWriter(packMemory);
             
             // handshake packet
-            await packWriter.WriteVarInt(0x00);     // Packet ID
-            await packWriter.WriteVarInt(protocol); // Protocol Version
-            await packWriter.WriteString(ip);       // Server IP
-            await writer.WriteAsync((short)port);    // Server Port
-            await packWriter.WriteVarInt(2);        // Next State
-            await writer.WriteVarInt((int) packMemory.Position);
-            await writer.WriteAsync(packMemory.ToArray(), 0, (int)packMemory.Position);
+            packWriter.WriteVarInt(0x00);     // Packet ID
+            packWriter.WriteVarInt(protocol); // Protocol Version
+            packWriter.WriteString(ip);       // Server IP
+            packWriter.Write((short)port);    // Server Port
+            packWriter.WriteVarInt(2);        // Next State
+            writer.WriteVarInt((int) packMemory.Position);
+            writer.Write(packMemory.ToArray(), 0, (int)packMemory.Position);
             packMemory.Position = 0;
             
             // login start packet
-            await packWriter.WriteVarInt(0x00);     // Packet ID
-            await packWriter.WriteString(name);     // Username
+            packWriter.WriteVarInt(0x00);     // Packet ID
+            packWriter.WriteString(name);     // Username
             if (protocol is 759 or 760)
-                await writer.WriteAsync((byte)0x00); // Has signature
+                packWriter.Write((byte)0x00); // Has signature
             if (protocol > 758) {
                 var guidBytes = new Guid(uuid).ToByteArray();            
                 var uuidBytes = new[] {
@@ -57,13 +57,13 @@ public static class JoinBot {
                     guidBytes[15], guidBytes[14], guidBytes[13], guidBytes[12],
                     guidBytes[11], guidBytes[10], guidBytes[9], guidBytes[8]
                 };
-                await writer.WriteAsync((byte)1);    // Has UUID
-                await writer.WriteAsync(uuidBytes);  // UUID
+                packWriter.Write((byte)1);    // Has UUID
+                packWriter.Write(uuidBytes);  // UUID
             }
-            await writer.WriteVarInt((int) packMemory.Position);
-            await writer.WriteAsync(packMemory.ToArray(), 0, (int)packMemory.Position);
-            await reader.ReadVarInt(); // ignore packet length
-            return await reader.ReadVarInt() switch {
+            writer.WriteVarInt((int) packMemory.Position);
+            writer.Write(packMemory.ToArray(), 0, (int)packMemory.Position);
+            reader.ReadVarInt(); // ignore packet length
+            return reader.ReadVarInt() switch {
                 0x00 => throw new InvalidDataException("Player was abruptly disconnected"),
                 0x01 => new Result { Success = true, OnlineMode = true },
                 _ => new Result { Success = true, OnlineMode = false }

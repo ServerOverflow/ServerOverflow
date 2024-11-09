@@ -1,7 +1,6 @@
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
-using Overby.Extensions.AsyncBinaryReaderWriter;
 
 namespace MineProtocol;
 
@@ -14,11 +13,11 @@ public static class Extensions {
     /// </summary>
     /// <param name="reader">Binary Reader</param>
     /// <returns>Integer</returns>
-    public static async Task<int> ReadVarInt(this AsyncBinaryReader reader) {
+    public static int ReadVarInt(this BinaryReader reader) {
         var value = 0;
         var size = 0;
         int b;
-        while (((b = await reader.ReadByteAsync()) & 0x80) == 0x80) {
+        while (((b = reader.ReadByte()) & 0x80) == 0x80) {
             value |= (b & 0x7F) << (size++ * 7);
             if (size > 5) 
                 throw new IOException("This VarInt is an imposter!");
@@ -32,14 +31,14 @@ public static class Extensions {
     /// </summary>
     /// <param name="writer">Binary Writer</param>
     /// <param name="value">Integer</param>
-    public static async Task WriteVarInt(this AsyncBinaryWriter writer, int value) {
-        if (value == 0) await writer.WriteAsync((byte)value);
+    public static void WriteVarInt(this BinaryWriter writer, int value) {
+        if (value == 0) writer.Write((byte)value);
         while (value != 0) {
             var lol = value & 0x7F;
             value = (value >> 7) & (int.MaxValue >> 6);
             if (value != 0)
                 lol |= 0b1000_0000;
-            await writer.WriteAsync((byte)lol);
+            writer.Write((byte)lol);
         }
     }
 
@@ -48,10 +47,10 @@ public static class Extensions {
     /// </summary>
     /// <param name="writer"></param>
     /// <param name="data"></param>
-    public static async Task WriteString(this AsyncBinaryWriter writer, string data) {
+    public static void WriteString(this BinaryWriter writer, string data) {
         var buffer = Encoding.UTF8.GetBytes(data);
-        await writer.WriteVarInt(buffer.Length);
-        await writer.WriteAsync(buffer);
+        writer.WriteVarInt(buffer.Length);
+        writer.Write(buffer);
     }
     
     /// <summary>
