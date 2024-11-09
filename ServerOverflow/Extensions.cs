@@ -95,7 +95,7 @@ public static class Extensions {
         var filter = new ExpressionFilterDefinition<T>(query);
         await collection.DeleteOneAsync(filter);
     }
-
+    
     /// <summary>
     /// Signs in using specified account
     /// </summary>

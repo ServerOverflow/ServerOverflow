@@ -147,30 +147,30 @@
     let forgeMods = [@Html.Raw(string.Join(",", Stats.ForgeModsPopularity.Take(10).Select(x => $"[\"{HttpUtility.JavaScriptStringEncode(x.Key)}\",{x.Value}]")))];
     let software = [@Html.Raw(string.Join(",", Stats.SoftwarePopularity.Take(10).Select(x => $"[\"{HttpUtility.JavaScriptStringEncode(x.Key)}\",{x.Value}]")))];
     let versions = [@Html.Raw(string.Join(",", Stats.VersionPopularity.Take(10).Select(x => $"[\"{HttpUtility.JavaScriptStringEncode(x.Key)}\",{x.Value}]")))];
-    let customSoftware = [@string.Join(",", Stats.CustomSoftware.Take(24))];
-    let chatReporting = [@string.Join(",", Stats.ChatReporting.Take(24))];
-    let totalServers = [@string.Join(",", Stats.TotalServers.Take(24))];
-    let forgeServers = [@string.Join(",", Stats.ForgeServers.Take(24))];
-    let onlineMode = [@string.Join(",", Stats.OnlineMode.Take(24))];
-    let whitelist = [@string.Join(",", Stats.Whitelist.Take(24))];
-    let antiDDoS = [@string.Join(",", Stats.AntiDDoS.Take(24))];
+    let customSoftware = [@string.Join(",", Stats.CustomSoftware.TakeLast(48))];
+    let chatReporting = [@string.Join(",", Stats.ChatReporting.TakeLast(48))];
+    let totalServers = [@string.Join(",", Stats.TotalServers.TakeLast(48))];
+    let forgeServers = [@string.Join(",", Stats.ForgeServers.TakeLast(48))];
+    let onlineMode = [@string.Join(",", Stats.OnlineMode.TakeLast(48))];
+    let whitelist = [@string.Join(",", Stats.Whitelist.TakeLast(48))];
+    let antiDDoS = [@string.Join(",", Stats.AntiDDoS.TakeLast(48))];
     
     new ApexCharts($("#general")[0], {
         series: [{
             name: 'All servers',
-            data: get(totalServers, 24)
+            data: get(totalServers, 48)
         }, {
             name: 'Chat reporting',
-            data: get(chatReporting, 24)
+            data: get(chatReporting, 48)
         }, {
             name: 'Online mode',
-            data: get(onlineMode, 24)
+            data: get(onlineMode, 48)
         }, {
             name: 'Whitelisted',
-            data: get(whitelist, 24)
+            data: get(whitelist, 48)
         }, {
             name: 'Anti-DDoS proxy',
-            data: get(antiDDoS, 24)
+            data: get(antiDDoS, 48)
         }],
         chart: {
             foreColor: '#ccc',
@@ -198,13 +198,13 @@
     new ApexCharts($("#modding")[0], {
         series: [{
             name: 'All servers',
-            data: get(totalServers, 24)
+            data: get(totalServers, 48)
         }, {
             name: 'Forge servers',
-            data: get(forgeServers, 24)
+            data: get(forgeServers, 48)
         }, {
             name: 'Custom software',
-            data: get(customSoftware, 24)
+            data: get(customSoftware, 48)
         }],
         chart: {
             foreColor: '#ccc',
