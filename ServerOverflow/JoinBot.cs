@@ -79,19 +79,19 @@ public static class JoinBot {
     public static async Task WorkerThread() {
         while (true) {
             try {
+                var builder = Builders<Server>.Filter;
                 using var cursor = await Controller.Servers.FindAsync(
-                    Builders<Server>.Filter.Exists(x => x.JoinResult, false) | 
-                    Builders<Server>.Filter.Eq(x => x.JoinResult, null) | (
-                        Builders<Server>.Filter.Eq(x => x.JoinResult!.Success, false) & 
-                        Builders<Server>.Filter.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(3))
+                    builder.Eq(x => x.JoinResult, null) | (
+                        builder.Eq(x => x.JoinResult!.Success, false) & 
+                        builder.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(3))
                     ), new FindOptions<Server> { BatchSize = 250 });
                 
                 while (await cursor.MoveNextAsync()) {
                     var watch = new Stopwatch(); watch.Start();
                     var requests = new ConcurrentBag<ReplaceOneModel<Server>>();
-                    Parallel.ForEach(cursor.Current, async x => {
-                        x.JoinResult = await Connect(x.IP,
-                            x.Port, x.Ping.Version?.Protocol ?? 47);
+                    await Parallel.ForEachAsync(cursor.Current, async (x, _) => {
+                        x.JoinResult = await Connect(x.IP, x.Port,
+                            x.Ping.Version?.Protocol ?? 47);
                         requests.Add(new ReplaceOneModel<Server>(
                             Builders<Server>.Filter.Eq(y => y.Id, x.Id), x));
                     });
