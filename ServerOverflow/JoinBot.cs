@@ -86,7 +86,7 @@ public static class JoinBot {
                     ), new FindOptions<Server> { BatchSize = 250 });
                 
                 while (await cursor.MoveNextAsync()) {
-                    var watch = new Stopwatch();
+                    var watch = new Stopwatch(); watch.Start();
                     Parallel.ForEach(cursor.Current, async x => {
                         x.JoinResult = await Connect(x.IP,
                             x.Port, x.Ping.Version?.Protocol ?? 47);
@@ -96,7 +96,7 @@ public static class JoinBot {
                     watch.Stop(); var count = cursor.Current.Count();
                     Log.Information("Joined {0} servers in {1}", count, watch.Elapsed.Humanize());
                 }
-
+                
                 await Task.Delay(3600000);
             } catch (Exception e) {
                 Log.Error("Join bot thread crashed: {0}", e);
