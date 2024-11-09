@@ -26,7 +26,7 @@ public static class Controller {
         ConventionRegistry.Register("ServerOverflow", pack, _ => true);
         var client = new MongoClient(new MongoClientSettings {
             Server = new MongoServerAddress("localhost"),
-            MaxConnectionPoolSize = 500
+            MaxConnectionPoolSize = 5000
         });
         var database = client.GetDatabase("server-overflow");
         Accounts = database.GetCollection<Account>("accounts");

@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Net.Sockets;
+using Humanizer;
 using MineProtocol;
 using MongoDB.Driver;
 using Overby.Extensions.AsyncBinaryReaderWriter;
@@ -82,20 +84,17 @@ public static class JoinBot {
                         Builders<Server>.Filter.Eq(x => x.JoinResult!.Success, false) & 
                         Builders<Server>.Filter.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(3))
                     ), new FindOptions<Server> { BatchSize = 250 });
-
-                var last = DateTime.UtcNow; var total = 0;
+                
                 while (await cursor.MoveNextAsync()) {
+                    var watch = new Stopwatch();
                     Parallel.ForEach(cursor.Current, async x => {
                         x.JoinResult = await Connect(x.IP,
                             x.Port, x.Ping.Version?.Protocol ?? 47);
                         await x.Update();
                     });
-
-                    total += cursor.Current.Count();
-                    if (DateTime.UtcNow - last > TimeSpan.FromSeconds(5)) {
-                        Log.Information("Current joining speed: {0} servers per second", Math.Floor(total / 5f));
-                        last = DateTime.UtcNow; total = 0;
-                    }
+                    
+                    watch.Stop(); var count = cursor.Current.Count();
+                    Log.Information("Joined {0} servers in {1}", count, watch.Elapsed.Humanize());
                 }
 
                 await Task.Delay(3600000);
