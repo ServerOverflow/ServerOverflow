@@ -85,13 +85,11 @@ public static class JoinBot {
 
                 var last = DateTime.UtcNow; var total = 0;
                 while (await cursor.MoveNextAsync()) {
-                    var tasks = cursor.Current.ToDictionary(x => x, 
-                        x => Connect(x.IP, x.Port, x.Ping.Version?.Protocol ?? 47));
-                    await Task.WhenAll(tasks.Values);
-                    foreach (var (server, result) in tasks) {
-                        server.JoinResult = result.Result;
-                        await server.Update();
-                    }
+                    Parallel.ForEach(cursor.Current, async x => {
+                        x.JoinResult = await Connect(x.IP,
+                            x.Port, x.Ping.Version?.Protocol ?? 47);
+                        await x.Update();
+                    });
 
                     total += cursor.Current.Count();
                     if (DateTime.UtcNow - last > TimeSpan.FromSeconds(5)) {
