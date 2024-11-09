@@ -87,11 +87,14 @@ public static class JoinBot {
                 
                 while (await cursor.MoveNextAsync()) {
                     var watch = new Stopwatch(); watch.Start();
+                    var requests = new List<ReplaceOneModel<Server>>();
                     Parallel.ForEach(cursor.Current, async x => {
                         x.JoinResult = await Connect(x.IP,
                             x.Port, x.Ping.Version?.Protocol ?? 47);
-                        await x.Update();
+                        requests.Add(new ReplaceOneModel<Server>(
+                            Builders<Server>.Filter.Eq(y => y.Id, x.Id), x));
                     });
+                    await Controller.Servers.BulkWriteAsync(requests);
                     
                     watch.Stop(); var count = cursor.Current.Count();
                     Log.Information("Joined {0} servers in {1}", count, watch.Elapsed.Humanize());
