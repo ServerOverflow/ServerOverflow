@@ -1,4 +1,4 @@
-namespace ServerOverflow; 
+namespace MineProtocol; 
 
 /// <summary>
 /// Minecraft color encoding

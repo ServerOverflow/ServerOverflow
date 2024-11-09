@@ -1,6 +1,7 @@
 using System.Text.Json;
+using MongoDB.Driver;
+using MineProtocol;
 using MongoDB.Bson.Serialization.Attributes;
-using Serilog;
 
 namespace ServerOverflow.Database;
 
@@ -47,6 +48,11 @@ public class Server : Document {
     public OnlineMode OnlineModeGuess { get; set; }
     
     /// <summary>
+    /// Join bot's result
+    /// </summary>
+    public JoinBot.Result? JoinResult { get; set; }
+    
+    /// <summary>
     /// Server's fingerprint
     /// </summary>
     public Fingerprint? Fingerprint { get; set; }
@@ -63,6 +69,14 @@ public class Server : Document {
     /// <returns>Server, may be null</returns>
     public static async Task<Server?> Get(string id)
         => await Controller.Servers.QueryFirst(x => x.Id.ToString() == id);
+    
+    /// <summary>
+    /// Updates whole document
+    /// </summary>
+    public async Task Update() {
+        var filter = Builders<Server>.Filter.Eq(account => account.Id, Id);
+        await Controller.Servers.ReplaceOneAsync(filter, this);
+    }
 }
 
 /// <summary>

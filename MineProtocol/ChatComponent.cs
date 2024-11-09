@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
 
-namespace ServerOverflow; 
+namespace MineProtocol; 
 
 /// <summary>
 /// A Minecraft chat component

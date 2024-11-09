@@ -22,8 +22,9 @@ if (accounts == 0 && invites == 0) {
 Log.Information("Scraping protocol versions");
 await Protocol.Generate();
 
-Log.Information("Starting statistics collector");
+Log.Information("Starting background threads");
 new Thread(async () => await Statistics.ProcessorThread()).Start();
+new Thread(async () => await JoinBot.WorkerThread()).Start();
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
