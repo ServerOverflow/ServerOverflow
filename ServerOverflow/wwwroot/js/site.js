@@ -45,6 +45,9 @@
         } else {
             inner.data("expanded", true);
             inner.slideDown(200);
+            $(".card-expand").not($(this)).forEach(function() {
+                if (expanded === true) $(this).click();
+            });
         }
     });
 

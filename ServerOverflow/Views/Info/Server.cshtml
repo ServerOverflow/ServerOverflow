@@ -219,6 +219,48 @@
                     </div>
                 </div>
             </div>
+            <div class="block">
+                <div class="card">
+                    <header class="card-header card-expand">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Bot join</span>
+                        </span>
+                        <button class="card-header-icon">
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </header>
+                    <div class="card-inner" style="display: none;">
+                        <div class="card-content">
+                            @if (server.JoinResult == null) {
+                                <span>The bot has never joined this server before</span>
+                            } else {
+                                <div class="columns">
+                                    <div class="column">
+                                        <div class="is-size-6 has-text-grey-light">Successful</div>
+                                        <b class="is-size-5">@(server.JoinResult.Success ? "True" : "False")</b>
+                                    </div>
+                                    <div class="column">
+                                        <div class="is-size-6 has-text-grey-light">Online Mode</div>
+                                        <b class="is-size-5">@(server.JoinResult.OnlineMode != null ? server.JoinResult.OnlineMode.Value ? "Enabled" : "Disabled" : "Unknown")</b>
+                                    </div>
+                                </div>
+                                <div class="columns">
+                                    <div class="column">
+                                        <div class="is-size-6 has-text-grey-light">Error message</div>
+                                        <b class="is-size-5">@(server.JoinResult.ErrorMessage ?? "None")</b>
+                                    </div>
+                                    <div class="column">
+                                        <div class="is-size-6 has-text-grey-light">Last joined</div>
+                                        <b class="is-size-5">@(server.JoinResult.Timestamp.Humanize())</b>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="column is-half">

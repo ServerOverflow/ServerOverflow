@@ -17,6 +17,21 @@ public static class Query {
     public static BsonDocument Servers(string query)
         => Generate(query, (op, reversed, content, filter) => {
             switch (op) {
+                case "botJoined": {
+                    if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
+                    if (content is not "true" and not "false") throw new SyntaxErrorException(
+                        $"Expected a binary true or false, found {content} instead");
+                    filter.Add("minecraft.enforcesSecureChat", content == "true"
+                        ? new BsonDocument("$and", new BsonDocument{
+                            new BsonElement("$exists", "true"),
+                            new BsonElement("$ne", null)
+                        })
+                        : new BsonDocument("$or", new BsonDocument{
+                            new BsonElement("$exists", "false"),
+                            new BsonElement("$eq", null)
+                        }));
+                    break;
+                }
                 case "allowsReporting": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
