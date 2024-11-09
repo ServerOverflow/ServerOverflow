@@ -72,6 +72,16 @@ public static class Query {
                     filter.Add("minecraft.version.protocol", new BsonDocument(reversed ? "$ne" : "$eq", number));
                     break;
                 }
+                case "ip": {
+                    filter.Add("ip", new BsonDocument(reversed ? "$ne" : "$eq", content));
+                    break;
+                }
+                case "port": {
+                    if (!ushort.TryParse(content, out var number))
+                        throw new SyntaxErrorException($"Expected an unsigned short, found {content} instead");
+                    filter.Add("port", new BsonDocument(reversed ? "$ne" : "$eq", number));
+                    break;
+                }
                 case "version": {
                     var regex = new BsonRegularExpression(content, "i");
                     filter.Add("minecraft.version.name", new BsonDocument(
