@@ -84,10 +84,9 @@ public static class JoinBot {
                     builder.Eq(x => x.JoinResult, null) | (
                         builder.Eq(x => x.JoinResult!.Success, false) & 
                         builder.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(3))
-                    ), new FindOptions<Server> { BatchSize = 50 });
+                    ), new FindOptions<Server> { BatchSize = 250 });
                 
                 while (await cursor.MoveNextAsync()) {
-                    Log.Information("joining {0} servers", cursor.Current.Count());
                     var watch = new Stopwatch(); watch.Start();
                     var requests = new ConcurrentBag<WriteModel<Server>>();
                     var tasks = cursor.Current.Select(x => Connect(x, requests)).ToArray();
