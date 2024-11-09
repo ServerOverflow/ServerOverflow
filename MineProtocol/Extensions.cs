@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
@@ -11,47 +12,68 @@ public static class Extensions {
     /// <summary>
     /// Reads a minecraft VarInt
     /// </summary>
-    /// <param name="reader">Binary Reader</param>
+    /// <param name="stream">Stream</param>
     /// <returns>Integer</returns>
-    public static int ReadVarInt(this BinaryReader reader) {
+    public static async Task<int> ReadVarInt(this Stream stream) {
         var value = 0;
         var size = 0;
-        int b;
-        while (((b = reader.ReadByte()) & 0x80) == 0x80) {
-            value |= (b & 0x7F) << (size++ * 7);
-            if (size > 5) 
-                throw new IOException("This VarInt is an imposter!");
+        
+        var buf = new byte[1];
+        while (await stream.ReadAsync(buf.AsMemory(0, 1)) == 1) {
+            if ((buf[0] & 0x80) != 0x80) break;
+            value |= (buf[0] & 0x7F) << (size++ * 7);
+            if (size > 5) throw new IOException("This VarInt is an imposter!");
         }
 
-        return value | ((b & 0x7F) << (size * 7));
+        return value | ((buf[0] & 0x7F) << (size * 7));
     }
     
     /// <summary>
     /// Writes a minecraft VarInt
     /// </summary>
-    /// <param name="writer">Binary Writer</param>
+    /// <param name="stream">Binary Writer</param>
     /// <param name="value">Integer</param>
-    public static void WriteVarInt(this BinaryWriter writer, int value) {
-        if (value == 0) writer.Write((byte)value);
+    public static async Task WriteVarInt(this Stream stream, int value) {
+        var buf = new byte[5]; var len = 0;
+        if (value == 0) await stream.WriteAsync(buf.AsMemory(0, 1));
         while (value != 0) {
             var lol = value & 0x7F;
             value = (value >> 7) & (int.MaxValue >> 6);
             if (value != 0)
                 lol |= 0b1000_0000;
-            writer.Write((byte)lol);
+            buf[len] = (byte)lol;
+            len += 1;
         }
+        
+        await stream.WriteAsync(buf.AsMemory(0, len));
     }
 
     /// <summary>
     /// Writes a string prefixed with VarInt
     /// </summary>
-    /// <param name="writer"></param>
-    /// <param name="data"></param>
-    public static void WriteString(this BinaryWriter writer, string data) {
+    /// <param name="stream">Stream</param>
+    /// <param name="data">String</param>
+    public static async Task WriteString(this Stream stream, string data) {
         var buffer = Encoding.UTF8.GetBytes(data);
-        writer.WriteVarInt(buffer.Length);
-        writer.Write(buffer);
+        await stream.WriteVarInt(buffer.Length);
+        await stream.WriteAsync(buffer);
     }
+    
+    /// <summary>
+    /// Writes a byte buffer
+    /// </summary>
+    /// <param name="stream">Stream</param>
+    /// <param name="buf">Buffer</param>
+    public static async Task WriteBytes(this Stream stream, params byte[] buf)
+        => await stream.WriteAsync(buf);
+
+    /// <summary>
+    /// Writes a short
+    /// </summary>
+    /// <param name="stream">Stream</param>
+    /// <param name="value">Value</param>
+    public static async Task WriteShort(this Stream stream, short value)
+        => await stream.WriteBytes(BitConverter.GetBytes(value));
     
     /// <summary>
     /// Computers a minecraft SHA-1 digest

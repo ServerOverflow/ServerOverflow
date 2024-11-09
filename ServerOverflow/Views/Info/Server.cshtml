@@ -238,12 +238,12 @@
                             } else {
                                 <div class="columns">
                                     <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Successful</div>
-                                        <b class="is-size-5">@(server.JoinResult.Success ? "True" : "False")</b>
-                                    </div>
-                                    <div class="column">
                                         <div class="is-size-6 has-text-grey-light">Online Mode</div>
                                         <b class="is-size-5">@(server.JoinResult.OnlineMode != null ? server.JoinResult.OnlineMode.Value ? "Enabled" : "Disabled" : "Unknown")</b>
+                                    </div>
+                                    <div class="column">
+                                        <div class="is-size-6 has-text-grey-light">Whitelist</div>
+                                        <b class="is-size-5">@(server.JoinResult.Whitelist != null ? server.JoinResult.Whitelist.Value ? "Enabled" : "Disabled" : "Unknown")</b>
                                     </div>
                                 </div>
                                 <div class="columns">
