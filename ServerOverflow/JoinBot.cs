@@ -93,7 +93,7 @@ public static class JoinBot {
                         await server.Update();
                     }
 
-                    total += 250;
+                    total += cursor.Current.Count();
                     if (DateTime.UtcNow - last > TimeSpan.FromSeconds(5)) {
                         Log.Information("Current joining speed: {0} servers per second", Math.Floor(total / 5f));
                         last = DateTime.UtcNow; total = 0;
