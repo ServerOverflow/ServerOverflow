@@ -1,6 +1,8 @@
 using System.Data;
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using MongoDB.Bson;
+using MongoDB.Driver;
 using ServerOverflow.Database;
 
 namespace ServerOverflow;
@@ -14,98 +16,95 @@ public static class Query {
     /// Throws an exception in case of a syntax error.
     /// </summary>
     /// <returns>BSON filter</returns>
-    public static BsonDocument Servers(string query)
-        => Generate(query, (op, reversed, content, filter) => {
+    public static FilterDefinition<Server> Servers(string query)
+        => Generate<Server>(query, (op, reversed, content, filter) => {
             switch (op) {
                 case "botJoined": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    filter.Add("joinResult", new BsonDocument(content == "true" ? "$ne" : "$eq", BsonNull.Value));
-                    break;
+                    return filter & (content == "true" 
+                        ? Builders<Server>.Filter.Ne(x => x.JoinResult, null)
+                        : Builders<Server>.Filter.Eq(x => x.JoinResult, null));
                 }
                 case "allowsReporting": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    filter.Add("minecraft.enforcesSecureChat", new BsonDocument("$eq", content == "true"));
-                    break;
+                    return filter & Builders<Server>.Filter.Eq(x => x.Ping.ChatReporting, content == "true");
                 }
                 case "hasForge": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    filter.Add("minecraft.isForge", new BsonDocument("$eq", content == "true"));
-                    break;
+                    return filter & Builders<Server>.Filter.Eq(x => x.Ping.IsForge, content == "true");
                 }
                 case "onlineMode": {
-                    filter.Add("onlineModeGuess", new BsonDocument("$eq", content switch {
-                        "offline" => OnlineMode.Offline,
-                        "online" => OnlineMode.Online,
-                        _ => OnlineMode.Mixed
-                    }));
-                    break;
+                    if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
+                    if (content is not "true" and not "false") throw new SyntaxErrorException(
+                        $"Expected a binary true or false, found {content} instead");
+                    return filter & Builders<Server>.Filter.Eq(x => x.JoinResult!.OnlineMode, content == "true");
+                }
+                case "whitelist": {
+                    if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
+                    if (content is not "true" and not "false") throw new SyntaxErrorException(
+                        $"Expected a binary true or false, found {content} instead");
+                    return filter & Builders<Server>.Filter.Eq(x => x.JoinResult!.Whitelist, content == "true");
                 }
                 case "online": {
                     if (!uint.TryParse(content, out var number))
                         throw new SyntaxErrorException($"Expected an unsigned number, found {content} instead");
-                    filter.Add("minecraft.players.online", new BsonDocument(reversed ? "$ne" : "$eq", number));
-                    break;
+                    return filter & (reversed
+                        ? Builders<Server>.Filter.Ne(x => x.Ping.Players!.Online, (int)number)
+                        : Builders<Server>.Filter.Eq(x => x.Ping.Players!.Online, (int)number));
                 }
                 case "max": {
                     if (!uint.TryParse(content, out var number))
                         throw new SyntaxErrorException($"Expected an unsigned number, found {content} instead");
-                    filter.Add("minecraft.players.max", new BsonDocument(reversed ? "$ne" : "$eq", number));
-                    break;
+                    return filter & (reversed
+                        ? Builders<Server>.Filter.Ne(x => x.Ping.Players!.Max, (int)number)
+                        : Builders<Server>.Filter.Eq(x => x.Ping.Players!.Max, (int)number));
                 }
                 case "protocol": {
                     if (!uint.TryParse(content, out var number))
                         throw new SyntaxErrorException($"Expected an unsigned number, found {content} instead");
-                    filter.Add("minecraft.version.protocol", new BsonDocument(reversed ? "$ne" : "$eq", number));
-                    break;
+                    return filter & (reversed
+                        ? Builders<Server>.Filter.Ne(x => x.Ping.Version!.Protocol, (int)number)
+                        : Builders<Server>.Filter.Eq(x => x.Ping.Version!.Protocol, (int)number));
                 }
                 case "ip": {
-                    filter.Add("ip", new BsonDocument(reversed ? "$ne" : "$eq", content));
-                    break;
+                    return filter & (reversed
+                        ? Builders<Server>.Filter.Ne(x => x.IP, content)
+                        : Builders<Server>.Filter.Eq(x => x.IP, content));
                 }
                 case "port": {
                     if (!ushort.TryParse(content, out var number))
                         throw new SyntaxErrorException($"Expected an unsigned short, found {content} instead");
-                    filter.Add("port", new BsonDocument(reversed ? "$ne" : "$eq", number));
-                    break;
+                    return filter & (reversed
+                        ? Builders<Server>.Filter.Ne(x => x.Port, number)
+                        : Builders<Server>.Filter.Eq(x => x.Port, number));
                 }
                 case "version": {
+                    if (reversed) throw new SyntaxErrorException("Version operator do not allow reversing");
                     var regex = new BsonRegularExpression(content, "i");
-                    filter.Add("minecraft.version.name", new BsonDocument(
-                        reversed ? "$not" : "$regex", regex));
-                    break;
+                    return filter & Builders<Server>.Filter.Regex(x => x.Ping.Version!.Name, regex);
                 }
                 case "hasPlayer": {
-                    if (Guid.TryParse(content, out _)) {
-                        filter.Add("minecraft.players.sample.id", new BsonDocument(
-                            reversed ? "$ne" : "$eq", content));
-                        break;
-                    }
-                    
-                    filter.Add("minecraft.players.sample.name", new BsonDocument(
-                        reversed ? "$ne" : "$eq", content));
-                    break;
+                    if (reversed) throw new SyntaxErrorException("Has player operator do not allow reversing");
+                    if (Guid.TryParse(content, out _))
+                        return filter & Builders<Server>.Filter.ElemMatch(x => x.Players!, x => x.Key == content);
+                    return filter & Builders<Server>.Filter.ElemMatch(x => x.Players!, x => x.Key == content);
                 }
                 case "hasMod": {
-                    filter.Add("$or", new BsonArray {
-                        new BsonDocument("minecraft.forgeData", 
-                            new BsonDocument("$elemMatch", new BsonDocument("modId", 
-                                new BsonDocument(reversed ? "$ne" : "$eq", content)))),
-                        new BsonDocument("minecraft.modinfo", 
-                            new BsonDocument("$elemMatch", new BsonDocument("modid", 
-                                    new BsonDocument(reversed ? "$ne" : "$eq", content))))
-                    });
-                    break;
+                    if (reversed) throw new SyntaxErrorException("Has mod operator do not allow reversing");
+                    return filter & (
+                        Builders<Server>.Filter.ElemMatch(x => x.Ping.LegacyForgeMods!.ModList, x => x.ModId == content) |
+                        Builders<Server>.Filter.ElemMatch(x => x.Ping.ModernForgeMods!.ModList, x => x.ModId == content));
                 }
                 default: throw new SyntaxErrorException(
                     $"Invalid operator \"{op}\"");
             }
-        }, "minecraft.cleanDescription");
+        }, x => x.Ping.CleanDescription!);
 
     /// <summary>
     /// The shared portion of advanced query language
@@ -114,10 +113,11 @@ public static class Query {
     /// <param name="handler">Operator Handler</param>
     /// <param name="def">Default Field</param>
     /// <returns>BSON filter</returns>
-    private static BsonDocument Generate(string query, 
-        Action<string, bool, string, BsonDocument> handler, string def) {
+    private static FilterDefinition<T> Generate<T>(string query, 
+        Func<string, bool, string, FilterDefinition<T>, FilterDefinition<T>> handler,
+        Expression<Func<T, object>> def) {
         var buffer = ""; var multi = false;
-        var filter = new BsonDocument();
+        var filter = Builders<T>.Filter.Empty;
         void HandleOperator() {
             var index = buffer.IndexOf(':');
             var content = buffer[(index + 1)..];
@@ -129,7 +129,7 @@ public static class Query {
                 reversed = true;
                 op = op[1..];
             }
-            handler(op, reversed, content, filter);
+            filter = handler(op, reversed, content, filter);
             buffer = null; multi = false;
         }
 
@@ -176,10 +176,8 @@ public static class Query {
         if (multi) throw new SyntaxErrorException(
             "Multi-word quotation wasn't closed");
         if (!string.IsNullOrWhiteSpace(clean))
-            filter.Add(def, new BsonDocument {
-                new BsonElement("$regex", clean[1..]),
-                new BsonElement("$options", "i")
-            });
+            filter &= Builders<T>.Filter.Regex(def,
+                new BsonRegularExpression(clean[1..], "i"));
         return filter;
     }
 }

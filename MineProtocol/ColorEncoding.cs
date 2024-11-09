@@ -48,21 +48,14 @@ public static class ColorEncoding {
         var character = '&';
         foreach (var i in str) {
             if (expectChar) {
-                if (i == 'k') {
-                    expectChar = false;
-                    continue;
-                }
-
-                if (!clean) {
-                    if (_mapping.TryGetValue(i, out var color)) {
-                        if (color == "reset") {
-                            output += ending;
-                            ending = "";
-                        } else if (!color.StartsWith("#")) {
-                            output += $"<{color}>";
-                            ending = $"</{color}>" + ending;
-                        } else output += $"</span><span style=\"color: {color};\">";
-                    } else output += character + HttpUtility.HtmlEncode(i);
+                if (!clean && _mapping.TryGetValue(i, out var color)) {
+                    if (color == "reset") {
+                        output += ending;
+                        ending = "";
+                    } else if (!color.StartsWith("#")) {
+                        output += $"<{color}>";
+                        ending = $"</{color}>" + ending;
+                    } else output += $"</span><span style=\"color: {color};\">";
                 } 
                 
                 if (!_mapping.ContainsKey(i)) 
@@ -74,7 +67,7 @@ public static class ColorEncoding {
 
             switch (i) {
                 case '\n':
-                    output += "</span></h5><h5><span>";
+                    output += "<br>";
                     break;
                 case '&':
                     character = '&';
