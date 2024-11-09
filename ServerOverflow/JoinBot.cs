@@ -81,10 +81,9 @@ public static class JoinBot {
             try {
                 var builder = Builders<Server>.Filter;
                 using var cursor = await Controller.Servers.FindAsync(
-                    builder.Eq(x => x.JoinResult, null) | (
-                        builder.Eq(x => x.JoinResult!.Success, false) & 
-                        builder.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(3))
-                    ), new FindOptions<Server> { BatchSize = 250 });
+                    builder.Eq(x => x.JoinResult, null) |
+                    builder.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(1)), 
+                    new FindOptions<Server> { BatchSize = 300 });
                 
                 while (await cursor.MoveNextAsync()) {
                     var watch = new Stopwatch(); watch.Start();
