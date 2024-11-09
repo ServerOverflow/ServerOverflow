@@ -16,27 +16,27 @@ public static class JoinBot {
     /// <summary>
     /// Connects to a Minecraft server
     /// </summary>
-    /// <param name="ip">IP address</param>
-    /// <param name="port">Port</param>
-    /// <param name="protocol">Protocol</param>
+    /// <param name="server">Server</param>
+    /// <param name="requests">Requests</param>
     /// <returns>Result</returns>
-    public static async Task<Result> Connect(string ip, int port, int protocol) {
+    public static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests) {
         const string uuid = "be7b89d7-efed-452d-a716-4c0eec4c8e2d";
         const string name = "ServerOverflow";
         var client = new TcpClient();
         try {
-            await client.ConnectAsync(ip, port).WaitAsync(TimeSpan.FromSeconds(5));
+            await client.ConnectAsync(server.IP, server.Port).WaitAsync(TimeSpan.FromSeconds(5));
             await using var stream = client.GetStream();
             stream.WriteTimeout = 5000;
             stream.ReadTimeout = 5000;
             using var packet = new MemoryStream();
             
             // handshake packet
-            await packet.WriteVarInt(0x00);       // Packet ID
-            await packet.WriteVarInt(protocol);   // Protocol Version
-            await packet.WriteString(ip);         // Server IP
-            await packet.WriteShort((short)port); // Server Port
-            await packet.WriteVarInt(2);          // Next State
+            var protocol = server.Ping.Version?.Protocol ?? 47;
+            await packet.WriteVarInt(0x00);              // Packet ID
+            await packet.WriteVarInt(protocol);          // Protocol Version
+            await packet.WriteString(server.IP);         // Server IP
+            await packet.WriteShort((short)server.Port); // Server Port
+            await packet.WriteVarInt(2);                 // Next State
             await stream.WriteVarInt((int) packet.Position);
             await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position));
             packet.Position = 0;
@@ -60,13 +60,17 @@ public static class JoinBot {
             await stream.WriteVarInt((int) packet.Position);
             await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position));
             await stream.ReadVarInt(); // ignore packet length
-            return await stream.ReadVarInt() switch {
+            server.JoinResult = await stream.ReadVarInt() switch {
                 0x00 => new Result { Success = true, Whitelist = true },
                 0x01 => new Result { Success = true, OnlineMode = true },
                 _ => new Result { Success = true, OnlineMode = false }
             };
+            requests.Add(new ReplaceOneModel<Server>(
+                Builders<Server>.Filter.Eq(y => y.Id, server.Id), server));
         } catch (Exception e) {
-            return new Result { Success = false, ErrorMessage = e.Message };
+            server.JoinResult = new Result { Success = false, ErrorMessage = e.Message };
+            requests.Add(new ReplaceOneModel<Server>(
+                Builders<Server>.Filter.Eq(y => y.Id, server.Id), server));
         }
     }
 
@@ -85,17 +89,10 @@ public static class JoinBot {
                 
                 while (await cursor.MoveNextAsync()) {
                     var watch = new Stopwatch(); watch.Start();
-                    var requests = new ConcurrentBag<ReplaceOneModel<Server>>();
-                    await Parallel.ForEachAsync(cursor.Current, async (x, _) => {
-                        x.JoinResult = await Connect(x.IP, x.Port,
-                            x.Ping.Version?.Protocol ?? 47);
-                        requests.Add(new ReplaceOneModel<Server>(
-                            Builders<Server>.Filter.Eq(y => y.Id, x.Id), x));
-                    });
-                    
-                    if (requests.Count > 0)
-                        await Controller.Servers.BulkWriteAsync(requests);
-                    
+                    var requests = new ConcurrentBag<WriteModel<Server>>();
+                    var tasks = cursor.Current.Select(x => Connect(x, requests));
+                    await Task.WhenAll(tasks);
+                    await Controller.Servers.BulkWriteAsync(requests);
                     watch.Stop(); var count = cursor.Current.Count();
                     Log.Information("Joined {0} servers in {1}", count, watch.Elapsed.Humanize());
                 }
