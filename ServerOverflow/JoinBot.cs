@@ -81,7 +81,9 @@ public static class JoinBot {
                     Builders<Server>.Filter.Eq(x => x.JoinResult, null) | (
                         Builders<Server>.Filter.Eq(x => x.JoinResult!.Success, false) & 
                         Builders<Server>.Filter.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(3))
-                    ), new FindOptions<Server> { BatchSize = 100 });
+                    ), new FindOptions<Server> { BatchSize = 250 });
+
+                var last = DateTime.UtcNow; var total = 0;
                 while (await cursor.MoveNextAsync()) {
                     var tasks = cursor.Current.ToDictionary(x => x, 
                         x => Connect(x.IP, x.Port, x.Ping.Version?.Protocol ?? 47));
@@ -89,6 +91,12 @@ public static class JoinBot {
                     foreach (var (server, result) in tasks) {
                         server.JoinResult = result.Result;
                         await server.Update();
+                    }
+
+                    total += 250;
+                    if (DateTime.UtcNow - last > TimeSpan.FromSeconds(5)) {
+                        Log.Information("Current joining speed: {0} servers per second", Math.Floor(total / 5f));
+                        last = DateTime.UtcNow; total = 0;
                     }
                 }
 
