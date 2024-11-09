@@ -94,9 +94,11 @@ public static class Query {
                 case "hasMod": {
                     filter.Add("$or", new BsonArray {
                         new BsonDocument("minecraft.forgeData.modId", 
-                            new BsonDocument(reversed ? "$ne" : "$eq", content)),
+                            new BsonDocument("$elemMatch", new BsonDocument("modId", 
+                                new BsonDocument(reversed ? "$ne" : "$eq", content)))),
                         new BsonDocument("minecraft.modinfo.modid", 
-                            new BsonDocument(reversed ? "$ne" : "$eq", content))
+                            new BsonDocument("$elemMatch", new BsonDocument("modid", 
+                                    new BsonDocument(reversed ? "$ne" : "$eq", content))))
                     });
                     break;
                 }
