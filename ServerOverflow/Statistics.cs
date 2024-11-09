@@ -93,7 +93,6 @@ public class Statistics {
             try {
                 if (Stats.CollectAt > DateTime.UtcNow)
                     await Task.Delay(Stats.CollectAt - DateTime.UtcNow);
-                Log.Information("Collecting server statistics");
                 var watch = new Stopwatch(); watch.Start();
                 
                 if (Stats.TotalServers.Count >= 720) Stats.TotalServers.RemoveAt(0);
@@ -170,7 +169,6 @@ public class Statistics {
                 Stats.VersionPopularity = versions.OrderByDescending(x => x.Value).Take(10).ToDictionary(x => x.Key, x => x.Value);
                 Stats.ForgeModsPopularity = mods.OrderByDescending(x => x.Value).Take(10).ToDictionary(x => x.Key, x => x.Value);
                 Stats.CollectAt = DateTime.UtcNow + TimeSpan.FromHours(1); watch.Stop();
-                Log.Information("Took {0} to collect statistics", watch.Elapsed);
                 Stats.Save();
             } catch (Exception e) {
                 Log.Error("Statistics processor thread crashed: {0}", e);
