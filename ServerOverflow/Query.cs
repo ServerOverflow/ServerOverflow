@@ -21,15 +21,7 @@ public static class Query {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    filter.Add("joinResult", content == "true"
-                        ? new BsonDocument("$and", new BsonDocument{
-                            new BsonElement("$exists", "true"),
-                            new BsonElement("$ne", BsonNull.Value)
-                        })
-                        : new BsonDocument("$or", new BsonDocument{
-                            new BsonElement("$exists", "false"),
-                            new BsonElement("$eq", BsonNull.Value)
-                        }));
+                    filter.Add("joinResult", new BsonDocument(content == "true" ? "$ne" : "$eq", BsonNull.Value));
                     break;
                 }
                 case "allowsReporting": {
