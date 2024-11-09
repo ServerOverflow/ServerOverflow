@@ -19,7 +19,7 @@ public static class Extensions {
         var size = 0;
         
         var buf = new byte[1];
-        while (await stream.ReadAsync(buf.AsMemory(0, 1)) == 1) {
+        while (await stream.ReadAsync(buf.AsMemory(0, 1)) > 0) {
             if ((buf[0] & 0x80) != 0x80) break;
             value |= (buf[0] & 0x7F) << (size++ * 7);
             if (size > 5) throw new IOException("This VarInt is an imposter!");

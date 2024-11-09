@@ -24,10 +24,9 @@ public static class JoinBot {
         const string name = "ServerOverflow";
         var client = new TcpClient();
         try {
-            await client.ConnectAsync(server.IP, server.Port).WaitAsync(TimeSpan.FromSeconds(5));
+            var timeout = TimeSpan.FromSeconds(5);
+            await client.ConnectAsync(server.IP, server.Port).WaitAsync(timeout);
             await using var stream = client.GetStream();
-            stream.WriteTimeout = 5000;
-            stream.ReadTimeout = 5000;
             using var packet = new MemoryStream();
             
             // handshake packet
@@ -37,8 +36,8 @@ public static class JoinBot {
             await packet.WriteString(server.IP);         // Server IP
             await packet.WriteShort((short)server.Port); // Server Port
             await packet.WriteVarInt(2);                 // Next State
-            await stream.WriteVarInt((int) packet.Position);
-            await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position));
+            await stream.WriteVarInt((int) packet.Position).WaitAsync(timeout);
+            await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position)).AsTask().WaitAsync(timeout);
             packet.Position = 0;
             
             // login start packet
@@ -57,10 +56,10 @@ public static class JoinBot {
                 await packet.WriteBytes(1);         // Has UUID
                 await packet.WriteBytes(uuidBytes); // UUID
             }
-            await stream.WriteVarInt((int) packet.Position);
-            await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position));
-            await stream.ReadVarInt(); // ignore packet length
-            server.JoinResult = await stream.ReadVarInt() switch {
+            await stream.WriteVarInt((int) packet.Position).WaitAsync(timeout);
+            await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position)).AsTask().WaitAsync(timeout);
+            await stream.ReadVarInt().WaitAsync(timeout); // ignore packet length
+            server.JoinResult = await stream.ReadVarInt().WaitAsync(timeout) switch {
                 0x00 => new Result { Success = true, Whitelist = true },
                 0x01 => new Result { Success = true, OnlineMode = true },
                 _ => new Result { Success = true, OnlineMode = false }
@@ -88,9 +87,10 @@ public static class JoinBot {
                     ), new FindOptions<Server> { BatchSize = 50 });
                 
                 while (await cursor.MoveNextAsync()) {
+                    Log.Information("joining {0} servers", cursor.Current.Count());
                     var watch = new Stopwatch(); watch.Start();
                     var requests = new ConcurrentBag<WriteModel<Server>>();
-                    var tasks = cursor.Current.Select(x => Connect(x, requests));
+                    var tasks = cursor.Current.Select(x => Connect(x, requests)).ToArray();
                     await Task.WhenAll(tasks);
                     await Controller.Servers.BulkWriteAsync(requests);
                     watch.Stop(); var count = cursor.Current.Count();
