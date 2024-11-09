@@ -24,11 +24,11 @@ public static class Query {
                     filter.Add("joinResult", content == "true"
                         ? new BsonDocument("$and", new BsonDocument{
                             new BsonElement("$exists", "true"),
-                            new BsonElement("$ne", null)
+                            new BsonElement("$ne", BsonNull.Value)
                         })
                         : new BsonDocument("$or", new BsonDocument{
                             new BsonElement("$exists", "false"),
-                            new BsonElement("$eq", null)
+                            new BsonElement("$eq", BsonNull.Value)
                         }));
                     break;
                 }

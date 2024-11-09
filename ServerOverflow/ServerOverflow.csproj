@@ -12,6 +12,7 @@
       <PackageReference Include="Humanizer.Core" Version="2.14.1" />
       <PackageReference Include="Markdig" Version="0.38.0" />
       <PackageReference Include="MongoDB.Driver" Version="3.0.0" />
+      <PackageReference Include="Overby.Extensions.AsyncBinaryReaderWriter" Version="1.0.39" />
       <PackageReference Include="Serilog" Version="4.1.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
       <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
