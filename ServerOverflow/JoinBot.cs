@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Sockets;
 using Humanizer;
@@ -87,7 +88,7 @@ public static class JoinBot {
                 
                 while (await cursor.MoveNextAsync()) {
                     var watch = new Stopwatch(); watch.Start();
-                    var requests = new List<ReplaceOneModel<Server>>();
+                    var requests = new ConcurrentBag<ReplaceOneModel<Server>>();
                     Parallel.ForEach(cursor.Current, async x => {
                         x.JoinResult = await Connect(x.IP,
                             x.Port, x.Ping.Version?.Protocol ?? 47);
