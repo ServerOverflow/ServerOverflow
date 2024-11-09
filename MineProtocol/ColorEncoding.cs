@@ -59,7 +59,7 @@ public static class ColorEncoding {
                         } else if (!color.StartsWith("#")) {
                             output += $"<{color}>";
                             ending = $"</{color}>" + ending;
-                        } else output += $"</a><a style=\"color: {color};\">";
+                        } else output += $"</span><span style=\"color: {color};\">";
                     } else output += character + i;
                 } 
                 
@@ -87,6 +87,6 @@ public static class ColorEncoding {
             output += i;
         }
 
-        return output + ending + "</a>";
+        return output + ending + "</span>";
     }
 }
