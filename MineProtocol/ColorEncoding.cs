@@ -1,3 +1,5 @@
+using System.Web;
+
 namespace MineProtocol; 
 
 /// <summary>
@@ -60,11 +62,11 @@ public static class ColorEncoding {
                             output += $"<{color}>";
                             ending = $"</{color}>" + ending;
                         } else output += $"</span><span style=\"color: {color};\">";
-                    } else output += character + i;
+                    } else output += character + HttpUtility.HtmlEncode(i);
                 } 
                 
                 if (!_mapping.ContainsKey(i)) 
-                    output += character + i;
+                    output += character + HttpUtility.HtmlEncode(i);
 
                 expectChar = false;
                 continue;
@@ -84,7 +86,7 @@ public static class ColorEncoding {
                     continue;
             }
 
-            output += i;
+            output += HttpUtility.HtmlEncode(i);
         }
 
         return output + ending + "</span>";
