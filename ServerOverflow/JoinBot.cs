@@ -27,6 +27,7 @@ public static class JoinBot {
         try {
             await client.ConnectAsync(ip, port).WaitAsync(TimeSpan.FromSeconds(5));
             await using var stream = client.GetStream();
+            stream.WriteTimeout = 5000;
             stream.ReadTimeout = 5000;
             await using var writer = new BinaryWriter(stream);
             using var reader = new BinaryReader(stream);
@@ -99,8 +100,7 @@ public static class JoinBot {
                         await Controller.Servers.BulkWriteAsync(requests);
                     
                     watch.Stop(); var count = cursor.Current.Count();
-                    Log.Information("Joined {0} servers in {1} ({2} requests)", 
-                        count, watch.Elapsed.Humanize(), requests.Count);
+                    Log.Information("Joined {0} servers in {1}", count, watch.Elapsed.Humanize());
                 }
                 
                 await Task.Delay(3600000);
