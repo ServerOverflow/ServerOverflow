@@ -77,9 +77,9 @@ public class ChatComponent {
     /// <returns>Converted HTML</returns>
     private string GetComponentHtml(bool clean) {
         Text ??= ""; Color ??= "#FFFFFF";
-        if (Text.Contains('§') || Text.Contains('&'))
-            Text = ColorEncoding.ToHtml(Text, clean);
-        var enc = HttpUtility.HtmlEncode(Text).Replace("\n", "</br>");
+        var enc = Text.Contains('§') || Text.Contains('&') 
+            ? ColorEncoding.ToHtml(Text, clean).Replace("\n", "</br>")
+            : HttpUtility.HtmlEncode(Text).Replace("\n", "</br>");
         if (clean) return $"<span>{enc}</span>"; var code = "#FFFFFF";
         if (_mapping.TryGetValue(Color, out var value)) code = value;
         var output = $"<span style=\"color: {code};\">{enc}</span>";
