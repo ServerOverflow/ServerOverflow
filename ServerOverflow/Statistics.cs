@@ -51,6 +51,11 @@ public class Statistics {
     public List<int> OnlineMode { get; set; } = [0];
     
     /// <summary>
+    /// How many servers have whitelist enabled
+    /// </summary>
+    public List<int> Whitelist { get; set; } = [0];
+    
+    /// <summary>
     /// How many servers use forge
     /// </summary>
     public List<int> ForgeServers { get; set; } = [0];
@@ -104,7 +109,8 @@ public class Statistics {
                 
                 Stats.TotalServers.Add((int)await Controller.Servers.Count(x => true));
                 Stats.ChatReporting.Add((int)await Controller.Servers.Count(x => x.Ping.ChatReporting));
-                Stats.OnlineMode.Add((int)await Controller.Servers.Count(x => x.OnlineModeGuess == Database.OnlineMode.Online));
+                Stats.OnlineMode.Add((int)await Controller.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
+                Stats.Whitelist.Add((int)await Controller.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
                 Stats.ForgeServers.Add((int)await Controller.Servers.Count(x => x.Ping.IsForge));
                 Stats.CustomSoftware.Add((int)await Controller.Servers.Count(x => 
                     x.Ping.Version != null && x.Ping.Version.Name != null &&
