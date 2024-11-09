@@ -84,7 +84,7 @@ public static class JoinBot {
                     builder.Eq(x => x.JoinResult, null) | (
                         builder.Eq(x => x.JoinResult!.Success, false) & 
                         builder.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(3))
-                    ), new FindOptions<Server> { BatchSize = 250 });
+                    ), new FindOptions<Server> { BatchSize = 50 });
                 
                 while (await cursor.MoveNextAsync()) {
                     var watch = new Stopwatch(); watch.Start();
