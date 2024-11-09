@@ -21,7 +21,7 @@ public static class Query {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    filter.Add("minecraft.enforcesSecureChat", content == "true"
+                    filter.Add("joinResult", content == "true"
                         ? new BsonDocument("$and", new BsonDocument{
                             new BsonElement("$exists", "true"),
                             new BsonElement("$ne", null)
