@@ -4,6 +4,8 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
+        <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,4 +24,8 @@
       <ProjectReference Include="..\MineProtocol\MineProtocol.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <RuntimeHostConfigurationOption Include="System.GC.HighMemoryPercent" Value="50" />
+        <RuntimeHostConfigurationOption Include="System.GC.System.GC.HeapHardLimitPercent" Value="60" />
+    </ItemGroup>
 </Project>

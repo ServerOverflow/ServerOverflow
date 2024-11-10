@@ -210,6 +210,7 @@ public class ServerListPing {
         /// <summary>
         /// Player samples
         /// </summary>
+        [BsonSerializer(typeof(MongoJsonSerializer<List<SampleClass>>))]
         public List<SampleClass>? Sample { get; set; } = [];
     }
 
