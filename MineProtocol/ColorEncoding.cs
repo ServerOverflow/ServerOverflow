@@ -10,78 +10,94 @@ public static class ColorEncoding {
     /// Color code to CSS color dictionary
     /// </summary>
     private static readonly Dictionary<char, string> _mapping = new() {
-        { '0' , "#000000" },
-        { '1' , "#0000AA" },
-        { '2' , "#00AA00" },
-        { '3' , "#00AAAA" },
-        { '4' , "#AA0000" },
-        { '5' , "#AA00AA" },
-        { '6' , "#FFAA00" },
-        { '7' , "#AAAAAA" },
-        { '8' , "#555555" },
-        { '9' , "#5555FF" },
-        { 'a' , "#55FF55" },
-        { 'b' , "#55FFFF" },
-        { 'c' , "#FF5555" },
-        { 'd' , "#FF55FF" },
-        { 'e' , "#FFFF55" },
-        { 'f' , "#FFFFFF" },
+        { '0' , "black" },
+        { '1' , "dark_blue" },
+        { '2' , "dark_green" },
+        { '3' , "dark_aqua" },
+        { '4' , "dark_red" },
+        { '5' , "dark_purple" },
+        { '6' , "gold" },
+        { '7' , "gray" },
+        { '8' , "dark_gray" },
+        { '9' , "blue" },
+        { 'a' , "green" },
+        { 'b' , "aqua" },
+        { 'c' , "red" },
+        { 'd' , "light_purple" },
+        { 'e' , "yellow" },
+        { 'f' , "white" },
         { 'r' , "reset" },
         { 'k' , "obf" },
-        { 'o' , "em" },
-        { 'l' , "b" },
-        { 'm' , "s" },
-        { 'n' , "u" }
+        { 'o' , "italic" },
+        { 'l' , "bold" },
+        { 'm' , "strike" },
+        { 'n' , "underline" }
     };
 
     /// <summary>
-    /// Converts colored text to HTML
+    /// Parses decorated string into a text component
     /// </summary>
-    /// <param name="str">Colored text</param>
-    /// <param name="clean">Strip out color</param>
-    /// <returns>Converted HTML</returns>
-    public static string ToHtml(string? str, bool clean = false) {
-        if (str == null) return "";
-        var output = "<span>";
+    /// <param name="str">Decorated string</param>
+    /// <returns>Text component</returns>
+    public static TextComponent Parse(string? str) {
+        if (str == null) return new TextComponent();
+        var parent = new TextComponent();
+        var component = new TextComponent();
+        parent.Extra.Add(component);
         var expectChar = false;
-        var ending = "";
-        var character = '&';
         foreach (var i in str) {
             if (expectChar) {
-                if (!clean && _mapping.TryGetValue(i, out var color)) {
+                if (_mapping.TryGetValue(i, out var color)) {
                     if (color == "reset") {
-                        output += ending;
-                        ending = "";
-                    } else if (!color.StartsWith("#")) {
-                        output += $"<{color}>";
-                        ending = $"</{color}>" + ending;
-                    } else output += $"</span><span style=\"color: {color};\">";
+                        component = new TextComponent();
+                        parent.Extra.Add(component);
+                        expectChar = false;
+                        continue;
+                    }
+
+                    var old = component;
+                    component = color switch {
+                        "obf" => new TextComponent {
+                            Obfuscated = true
+                        },
+                        "italic" => new TextComponent {
+                            Italic = true
+                        },
+                        "bold" => new TextComponent {
+                            Bold = true
+                        },
+                        "strike" => new TextComponent {
+                            Strikethrough = true
+                        },
+                        "underline" => new TextComponent {
+                            Underlined = true
+                        },
+                        _ => new TextComponent {
+                            Color = color
+                        }
+                    };
+                        
+                    old.Extra.Add(component);
+                    expectChar = false;
+                    continue;
                 } 
                 
-                if (!_mapping.ContainsKey(i)) 
-                    output += character + HttpUtility.HtmlEncode(i);
-
                 expectChar = false;
                 continue;
             }
 
             switch (i) {
-                case '\n':
-                    output += "<br>";
-                    break;
                 case '&':
-                    character = '&';
                     expectChar = true;
                     continue;
                 case '§':
-                    character = '§';
                     expectChar = true;
                     continue;
             }
 
-            output += HttpUtility.HtmlEncode(i);
+            component.Text += i;
         }
 
-        return output + ending + "</span>";
+        return parent;
     }
 }

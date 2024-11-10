@@ -1,5 +1,7 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using MineProtocol;
 using Serilog;
 using Serilog.Events;
 using ServerOverflow;
@@ -18,9 +20,6 @@ if (accounts == 0 && invites == 0) {
     Log.Warning("There aren't any accounts or invitations!");
     Log.Warning("Use this code: {0}", invite.Code);
 }
-
-Log.Information("Scraping protocol versions");
-await Protocol.Generate();
 
 Log.Information("Starting background threads");
 new Thread(async () => await Statistics.ProcessorThread()).Start();

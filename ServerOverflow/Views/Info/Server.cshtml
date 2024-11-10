@@ -1,4 +1,6 @@
+@using System.Text.Json
 @using Humanizer
+@using MineProtocol
 @model GenericModel<Server>
 @{
     ViewData["Description"] = "Server information";
@@ -248,8 +250,8 @@
                                 </div>
                                 <div class="columns">
                                     <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Error message</div>
-                                        <b class="is-size-5">@(server.JoinResult.ErrorMessage ?? "None")</b>
+                                        <div class="is-size-6 has-text-grey-light">Error or disconnect reason</div>
+                                        <b class="is-size-5">@(server.JoinResult.ErrorMessage ?? server.JoinResult.ReasonToHtml() ?? "None")</b>
                                     </div>
                                     <div class="column">
                                         <div class="is-size-6 has-text-grey-light">Last joined</div>

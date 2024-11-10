@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using MineProtocol;
 using MongoDB.Driver;
 using Serilog;
 using ServerOverflow.Database;
@@ -148,7 +149,7 @@ public class Statistics {
                         }
 
                         if (server.Ping.Version?.Protocol != null && 
-                            Protocol.Mapping.TryGetValue(server.Ping.Version.Protocol.Value, out var mapping)) {
+                            Resources.Protocol.TryGetValue(server.Ping.Version.Protocol.Value, out var mapping)) {
                             if (!versions.TryGetValue(mapping, out _))
                                 versions.Add(mapping, 1);
                             else versions[mapping] += 1;

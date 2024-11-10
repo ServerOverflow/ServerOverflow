@@ -321,15 +321,10 @@ public class ServerListPing {
     /// <returns>Raw HTML</returns>
     public string? DescriptionToHtml() {
         if (Description == null) return null;
+        
         try {
-            var str = JsonSerializer.Deserialize<string>(Description);
-            if (str != null) return ColorEncoding.ToHtml(str);
-        } catch { /* Ignore */ }
-
-        try {
-            var obj = JsonSerializer.Deserialize<ChatComponent>(Description);
-            return obj?.ToHtml();
-        } catch (Exception e) {
+            return TextComponent.Parse(Description).ToHtml();
+        } catch {
             return "<b>Failed to deserialize the chat component!</b>";
         }
     }

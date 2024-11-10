@@ -60,6 +60,17 @@ public static class Extensions {
     }
     
     /// <summary>
+    /// Writes a string prefixed with VarInt
+    /// </summary>
+    /// <param name="stream">Stream</param>
+    public static async Task<string> ReadString(this Stream stream) {
+        var len = await stream.ReadVarInt();
+        var buf = new byte[len];
+        var read = await stream.ReadAsync(buf.AsMemory(0, len));
+        return Encoding.UTF8.GetString(buf, 0, read);
+    }
+    
+    /// <summary>
     /// Writes a byte buffer
     /// </summary>
     /// <param name="stream">Stream</param>

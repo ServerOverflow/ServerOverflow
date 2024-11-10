@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Text.Json;
 using Humanizer;
 using MineProtocol;
 using MongoDB.Driver;
@@ -31,9 +32,10 @@ public static class JoinBot {
             
             // handshake packet
             var protocol = server.Ping.Version?.Protocol ?? 47;
+            var ip = server.IP + (server.Ping.IsForge ? "\0FML\0" : "");
             await packet.WriteVarInt(0x00);              // Packet ID
             await packet.WriteVarInt(protocol);          // Protocol Version
-            await packet.WriteString(server.IP);         // Server IP
+            await packet.WriteString(ip);                // Server IP
             await packet.WriteShort((short)server.Port); // Server Port
             await packet.WriteVarInt(2);                 // Next State
             await stream.WriteVarInt((int) packet.Position).WaitAsync(timeout);
@@ -60,7 +62,7 @@ public static class JoinBot {
             await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position)).AsTask().WaitAsync(timeout);
             await stream.ReadVarInt().WaitAsync(timeout); // ignore packet length
             server.JoinResult = await stream.ReadVarInt().WaitAsync(timeout) switch {
-                0x00 => new Result { Success = true, Whitelist = true },
+                0x00 => new Result { Success = true, Whitelist = true, DisconnectReason = await stream.ReadString() },
                 0x01 => new Result { Success = true, OnlineMode = true },
                 _ => new Result { Success = true, OnlineMode = false }
             };
@@ -83,7 +85,7 @@ public static class JoinBot {
                 using var cursor = await Controller.Servers.FindAsync(
                     builder.Eq(x => x.JoinResult, null) |
                     builder.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(1)), 
-                    new FindOptions<Server> { BatchSize = 300 });
+                    new FindOptions<Server> { BatchSize = 500 });
                 
                 while (await cursor.MoveNextAsync()) {
                     var watch = new Stopwatch(); watch.Start();
@@ -125,10 +127,29 @@ public static class JoinBot {
         /// Is whitelist enabled
         /// </summary>
         public bool? Whitelist { get; set; }
+        
+        /// <summary>
+        /// Reason for the disconnect
+        /// </summary>
+        public string? DisconnectReason { get; set; }
 
         /// <summary>
         /// When was the result produced
         /// </summary>
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        
+        /// <summary>
+        /// Encodes the description into HTML
+        /// </summary>
+        /// <returns>Raw HTML</returns>
+        public string? ReasonToHtml() {
+            if (DisconnectReason == null) return null;
+            
+            try {
+                return TextComponent.Parse(DisconnectReason).ToHtml();
+            } catch {
+                return "<b>Failed to deserialize the chat component!</b>";
+            }
+        }
     }
 }
