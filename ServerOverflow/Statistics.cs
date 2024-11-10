@@ -107,7 +107,6 @@ public class Statistics {
                 if (Stats.CustomSoftware.Count >= 720) Stats.CustomSoftware.RemoveAt(0);
                 if (Stats.AntiDDoS.Count >= 720) Stats.AntiDDoS.RemoveAt(0);
                 
-                Console.WriteLine("collecting basic stats");
                 Stats.TotalServers.Add((int)await Controller.Servers.Count(x => true));
                 Stats.ChatReporting.Add((int)await Controller.Servers.Count(x => x.Ping.ChatReporting));
                 Stats.OnlineMode.Add((int)await Controller.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
@@ -131,7 +130,6 @@ public class Statistics {
                         x.Ping.Version.Name.Contains("\u26a0 Error")
                     ))));
                 
-                Console.WriteLine("collecting dictionaries");
                 var software = new Dictionary<string, int>();
                 var versions = new Dictionary<string, int>();
                 var mods = new Dictionary<string, int>();
@@ -172,8 +170,7 @@ public class Statistics {
                                 else mods[mod.ModId] += 1;
                             }
                     }
-
-                Console.WriteLine("saving dict stats");
+                
                 Stats.SoftwarePopularity = software.OrderByDescending(x => x.Value).Take(10).ToDictionary(x => x.Key, x => x.Value);
                 Stats.VersionPopularity = versions.OrderByDescending(x => x.Value).Take(10).ToDictionary(x => x.Key, x => x.Value);
                 Stats.ForgeModsPopularity = mods.OrderByDescending(x => x.Value).Take(10).ToDictionary(x => x.Key, x => x.Value);
