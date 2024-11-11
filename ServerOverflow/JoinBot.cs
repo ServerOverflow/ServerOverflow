@@ -109,7 +109,6 @@ public static class JoinBot {
                 if (total == 0) continue;
                 
                 Log.Information("Bulk joining {0} servers", total);
-                var watch = new Stopwatch(); watch.Start();
                 using var cursor = await Controller.Servers.FindAsync(
                     query, new FindOptions<Server> { BatchSize = 500 });
 
@@ -121,8 +120,7 @@ public static class JoinBot {
                     await Controller.Servers.BulkWriteAsync(requests);
                 }
                 
-                watch.Stop(); _active = false;
-                Log.Information("Completed bulk join in {0}", watch.Elapsed);
+                _active = false;
                 await Task.Delay(3600000);
             } catch (Exception e) {
                 Log.Error("Join bot thread crashed: {0}", e);
@@ -136,8 +134,8 @@ public static class JoinBot {
     /// </summary>
     private static async Task LoggerThread() {
         while (true) {
-            while (!_active)
-                await Task.Delay(1000);
+            while (!_active) await Task.Delay(1000);
+            var watch = new Stopwatch(); watch.Start();
             while (_active) {
                 _serversAvg.Add(_servers - _serversAvg[-1]);
                 if (_serversAvg.Count >= 10) {
@@ -147,6 +145,14 @@ public static class JoinBot {
                 
                 await Task.Delay(1000);
             }
+            
+            watch.Stop();
+            if (_serversAvg.Count != 0) {
+                Log.Information("Joined {0} servers ({1} per second)", _servers, _serversAvg.Average());
+                Interlocked.Exchange(ref _servers, 0); _serversAvg = [0];
+            }
+            
+            Log.Information("Completed bulk join in {0}", watch.Elapsed);
         }
     }
     
