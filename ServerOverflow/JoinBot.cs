@@ -137,7 +137,7 @@ public static class JoinBot {
             while (!_active) await Task.Delay(1000);
             var watch = new Stopwatch(); watch.Start();
             while (_active) {
-                _serversAvg.Add(_servers - _serversAvg[-1]);
+                _serversAvg.Add(_servers - _serversAvg[^1]);
                 if (_serversAvg.Count >= 10) {
                     Log.Information("Joined {0} servers ({1} per second)", _servers, _serversAvg.Average());
                     Interlocked.Exchange(ref _servers, 0); _serversAvg = [0];
