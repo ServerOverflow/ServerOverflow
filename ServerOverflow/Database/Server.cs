@@ -155,7 +155,7 @@ public class ActiveFingerprint {
     /// <summary>
     /// Server software identified
     /// </summary>
-    public string Software { get; set; } = "";
+    public string Software { get; set; } = "Unknown";
 }
 
 /// <summary>
