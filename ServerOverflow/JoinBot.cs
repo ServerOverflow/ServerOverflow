@@ -61,8 +61,8 @@ public static class JoinBot {
             // login start packet
             await packet.WriteVarInt(0x00);    // Packet ID
             await packet.WriteString(name);    // Username
-            if (protocol is >= 759 and <= 762)
-                await packet.WriteBytes(0x00); // Has signature
+            if (protocol is >= 759 and <= 760)
+                await packet.WriteBytes(0);    // Has signature
             if (protocol >= 760) {
                 var guidBytes = new Guid(uuid).ToByteArray();            
                 var uuidBytes = new[] {
