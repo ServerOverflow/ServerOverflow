@@ -28,9 +28,11 @@
                                             <a class="is-size-3" href="/account/@account.Id">@account.Username</a>
                                             <span class="tag is-primary" style="transform: translate(2%, -30%)">@account.BadgeText</span>
                                         </div>
-                                        <span>
-                                            Invited by <a href="/user/profile/@(invitee?.Id.ToString() ?? "")">@(invitee?.Username ?? "Unknown")</a>
-                                        </span>
+                                        @if (invitee == null) {
+                                            <span>Invited by <obf>god himself</obf></span>
+                                        } else {
+                                            <span>Invited by <a href="/account/@invitee.Id">@invitee.Username</a></span>
+                                        }
                                     </div>
                                 </div>
                             </span>

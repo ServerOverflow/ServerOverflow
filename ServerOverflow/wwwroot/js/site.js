@@ -1,4 +1,8 @@
-﻿$(document).ready(function() {
+﻿function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+$(document).ready(function() {
     window.setInterval(function () {
         $("obf").each(function() {
             const el = $(this);

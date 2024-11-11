@@ -2,6 +2,10 @@ html {
   font-size: 14px;
 }
 
+obf {
+  font-family: monospace;
+}
+
 .card {
   --bulma-card-background-color: hsl(221,14%,15%);
   --bulma-card-shadow: none;

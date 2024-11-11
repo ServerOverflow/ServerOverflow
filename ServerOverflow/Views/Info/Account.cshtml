@@ -5,7 +5,7 @@
     ViewData["Title"] = "Profile";
     Layout = "Layout";
 
-    var disabled = Model.Account.HasPermission(Permission.Administrator) ? "" : "disabled";
+    var disabled = Model.Target.Invitee != null && Model.Account.HasPermission(Permission.Administrator) ? "" : "disabled";
     var invitee = Model.Target.Invitee != null ? await Account.Get(Model.Target.Invitee!.ToString()!) : null;
 }
 
@@ -32,9 +32,11 @@
                                 <a class="is-size-3" href="/account/@Model.Target.Id">@Model.Target.Username</a>
                                 <span class="tag is-primary" style="transform: translate(2%, -30%)">@Model.Target.BadgeText</span>
                             </div>
-                            <span>
-                                Invited by <a href="/user/profile/@(invitee?.Id.ToString() ?? "")">@(invitee?.Username ?? "Unknown")</a>
-                            </span>
+                            @if (invitee == null) {
+                                <span>Invited by <obf>god himself</obf></span>
+                            } else {
+                                <span>Invited by <a href="/account/@invitee.Id">@invitee.Username</a></span>
+                            }
                         </div>
                     </div>
                 </span>
@@ -101,6 +103,9 @@
                                 <input type="submit" class="button is-primary" value="Apply changes" @disabled/>
                                 @if (!Model.Account.HasPermission(Permission.Administrator)) {
                                     <p class="help">Only administrators can change permissions!</p>
+                                }
+                                @if (Model.Target.Invitee == null) {
+                                    <p class="help">You can't modify permissions of the owner</p>
                                 }
                             </div>
                         </form>

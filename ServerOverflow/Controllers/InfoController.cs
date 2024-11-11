@@ -52,6 +52,11 @@ public class InfoController : Controller {
                     model.Message = "Only administrators can modify permissions!";
                     break;
                 }
+
+                if (model.Target.Invitee == null) {
+                    model.Message = "You can't modify permissions of the owner!";
+                    break;
+                }
                     
                 model.Target.Permissions.Clear();
                 foreach (var pair in HttpContext.Request.Form) {
@@ -67,6 +72,11 @@ public class InfoController : Controller {
             case "changePassword": // Change Password
                 if (model.OtherTarget && !account.HasPermission(Permission.ModifyAccounts)) {
                     model.Message = "Modify accounts permission is required to change someone else's password!";
+                    break;
+                }
+                
+                if (model.Target.Invitee == null && model.OtherTarget) {
+                    model.Message = "Only the owner can change his own password!";
                     break;
                 }
                     
@@ -88,18 +98,28 @@ public class InfoController : Controller {
                 break;
             case "generateApiKey": // Generate API key
                 if (model.OtherTarget && !account.HasPermission(Permission.Administrator)) {
-                    model.Message = "Only administrators can generate API keys for other accounts!";
+                    model.Message = "Only administrators can generate API token for other accounts!";
+                    break;
+                }
+                
+                if (model.Target.Invitee == null && model.OtherTarget) {
+                    model.Message = "Only the owner can generate an API token for himself!";
                     break;
                 }
 
                 model.Target.ApiKey = Extensions.RandomString(32);
                 await model.Target.Update();
-                model.Message = $"Here is your new API key: {model.Target.ApiKey}";
+                model.Message = $"Here is your new API token: {model.Target.ApiKey}";
                 model.Success = true;
                 break;
             case "deleteAccount": // Delete Account
                 if (model.OtherTarget && !account.HasPermission(Permission.Administrator)) {
                     model.Message = "Only administrators can delete other accounts!";
+                    break;
+                }
+                
+                if (model.Target.Invitee == null) {
+                    model.Message = "You can't delete the owner's account!";
                     break;
                 }
 
@@ -108,6 +128,11 @@ public class InfoController : Controller {
             case "changeUsername": { // Change Username
                 if (model.OtherTarget && !account.HasPermission(Permission.ModifyAccounts)) {
                     model.Message = "Modify accounts permission is required to change someone else's username!";
+                    break;
+                }
+                
+                if (model.Target.Invitee == null && model.OtherTarget) {
+                    model.Message = "Only the owner can change his own username!";
                     break;
                 }
                     
