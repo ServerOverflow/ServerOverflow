@@ -17,89 +17,88 @@ public static class Query {
     /// </summary>
     /// <returns>BSON filter</returns>
     public static FilterDefinition<Server> Servers(string query)
-        => Generate<Server>(query, (op, reversed, content, filter) => {
+        => Generate<Server>(query, (op, reversed, content) => {
             switch (op) {
                 case "botJoined": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    return filter & (content == "true" 
+                    return content == "true" 
                         ? Builders<Server>.Filter.Ne(x => x.JoinResult, null)
-                        : Builders<Server>.Filter.Eq(x => x.JoinResult, null));
+                        : Builders<Server>.Filter.Eq(x => x.JoinResult, null);
                 }
                 case "allowsReporting": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    return filter & Builders<Server>.Filter.Eq(x => x.Ping.ChatReporting, content == "true");
+                    return Builders<Server>.Filter.Eq(x => x.Ping.ChatReporting, content == "true");
                 }
                 case "hasForge": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    return filter & Builders<Server>.Filter.Eq(x => x.Ping.IsForge, content == "true");
+                    return Builders<Server>.Filter.Eq(x => x.Ping.IsForge, content == "true");
                 }
                 case "onlineMode": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    return filter & Builders<Server>.Filter.Eq(x => x.JoinResult!.OnlineMode, content == "true");
+                    return Builders<Server>.Filter.Eq(x => x.JoinResult!.OnlineMode, content == "true");
                 }
                 case "whitelist": {
                     if (reversed) throw new SyntaxErrorException("Boolean operators do not allow reversing");
                     if (content is not "true" and not "false") throw new SyntaxErrorException(
                         $"Expected a binary true or false, found {content} instead");
-                    return filter & Builders<Server>.Filter.Eq(x => x.JoinResult!.Whitelist, content == "true");
+                    return Builders<Server>.Filter.Eq(x => x.JoinResult!.Whitelist, content == "true");
                 }
                 case "online": {
                     if (!uint.TryParse(content, out var number))
                         throw new SyntaxErrorException($"Expected an unsigned number, found {content} instead");
-                    return filter & (reversed
+                    return reversed
                         ? Builders<Server>.Filter.Ne(x => x.Ping.Players!.Online, (int)number)
-                        : Builders<Server>.Filter.Eq(x => x.Ping.Players!.Online, (int)number));
+                        : Builders<Server>.Filter.Eq(x => x.Ping.Players!.Online, (int)number);
                 }
                 case "max": {
                     if (!uint.TryParse(content, out var number))
                         throw new SyntaxErrorException($"Expected an unsigned number, found {content} instead");
-                    return filter & (reversed
+                    return reversed
                         ? Builders<Server>.Filter.Ne(x => x.Ping.Players!.Max, (int)number)
-                        : Builders<Server>.Filter.Eq(x => x.Ping.Players!.Max, (int)number));
+                        : Builders<Server>.Filter.Eq(x => x.Ping.Players!.Max, (int)number);
                 }
                 case "protocol": {
                     if (!uint.TryParse(content, out var number))
                         throw new SyntaxErrorException($"Expected an unsigned number, found {content} instead");
-                    return filter & (reversed
+                    return reversed
                         ? Builders<Server>.Filter.Ne(x => x.Ping.Version!.Protocol, (int)number)
-                        : Builders<Server>.Filter.Eq(x => x.Ping.Version!.Protocol, (int)number));
+                        : Builders<Server>.Filter.Eq(x => x.Ping.Version!.Protocol, (int)number);
                 }
                 case "ip": {
-                    return filter & (reversed
+                    return reversed
                         ? Builders<Server>.Filter.Ne(x => x.IP, content)
-                        : Builders<Server>.Filter.Eq(x => x.IP, content));
+                        : Builders<Server>.Filter.Eq(x => x.IP, content);
                 }
                 case "port": {
                     if (!ushort.TryParse(content, out var number))
                         throw new SyntaxErrorException($"Expected an unsigned short, found {content} instead");
-                    return filter & (reversed
+                    return reversed
                         ? Builders<Server>.Filter.Ne(x => x.Port, number)
-                        : Builders<Server>.Filter.Eq(x => x.Port, number));
+                        : Builders<Server>.Filter.Eq(x => x.Port, number);
                 }
                 case "version": {
                     if (reversed) throw new SyntaxErrorException("Version operator do not allow reversing");
                     var regex = new BsonRegularExpression(content, "i");
-                    return filter & Builders<Server>.Filter.Regex(x => x.Ping.Version!.Name, regex);
+                    return Builders<Server>.Filter.Regex(x => x.Ping.Version!.Name, regex);
                 }
                 case "hasPlayer": {
                     if (reversed) throw new SyntaxErrorException("Has player operator do not allow reversing");
                     if (Guid.TryParse(content, out _))
-                        return filter & Builders<Server>.Filter.ElemMatch(x => x.Players!, x => x.Key == content);
-                    return filter & Builders<Server>.Filter.ElemMatch(x => x.Players!, x => x.Key == content);
+                        return Builders<Server>.Filter.ElemMatch(x => x.Players!, x => x.Key == content);
+                    return Builders<Server>.Filter.ElemMatch(x => x.Players!, x => x.Key == content);
                 }
                 case "hasMod": {
                     if (reversed) throw new SyntaxErrorException("Has mod operator do not allow reversing");
-                    return filter & (
-                        Builders<Server>.Filter.ElemMatch(x => x.Ping.LegacyForgeMods!.ModList, x => x.ModId == content) |
-                        Builders<Server>.Filter.ElemMatch(x => x.Ping.ModernForgeMods!.ModList, x => x.ModId == content));
+                    return Builders<Server>.Filter.ElemMatch(x => x.Ping.LegacyForgeMods!.ModList, x => x.ModId == content) | 
+                           Builders<Server>.Filter.ElemMatch(x => x.Ping.ModernForgeMods!.ModList, x => x.ModId == content);
                 }
                 default: throw new SyntaxErrorException(
                     $"Invalid operator \"{op}\"");
@@ -114,7 +113,7 @@ public static class Query {
     /// <param name="def">Default Field</param>
     /// <returns>BSON filter</returns>
     private static FilterDefinition<T> Generate<T>(string query, 
-        Func<string, bool, string, FilterDefinition<T>, FilterDefinition<T>> handler,
+        Func<string, bool, string, FilterDefinition<T>> handler,
         Expression<Func<T, object>> def) {
         var buffer = ""; var multi = false;
         var filter = Builders<T>.Filter.Empty;
@@ -129,7 +128,7 @@ public static class Query {
                 reversed = true;
                 op = op[1..];
             }
-            filter = handler(op, reversed, content, filter);
+            filter &= handler(op, reversed, content);
             buffer = null; multi = false;
         }
 

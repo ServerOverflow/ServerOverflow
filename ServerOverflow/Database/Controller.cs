@@ -12,6 +12,7 @@ public static class Controller {
     public static readonly IMongoCollection<Invitation> Invitations;
     public static readonly IMongoCollection<Exclusion> Exclusions;
     public static readonly IMongoCollection<Server> Servers;
+    public static readonly IMongoCollection<Player> Players;
     public static readonly IMongoCollection<BadIP> BadIPs;
     
     /// <summary>
@@ -29,8 +30,9 @@ public static class Controller {
             MaxConnectionPoolSize = 5000
         });
         var database = client.GetDatabase("server-overflow");
-        Accounts = database.GetCollection<Account>("accounts");
         Invitations = database.GetCollection<Invitation>("invitations");
+        Accounts = database.GetCollection<Account>("accounts");
+        Players = database.GetCollection<Player>("players");
         var matscan = client.GetDatabase("matscan");
         Exclusions = matscan.GetCollection<Exclusion>("exclusions");
         Servers = matscan.GetCollection<Server>("servers");

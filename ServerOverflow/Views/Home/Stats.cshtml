@@ -172,6 +172,9 @@
             name: 'Anti-DDoS proxy',
             data: get(antiDDoS, 48)
         }],
+        animations: {
+            enabled: false
+        },
         chart: {
             foreColor: '#ccc',
             height: 350,
@@ -206,6 +209,9 @@
             name: 'Custom software',
             data: get(customSoftware, 48)
         }],
+        animations: {
+            enabled: false
+        },
         chart: {
             foreColor: '#ccc',
             height: 350,
@@ -231,20 +237,35 @@
 
     new ApexCharts($("#software")[0], {
         series: getValues(software),
+        animations: {
+            enabled: false
+        },
         chart: {
             foreColor: '#ccc',
             width: '100%',
             type: 'pie',
         },
-        labels: getLabels(software)
+        dataLabels: {
+            enabled: false
+        },
+        labels: getLabels(software),
+        tooltip: {
+            theme: 'dark'
+        }
     }).render();
 
     new ApexCharts($("#versions")[0], {
         series: getValues(versions),
+        animations: {
+            enabled: false
+        },
         chart: {
             foreColor: '#ccc',
             width: '100%',
             type: 'pie',
+        },
+        dataLabels: {
+            enabled: false
         },
         labels: getLabels(versions),
         tooltip: {
@@ -254,10 +275,16 @@
 
     new ApexCharts($("#mods")[0], {
         series: getValues(forgeMods),
+        animations: {
+            enabled: false
+        },
         chart: {
             foreColor: '#ccc',
             width: '100%',
             type: 'pie',
+        },
+        dataLabels: {
+            enabled: false
         },
         labels: getLabels(forgeMods),
         tooltip: {

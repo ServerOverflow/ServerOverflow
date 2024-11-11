@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text.Json;
 using Humanizer;
 using MineProtocol;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Serilog;
 using ServerOverflow.Database;
