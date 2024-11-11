@@ -106,7 +106,7 @@ public static class JoinBot {
                             builder.Gt(x => x.JoinResult!.Timestamp,
                                 DateTime.UtcNow + TimeSpan.FromDays(1));
                 var total = await Controller.Servers.CountDocumentsAsync(query);
-                if (total == 0) return;
+                if (total == 0) continue;
                 
                 Log.Information("Bulk joining {0} servers", total);
                 var watch = new Stopwatch(); watch.Start();
