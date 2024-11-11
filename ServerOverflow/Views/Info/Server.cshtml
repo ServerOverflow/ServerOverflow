@@ -159,33 +159,31 @@
                             </span>
                         </button>
                     </header>
-                    <div class="card-inner" style="display: none;">
-                        <div class="card-content">
-                            @if (server.Fingerprint?.Passive == null) {
-                                <span>Passive fingerprint was not captured</span>
-                            } else {
-                                <div class="columns">
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Empty Favicon</div>
-                                        <b class="is-size-5">@(server.Fingerprint.Passive.EmptyFavicon ? "True" : "False")</b>
-                                    </div>
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Empty Sample</div>
-                                        <b class="is-size-5">@(server.Fingerprint.Passive.EmptySample ? "True" : "False")</b>
-                                    </div>
+                    <div class="card-content" style="display: none;">
+                        @if (server.Fingerprint?.Passive == null) {
+                            <span>Passive fingerprint was not captured</span>
+                        } else {
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Empty Favicon</div>
+                                    <b class="is-size-5">@(server.Fingerprint.Passive.EmptyFavicon ? "True" : "False")</b>
                                 </div>
-                                <div class="columns">
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Incorrect Order</div>
-                                        <b class="is-size-5">@(server.Fingerprint.Passive.IncorrectOrder ? "True" : "False")</b>
-                                    </div>
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Field Order</div>
-                                        <b class="is-size-5">@(server.Fingerprint.Passive.FieldOrder ?? "Correct")</b>
-                                    </div>
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Empty Sample</div>
+                                    <b class="is-size-5">@(server.Fingerprint.Passive.EmptySample ? "True" : "False")</b>
                                 </div>
-                            }
-                        </div>
+                            </div>
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Incorrect Order</div>
+                                    <b class="is-size-5">@(server.Fingerprint.Passive.IncorrectOrder ? "True" : "False")</b>
+                                </div>
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Field Order</div>
+                                    <b class="is-size-5">@(server.Fingerprint.Passive.FieldOrder ?? "Correct")</b>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -201,23 +199,21 @@
                             </span>
                         </button>
                     </header>
-                    <div class="card-inner" style="display: none;">
-                        <div class="card-content">
-                            @if (server.Fingerprint?.Active == null) {
-                                <span>Active fingerprint was not captured</span>
-                            } else {
-                                <div class="columns">
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Timestamp</div>
-                                        <b class="is-size-5">@(server.Fingerprint.Active.Timestamp.Humanize())</b>
-                                    </div>
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Software</div>
-                                        <b class="is-size-5">@(server.Fingerprint.Active.Software)</b>
-                                    </div>
+                    <div class="card-content" style="display: none;">
+                        @if (server.Fingerprint?.Active == null) {
+                            <span>Active fingerprint was not captured</span>
+                        } else {
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Timestamp</div>
+                                    <b class="is-size-5">@(server.Fingerprint.Active.Timestamp.Humanize())</b>
                                 </div>
-                            }
-                        </div>
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Software</div>
+                                    <b class="is-size-5">@(server.Fingerprint.Active.Software)</b>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -233,37 +229,35 @@
                             </span>
                         </button>
                     </header>
-                    <div class="card-inner" style="display: none;">
-                        <div class="card-content">
-                            @if (server.JoinResult == null) {
-                                <span>The bot has never joined this server before</span>
-                            } else {
-                                <div class="columns">
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Online Mode</div>
-                                        <b class="is-size-5">@(server.JoinResult.OnlineMode != null ? server.JoinResult.OnlineMode.Value ? "Enabled" : "Disabled" : "Unknown")</b>
-                                    </div>
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Whitelist</div>
-                                        <b class="is-size-5">@(server.JoinResult.Whitelist != null ? server.JoinResult.Whitelist.Value ? "Enabled" : "Disabled" : "Unknown")</b>
-                                    </div>
+                    <div class="card-content" style="display: none;">
+                        @if (server.JoinResult == null) {
+                            <span>The bot has never joined this server before</span>
+                        } else {
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Online Mode</div>
+                                    <b class="is-size-5">@(server.JoinResult.OnlineMode != null ? server.JoinResult.OnlineMode.Value ? "Enabled" : "Disabled" : "Unknown")</b>
                                 </div>
-                                <div class="columns">
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Error or disconnect reason</div>
-                                        @if (server.JoinResult.ReasonToHtml() != null) {
-                                            <b class="is-size-5">@Html.Raw(server.JoinResult.ReasonToHtml())</b>
-                                        } else {
-                                            <b class="is-size-5">@(server.JoinResult.ErrorMessage ?? "None")</b>
-                                        }
-                                    </div>
-                                    <div class="column">
-                                        <div class="is-size-6 has-text-grey-light">Last joined</div>
-                                        <b class="is-size-5">@(server.JoinResult.Timestamp.Humanize())</b>
-                                    </div>
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Whitelist</div>
+                                    <b class="is-size-5">@(server.JoinResult.Whitelist != null ? server.JoinResult.Whitelist.Value ? "Enabled" : "Disabled" : "Unknown")</b>
                                 </div>
-                            }
-                        </div>
+                            </div>
+                            <div class="columns">
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Error or disconnect reason</div>
+                                    @if (server.JoinResult.ReasonToHtml() != null) {
+                                        <b class="is-size-5">@Html.Raw(server.JoinResult.ReasonToHtml())</b>
+                                    } else {
+                                        <b class="is-size-5">@(server.JoinResult.ErrorMessage ?? "None")</b>
+                                    }
+                                </div>
+                                <div class="column">
+                                    <div class="is-size-6 has-text-grey-light">Last joined</div>
+                                    <b class="is-size-5">@(server.JoinResult.Timestamp.Humanize())</b>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

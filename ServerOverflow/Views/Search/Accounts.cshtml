@@ -10,7 +10,7 @@
 <div class="section">
     <div class="content">
         <h2>List of all accounts</h2>
-        <div class="columns">
+        <div class="columns is-multiline">
             @foreach (var account in accounts) {
                 var invitee = account.Invitee != null ? await Account.Get(account.Invitee!.ToString()!) : null;
                 <div class="column is-one-third">
