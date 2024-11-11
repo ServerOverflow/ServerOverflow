@@ -113,9 +113,12 @@ public static class JoinBot {
                     query, new FindOptions<Server> { BatchSize = 500 });
 
                 _active = true;
+                var exclusions = await Exclusion.GetAll();
                 while (await cursor.MoveNextAsync()) {
                     var requests = new ConcurrentBag<WriteModel<Server>>();
-                    var tasks = cursor.Current.Select(x => Connect(x, requests)).ToArray();
+                    var tasks = cursor.Current
+                        .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
+                        .Select(x => Connect(x, requests)).ToArray();
                     await Task.WhenAll(tasks);
                     await Controller.Servers.BulkWriteAsync(requests);
                 }
