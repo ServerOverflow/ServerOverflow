@@ -82,26 +82,28 @@ public class TextComponent {
     /// Returns a translated text component
     /// </summary>
     /// <returns>Text component</returns>
-    private TextComponent GetTranslated() {
+    public TextComponent GetTranslated() {
         if (Translate == null) return this;
         var components = new List<TextComponent>();
-        Text = Resources.Language.GetValueOrDefault(Translate, Translate).Replace("%%", "%");
-        var index = 0; var idx = 0; var buf = "";
-        while ((index = Text.IndexOf('%', index)) != -1) {
-            if (index + 1 < Text.Length && Text[index + 1] == '%') {
+        var text = Resources.Language.GetValueOrDefault(Translate, Translate).Replace("%%", "%");
+        var index = 0; int index2; var idx = 0; var buf = "";
+        while ((index2 = text.IndexOf('%', index)) != -1) {
+            buf += text[index..index2];
+            index = index2;
+            if (index + 1 < text.Length && text[index + 1] == '%') {
                 buf += "%";
                 index += 2;
                 continue;
             }
             
-            var sidx = Text.IndexOf('s', index + 1);
+            var sidx = text.IndexOf('s', index);
             if (sidx == -1) {
                 buf += '%';
                 index += 1;
                 continue;
             }
             
-            var placeholder = Text[index..idx];
+            var placeholder = text[index..(sidx+1)];
             if (placeholder == "%s") {
                 if (With == null || idx >= With.Count) {
                     buf += placeholder;
@@ -118,6 +120,7 @@ public class TextComponent {
             index += 2;
         }
         
+        buf += text[index..];
         if (!string.IsNullOrWhiteSpace(buf))
             components.Add(new TextComponent { Text = buf });
         return new TextComponent { Extra = components };
@@ -153,7 +156,9 @@ public class TextComponent {
     /// </summary>
     /// <returns>Converted HTML</returns>
     private string GetComponentHtml() {
-        if (Translate != null) return GetTranslated().ToHtml();
+        if (Translate != null)
+            Extra.InsertRange(0, GetTranslated().Extra);
+        
         Text ??= ""; Color ??= "#FFFFFF";
         if (Text.Contains('§') || Text.Contains('&')) {
             Extra.InsertRange(0, ColorEncoding.Parse(Text).Extra);

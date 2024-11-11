@@ -1,7 +1,5 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using MineProtocol;
 using Serilog;
 using Serilog.Events;
 using ServerOverflow;
