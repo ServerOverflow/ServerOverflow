@@ -20,7 +20,7 @@ public static class Extensions {
     /// <param name="length">Length</param>
     /// <returns>Random string</returns>
     public static string RandomString(int length)
-        => Convert.ToHexString(RandomNumberGenerator.GetBytes(length / 2));
+        => Convert.ToHexString(RandomNumberGenerator.GetBytes(length / 2)).ToLower();
     
     /// <summary>
     /// Generates SHA-512 hash for specified string in hexadecimal

@@ -2,7 +2,7 @@
 @{
     ViewData["Description"] = "Search accounts";
     ViewData["Title"] = "Accounts";
-    
+
     // I don't expect to have a lot of accounts, so this will do
     var accounts = await Controller.Accounts.QueryAll(x => true);
 }
@@ -10,30 +10,34 @@
 <div class="section">
     <div class="content">
         <h2>List of all accounts</h2>
-        @foreach (var account in accounts) {
-            var invitee = account.Invitee != null ? await Account.Get(account.Invitee!.ToString()!) : null;
-            <div class="card">
-                <header class="card-header card-expand">
-                    <span class="card-header-title is-block">
-                        <a href="/user/profile/@account.Id">@account.Username</a>
-                        <code>@account.BadgeText</code>
-                    </span>
-                    <button class="card-header-icon">
-                        <span class="icon">
-                            <i class="fas fa-angle-down" aria-hidden="true"></i>
-                        </span>
-                    </button>
-                </header>
-                <div class="card-inner" style="display: none;">
-                    <div class="card-content">
-                        <div class="content">
-                            <p>
-                                Invited by <a href="/user/profile/@(invitee?.Id.ToString() ?? "")">@(invitee?.Username ?? "Unknown")</a>, account ID: <code>@account.Id</code>
-                            </p>
-                        </div>
+        <div class="columns">
+            @foreach (var account in accounts) {
+                var invitee = account.Invitee != null ? await Account.Get(account.Invitee!.ToString()!) : null;
+                <div class="column is-one-third">
+                    <div class="card">
+                        <header class="card-header">
+                            <span class="card-header-title is-block">
+                                <div class="columns is-mobile">
+                                    <div class="column is-narrow">
+                                        <figure class="image is-96x96">
+                                            <img class="is-server-icon" src="/img/user.png" alt="User Icon"/>
+                                        </figure>
+                                    </div>
+                                    <div class="column rows">
+                                        <div>
+                                            <a class="is-size-3" href="/account/@account.Id">@account.Username</a>
+                                            <span class="tag is-primary" style="transform: translate(2%, -30%)">@account.BadgeText</span>
+                                        </div>
+                                        <span>
+                                            Invited by <a href="/user/profile/@(invitee?.Id.ToString() ?? "")">@(invitee?.Username ?? "Unknown")</a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </span>
+                        </header>
                     </div>
                 </div>
-            </div>
-        }
+            }
+        </div>
     </div>
 </div>

@@ -15,6 +15,21 @@ namespace ServerOverflow;
 /// </summary>
 public static class JoinBot {
     /// <summary>
+    /// A list for calculating average servers per second
+    /// </summary>
+    private static List<int> _serversAvg = [0];
+    
+    /// <summary>
+    /// Servers per second value
+    /// </summary>
+    private static int _servers;
+
+    /// <summary>
+    /// Is currently active
+    /// </summary>
+    private static bool _active;
+    
+    /// <summary>
     /// Connects to a Minecraft server
     /// </summary>
     /// <param name="server">Server</param>
@@ -67,10 +82,13 @@ public static class JoinBot {
                 0x01 => new Result { Success = true, OnlineMode = true },
                 _ => new Result { Success = true, OnlineMode = false }
             };
+            
+            Interlocked.Increment(ref _servers);
             requests.Add(new ReplaceOneModel<Server>(
                 Builders<Server>.Filter.Eq(y => y.Id, server.Id), server));
         } catch (Exception e) {
             server.JoinResult = new Result { Success = false, ErrorMessage = e.Message };
+            Interlocked.Increment(ref _servers);
             requests.Add(new ReplaceOneModel<Server>(
                 Builders<Server>.Filter.Eq(y => y.Id, server.Id), server));
         }
@@ -80,27 +98,52 @@ public static class JoinBot {
     /// Main worker thread
     /// </summary>
     public static async Task WorkerThread() {
+        _ = Task.Run(LoggerThread);
         while (true) {
             try {
                 var builder = Builders<Server>.Filter;
-                using var cursor = await Controller.Servers.FindAsync(
-                    builder.Eq(x => x.JoinResult, null) |
-                    builder.Gt(x => x.JoinResult!.Timestamp, DateTime.UtcNow + TimeSpan.FromDays(1)), 
-                    new FindOptions<Server> { BatchSize = 500 });
+                var query = builder.Eq(x => x.JoinResult, null) |
+                            builder.Gt(x => x.JoinResult!.Timestamp,
+                                DateTime.UtcNow + TimeSpan.FromDays(1));
+                var total = await Controller.Servers.CountDocumentsAsync(query);
+                if (total == 0) return;
                 
+                Log.Information("Starting to join {0} servers", total);
+                using var cursor = await Controller.Servers.FindAsync(
+                    query, new FindOptions<Server> { BatchSize = 500 });
+
+                _active = true;
                 while (await cursor.MoveNextAsync()) {
-                    var watch = new Stopwatch(); watch.Start();
                     var requests = new ConcurrentBag<WriteModel<Server>>();
                     var tasks = cursor.Current.Select(x => Connect(x, requests)).ToArray();
                     await Task.WhenAll(tasks);
                     await Controller.Servers.BulkWriteAsync(requests);
-                    watch.Stop(); var count = cursor.Current.Count();
-                    Log.Information("Joined {0} servers in {1}", count, watch.Elapsed.Humanize());
                 }
                 
+                _active = false;
                 await Task.Delay(3600000);
             } catch (Exception e) {
                 Log.Error("Join bot thread crashed: {0}", e);
+                _active = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Basic speed logger thread
+    /// </summary>
+    private static async Task LoggerThread() {
+        while (true) {
+            while (!_active)
+                await Task.Delay(1000);
+            while (_active) {
+                _serversAvg.Add(_servers - _serversAvg[-1]);
+                if (_serversAvg.Count >= 10) {
+                    Log.Information("Joined {0} servers ({1} per second)", _servers, _serversAvg.Average());
+                    Interlocked.Exchange(ref _servers, 0); _serversAvg = [0];
+                }
+                
+                await Task.Delay(1000);
             }
         }
     }

@@ -35,7 +35,7 @@ public class Account : Document {
     /// <summary>
     /// User's unique API key
     /// </summary>
-    public string ApiKey { get; set; } = Extensions.RandomString(16);
+    public string ApiKey { get; set; } = Extensions.RandomString(32);
     
     /// <summary>
     /// Checks if the account has a permission
@@ -69,13 +69,21 @@ public class Account : Document {
         => await Controller.Accounts.QueryFirst(x => x.Id.ToString() == id);
     
     /// <summary>
+    /// Fetches an account by username
+    /// </summary>
+    /// <param name="username">Username</param>
+    /// <returns>Account, may be null</returns>
+    public static async Task<Account?> GetByName(string username)
+        => await Controller.Accounts.QueryFirst(x => x.Username.ToLower() == username);
+    
+    /// <summary>
     /// Fetches an account by username and password
     /// </summary>
     /// <param name="username">Username</param>
     /// <param name="password">Password</param>
     /// <returns>Account, may be null</returns>
     public static async Task<Account?> Get(string username, string password)
-        => await Controller.Accounts.QueryFirst(x => x.Username == username && x.Password == password.GetHash());
+        => await Controller.Accounts.QueryFirst(x => x.Username.ToLower() == username && x.Password == password.GetHash());
     
     /// <summary>
     /// Creates a new account and invalidates specified invitation
@@ -93,10 +101,7 @@ public class Account : Document {
         };
         
         var accounts = await Controller.Accounts.EstimatedCount();
-        if (accounts == 0) {
-            account.Permissions.Add(Permission.Administrator);
-        }
-        
+        if (accounts == 0) account.Permissions.Add(Permission.Administrator);
         await Controller.Accounts.InsertOneAsync(account);
         invitation.Used = true; await invitation.Update();
         return account;
