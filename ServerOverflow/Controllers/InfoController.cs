@@ -15,7 +15,9 @@ public class InfoController : Controller {
         var server = await Database.Server.Get(id);
         if (server == null) return NotFound();
         ViewData["Title"] = $"{server.IP}:{server.Port}";
-        ViewData["Image"] = server.Ping.Favicon ?? "/img/default.png";
+        ViewData["Image"] = server.Ping.Favicon != null 
+            ? $"/favicon?enc={server.Ping.Favicon}"
+            : "/img/default.png";
         ViewData["Description"] = 
             server.Ping.DescriptionToText()?.Split("\n")[0] 
             ?? "Click to view server";
