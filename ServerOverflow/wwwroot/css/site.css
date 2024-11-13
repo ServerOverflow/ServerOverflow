@@ -2,6 +2,15 @@ html {
   font-size: 14px;
 }
 
+.login-container {
+  height: 100vh;
+}
+
+.card-expand {
+  cursor: pointer;
+  user-select: none;
+}
+
 obf {
   font-family: monospace;
 }

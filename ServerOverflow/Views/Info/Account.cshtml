@@ -1,10 +1,7 @@
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @model AccountModel
 @{
-    ViewData["Description"] = "User's profile";
-    ViewData["Title"] = "Profile";
     Layout = "Layout";
-
     var disabled = Model.Target.Invitee != null && Model.Account.HasPermission(Permission.Administrator) ? "" : "disabled";
     var invitee = Model.Target.Invitee != null ? await Account.Get(Model.Target.Invitee!.ToString()!) : null;
 }

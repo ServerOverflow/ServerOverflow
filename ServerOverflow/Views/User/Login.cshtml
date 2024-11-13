@@ -2,43 +2,61 @@
 @{
     ViewData["Description"] = "Login into your account";
     ViewData["Title"] = "Login";
-    Layout = "Layout";
+    Layout = "Empty";
 }
 
-@if (!string.IsNullOrWhiteSpace(Model.Message)) {
-    <div class="notification @(Model.Success ? "is-success" : "is-danger")">
-        <button class="delete"></button>
-        @Model.Message
+<section class="section login-container is-flex is-align-items-center is-justify-content-center">
+    <div class="column is-full-mobile is-8-tablet is-5-desktop has-text-centered">
+        <figure class="image is-inline-block">
+            <a asp-controller="Home" asp-action="Index">
+                <img src="/img/title.png" alt="Logo">
+            </a>
+        </figure>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Message)) {
+            <div class="notification @(Model.Success ? "is-success" : "is-danger") mt-5">
+                <button class="delete"></button>
+                @Model.Message
+            </div>
+        }
+        
+        <div class="card mt-5">
+            <div class="card-header">
+                <span class="card-header-title is-block mt-2 mb-2">
+                    <p class="title is-size-3">Login to your account</p>
+                </span>
+            </div>
+            <div class="card-content">
+                <form method="POST">
+                    <div class="field">
+                        <label class="label has-text-left">Username</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="text" id="username" name="username">
+                            <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-user"></i>
+                                </span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label has-text-left">Password</label>
+                        <div class="control has-icons-left">
+                            <input class="input" type="password" id="password" name="password">
+                            <span class="icon is-small is-left">
+                                    <i class="fa-solid fa-key"></i>
+                                </span>
+                        </div>
+                    </div>
+
+                    <div class="control mt-5">
+                        <input type="submit" class="button is-link is-fullwidth" value="Login"/>
+                    </div>
+                </form>
+            </div>
+            <footer class="card-footer">
+                <a class="card-footer-item" asp-controller="User" asp-action="Register">Register a new account</a>
+                <a class="card-footer-item" href="https://sipacid.com/wits.mp4">Recover your password</a>
+            </footer>
+        </div>
     </div>
-}
-
-<div class="section">
-    <div class="content">
-        <h1>Login into your account</h1>
-        <form method="POST">
-            <div class="field">
-                <label class="label">Username</label>
-                <div class="control has-icons-left">
-                    <input class="input" type="text" id="username" name="username">
-                    <span class="icon is-small is-left">
-                        <i class="fa-solid fa-user"></i>
-                    </span>
-                </div>
-            </div>
-
-            <div class="field">
-                <label class="label">Password</label>
-                <div class="control has-icons-left">
-                    <input class="input" type="password" id="password" name="password">
-                    <span class="icon is-small is-left">
-                        <i class="fa-solid fa-key"></i>
-                    </span>
-                </div>
-            </div>
-
-            <div class="control">
-                <input type="submit" class="button is-link" value="Login"/>
-            </div>
-        </form>
-    </div>
-</div>
+</section>

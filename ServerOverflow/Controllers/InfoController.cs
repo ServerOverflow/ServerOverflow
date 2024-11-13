@@ -12,33 +12,52 @@ public class InfoController : Controller {
     [Route("server/{id}")]
     public async Task<IActionResult> Server(string id) {
         var account = await HttpContext.GetAccount();
-        if (account == null) return Redirect("/user/login");
         var server = await Database.Server.Get(id);
         if (server == null) return NotFound();
-        if (!account.HasPermission(Permission.SearchServers))
-            return Unauthorized();
+        ViewData["Title"] = $"{server.IP}:{server.Port}";
+        ViewData["Image"] = server.Ping.Favicon ?? "/img/default.png";
+        ViewData["Description"] = 
+            server.Ping.DescriptionToText()?.Split("\n")[0] 
+            ?? "Click to view server";
+        
+        if (account == null) {
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return View("Error");
+        }
+        
+        if (!account.HasPermission(Permission.SearchServers)) {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
+            return View("Error");
+        }
 
         return View(new GenericModel<Server> {
             Item = server
         });
     }
     
-    [Route("account/{id?}")]
-    public async Task<IActionResult> Account(string? id) {
+    [Route("account/{id}")]
+    public async Task<IActionResult> Account(string id) {
         var account = await HttpContext.GetAccount();
-        if (account == null) return Redirect("/user/login");
+        var target = await Database.Account.Get(id);
+        if (target == null) return NotFound();
         var model = new AccountModel {
-            Account = account,
-            Target = account
+            OtherTarget = true,
+            Account = account!,
+            Target = target
         };
 
-        if (id != null) {
-            var target = await Database.Account.Get(id);
-            if (target == null) return NotFound();
-            if (!account.HasPermission(Permission.SearchAccounts) && account.Id != target.Id)
-                return Unauthorized();
-            model.OtherTarget = true;
-            model.Target = target;
+        ViewData["Image"] = "/img/user.png";
+        ViewData["Title"] = model.Target.Username;
+        ViewData["Description"] = "Click to view account";
+        
+        if (account == null) {
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return View("Error");
+        }
+        
+        if (!model.Account.HasPermission(Permission.SearchAccounts) && model.OtherTarget) {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
+            return View("Error");
         }
         
         if (!HttpContext.Request.HasFormContentType

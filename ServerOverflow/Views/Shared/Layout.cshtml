@@ -1,26 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     var account = await Context.GetAccount();
+    Layout = "Empty";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ServerOverflow > @ViewData["Title"]</title>
-    <meta content="ServerOverflow" property="og:title" />
-    <meta content="@(ViewData["Description"] ?? ViewData["Title"])" property="og:description" />
-    <meta content="/img/logo.png" property="og:image" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Comfortaa">
-    <link rel="stylesheet" href="~/lib/fontawesome/fontawesome.min.css"/>
-    <link rel="stylesheet" href="~/lib/bulma/bulma.min.css"/>
-    <link rel="stylesheet" href="~/lib/bulma-checkbox/bulma.min.css"/>
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-    <script src="~/lib/apexcharts/apexcharts.min.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-</head>
-<body class="theme-dark">
 <header class="header">
     <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
@@ -59,12 +42,15 @@
                             <a class="navbar-item" asp-controller="User" asp-action="Logout">Logout</a>
                         </div>
                     </div>
-                }
-                else {
+                } else {
                     <div class="navbar-item">
-                        <div class="buttons">
-                            <a class="button is-primary" asp-controller="User" asp-action="Register"><strong>Register</strong></a>
-                            <a class="button is-light" asp-controller="User" asp-action="Login">Login</a>
+                        <div class="field has-addons">
+                            <p class="control">
+                                <a class="button is-info" asp-controller="User" asp-action="Register">Register</a>
+                            </p>
+                            <p class="control">
+                                <a class="button is-success" asp-controller="User" asp-action="Login">Login</a>
+                            </p>
                         </div>
                     </div>
                 }
@@ -72,8 +58,5 @@
         </div>
     </nav>
 </header>
-@RenderBody()
 
-<script src="~/js/site.js" asp-append-version="true"></script>
-</body>
-</html>
+@RenderBody()

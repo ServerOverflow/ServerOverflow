@@ -327,4 +327,18 @@ public class ServerListPing {
             return "<b>Failed to deserialize the chat component!</b>";
         }
     }
+    
+    /// <summary>
+    /// Encodes the description into text
+    /// </summary>
+    /// <returns>Raw text</returns>
+    public string? DescriptionToText() {
+        if (Description == null) return null;
+        
+        try {
+            return TextComponent.Parse(Description).ToText();
+        } catch {
+            return "<b>Failed to deserialize the chat component!</b>";
+        }
+    }
 }

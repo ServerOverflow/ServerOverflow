@@ -150,9 +150,16 @@ public class TextComponent {
     /// <returns>Converted HTML</returns>
     public string ToHtml() => 
         Extra.Aggregate(GetComponentHtml(), (str, i) => str + i.Inherit(this).ToHtml());
+    
+    /// <summary>
+    /// Converts this text component and it's children to raw text
+    /// </summary>
+    /// <returns>Converted text</returns>
+    public string ToText() => 
+        Extra.Aggregate(GetComponentText(), (str, i) => str + i.ToText());
 
     /// <summary>
-    /// Converts this text component to HTML.
+    /// Converts this text component to HTML
     /// </summary>
     /// <returns>Converted HTML</returns>
     private string GetComponentHtml() {
@@ -176,6 +183,23 @@ public class TextComponent {
         if (Italic.HasValue && Italic.Value) output = $"<em>{output}</em>";
         if (Bold.HasValue && Bold.Value) output = $"<b>{output}</b>";
         return output;
+    }
+
+    /// <summary>
+    /// Converts this text component to raw text
+    /// </summary>
+    /// <returns>Converted text</returns>
+    private string GetComponentText() {
+        if (Translate != null)
+            Extra.InsertRange(0, GetTranslated().Extra);
+        
+        Text ??= "";
+        if (Text.Contains('§') || Text.Contains('&')) {
+            Extra.InsertRange(0, ColorEncoding.Parse(Text).Extra);
+            Text = "";
+        }
+
+        return Text;
     }
     
     /// <summary>

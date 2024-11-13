@@ -1,0 +1,25 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ServerOverflow > @ViewData["Title"]</title>
+    <meta content="@(ViewData["Title"] ?? "ServerOverflow")" property="og:title" />
+    <meta content="@(ViewData["Description"] ?? ViewData["Title"])" property="og:description" />
+    <meta content="@(ViewData["Image"] ?? "/img/logo.png")" property="og:image" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Comfortaa">
+    <link rel="stylesheet" href="~/lib/fontawesome/fontawesome.min.css"/>
+    <link rel="stylesheet" href="~/lib/bulma/bulma.min.css"/>
+    <link rel="stylesheet" href="~/lib/bulma-checkbox/bulma.min.css"/>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <script src="~/lib/apexcharts/apexcharts.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+</head>
+<body class="theme-dark mb-0">
+@RenderBody()
+
+<script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+</html>

@@ -29,17 +29,17 @@ public class UserController : Controller {
         
         var invite = await Invitation.Get(code!);
         if (invite == null) {
-            model.Message = "Invalid invitation code!";
+            model.Message = "This invitation code does not exist";
             return View(model);
         }
         
         if (invite.Used) {
-            model.Message = "This invitation code has already been used!";
+            model.Message = "This invitation code has already been used";
             return View(model);
         }
 
         if (await Account.GetByName(username!) != null) {
-            model.Message = "This username has already been taken!";
+            model.Message = "This username has already been taken";
             return View(model);
         }
 
@@ -63,7 +63,7 @@ public class UserController : Controller {
 
         account = await Account.Get(username!, password!);
         if (account == null) {
-            model.Message = "Wrong username or password!";
+            model.Message = "Wrong username or password";
             return View(model);
         }
         
