@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using ServerOverflow.Models;
 using Controller = Microsoft.AspNetCore.Mvc.Controller;
 
 namespace ServerOverflow.Controllers;
@@ -20,5 +21,5 @@ public class HomeController : Controller {
     public IActionResult StatsDownload() => File(System.IO.File.ReadAllBytes("stats.json"), "application/json");
     
     [Route("error")]
-    public IActionResult Error() => View();
+    public IActionResult Error() => View(new ErrorModel { StatusCode = Response.StatusCode });
 }

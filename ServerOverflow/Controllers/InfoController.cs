@@ -20,15 +20,15 @@ public class InfoController : Controller {
             server.Ping.DescriptionToText()?.Split("\n")[0] 
             ?? "Click to view server";
         
-        if (account == null) {
-            Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return View("Error");
-        }
+        if (account == null)
+            return View("Error", new ErrorModel {
+                StatusCode = StatusCodes.Status401Unauthorized
+            });
         
-        if (!account.HasPermission(Permission.SearchServers)) {
-            Response.StatusCode = StatusCodes.Status403Forbidden;
-            return View("Error");
-        }
+        if (!account.HasPermission(Permission.SearchServers))
+            return View("Error", new ErrorModel {
+                StatusCode = StatusCodes.Status403Forbidden
+            });
 
         return View(new GenericModel<Server> {
             Item = server
@@ -50,15 +50,15 @@ public class InfoController : Controller {
         ViewData["Title"] = model.Target.Username;
         ViewData["Description"] = "Click to view account";
         
-        if (account == null) {
-            Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return View("Error");
-        }
+        if (account == null)
+            return View("Error", new ErrorModel {
+                StatusCode = StatusCodes.Status401Unauthorized
+            });
         
-        if (!model.Account.HasPermission(Permission.SearchAccounts) && model.OtherTarget) {
-            Response.StatusCode = StatusCodes.Status403Forbidden;
-            return View("Error");
-        }
+        if (!model.Account.HasPermission(Permission.SearchAccounts) && model.OtherTarget)
+            return View("Error", new ErrorModel {
+                StatusCode = StatusCodes.Status403Forbidden
+            });
         
         if (!HttpContext.Request.HasFormContentType
             || !HttpContext.Request.Form.TryGetValue(

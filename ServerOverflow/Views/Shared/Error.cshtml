@@ -1,7 +1,8 @@
-﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+﻿@model ErrorModel
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @using Microsoft.AspNetCore.WebUtilities
 @{
-    ViewData["Description"] ??= ReasonPhrases.GetReasonPhrase(Context.Response.StatusCode);
+    ViewData["Description"] ??= ReasonPhrases.GetReasonPhrase(Model.StatusCode);
     ViewData["Title"] ??= "Error";
     Layout = "Empty";
 }
@@ -21,7 +22,7 @@
                 </span>
             </div>
             <div class="card-content p-0">
-                <img src="https://http.cat/@Context.Response.StatusCode" alt="HTTP cat">
+                <img src="https://http.cat/@Model.StatusCode" alt="HTTP cat">
             </div>
         </div>
     </div>
