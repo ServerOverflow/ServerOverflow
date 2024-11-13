@@ -194,12 +194,7 @@ public static class JoinBot {
         /// Is whitelist enabled
         /// </summary>
         public bool? Whitelist { get; set; }
-        
-        /// <summary>
-        /// Is the server online
-        /// </summary>
-        public bool? Online { get; set; }
-        
+
         /// <summary>
         /// Reason for the disconnect
         /// </summary>

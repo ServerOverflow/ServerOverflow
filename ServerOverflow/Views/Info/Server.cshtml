@@ -219,17 +219,19 @@
                     <span class="card-header-title is-block">
                         <span class="is-size-4">Bot join</span>
                     </span>
-                    <button class="card-header-icon">
+                    <span class="card-header-icon">
                         <form method="POST">
                             <input type="hidden" name="type" value="refresh"/>
                             <button class="icon">
                                 <i class="fa-solid fa-arrows-rotate"></i>
                             </button>
                         </form>
-                        <span class="icon">
-                            <i class="fas fa-angle-down" aria-hidden="true"></i>
-                        </span>
-                    </button>
+                        <button>
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </span>
                 </header>
                 <div class="card-content" style="display: none;">
                     @if (server.JoinResult == null) {
