@@ -83,7 +83,7 @@ public class Account : Document {
     /// <param name="password">Password</param>
     /// <returns>Account, may be null</returns>
     public static async Task<Account?> Get(string username, string password)
-        => await Controller.Accounts.QueryFirst(x => x.Username.ToLower() == username && x.Password == password.GetHash());
+        => await Controller.Accounts.QueryFirst(x => x.Username.ToLower() == username.ToLower() && x.Password == password.GetHash());
     
     /// <summary>
     /// Creates a new account and invalidates specified invitation
