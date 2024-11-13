@@ -143,9 +143,10 @@ public class Statistics {
                         if (server.Ping.Version?.Name != null) {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
-                            if (!software.TryGetValue(version, out _))
-                                software.Add(version, 1);
-                            else software[version] += 1;
+                            if (version is not "COSMIC" and not "⚠")
+                                if (!software.TryGetValue(version, out _))
+                                    software.Add(version, 1);
+                                else software[version] += 1;
                         }
 
                         if (server.Ping.Version?.Protocol != null && 
