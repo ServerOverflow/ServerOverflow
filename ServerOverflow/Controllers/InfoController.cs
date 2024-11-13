@@ -16,7 +16,7 @@ public class InfoController : Controller {
         if (server == null) return NotFound();
         ViewData["Title"] = $"{server.IP}:{server.Port}";
         ViewData["Image"] = server.Ping.Favicon != null 
-            ? $"/favicon?enc={server.Ping.Favicon}"
+            ? $"/favicon/{server.Id}"
             : "/img/default.png";
         ViewData["Description"] = 
             server.Ping.DescriptionToText()?.Split("\n")[0] 
