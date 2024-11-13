@@ -96,6 +96,17 @@ public static class JoinBot {
     }
 
     /// <summary>
+    /// Joins a server and returns the modified values
+    /// </summary>
+    /// <param name="server">Server</param>
+    public static async Task<Server> JoinServer(Server server) {
+        var requests = new ConcurrentBag<WriteModel<Server>>();
+        await Connect(server, requests);
+        await Controller.Servers.BulkWriteAsync(requests);
+        return (await Server.Get(server.Id.ToString()))!;
+    }
+
+    /// <summary>
     /// Main worker thread
     /// </summary>
     public static async Task WorkerThread() {
@@ -183,6 +194,11 @@ public static class JoinBot {
         /// Is whitelist enabled
         /// </summary>
         public bool? Whitelist { get; set; }
+        
+        /// <summary>
+        /// Is the server online
+        /// </summary>
+        public bool? Online { get; set; }
         
         /// <summary>
         /// Reason for the disconnect

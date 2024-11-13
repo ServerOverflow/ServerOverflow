@@ -32,9 +32,23 @@ public class InfoController : Controller {
                 StatusCode = StatusCodes.Status403Forbidden
             });
 
-        return View(new GenericModel<Server> {
+        var model = new GenericModel<Server> {
             Item = server
-        });
+        };
+        
+        if (!HttpContext.Request.HasFormContentType
+            || !HttpContext.Request.Form.TryGetValue(
+                "type", out var type))
+            return View(model);
+
+        switch (type) {
+            case "refresh": { // Refresh
+                model.Item = await JoinBot.JoinServer(server);
+                break;
+            }
+        }
+        
+        return View(model);
     }
     
     [Route("account/{id}")]
