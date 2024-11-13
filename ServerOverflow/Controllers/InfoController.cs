@@ -43,7 +43,7 @@ public class InfoController : Controller {
 
         switch (type) {
             case "refresh": { // Refresh
-                model.Item = await JoinBot.JoinServer(server);
+                model.Item = await JoinBot.JoinServer(server, 60);
                 break;
             }
         }

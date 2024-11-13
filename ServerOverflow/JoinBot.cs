@@ -29,19 +29,20 @@ public static class JoinBot {
     /// Is currently active
     /// </summary>
     private static bool _active;
-    
+
     /// <summary>
     /// Connects to a Minecraft server
     /// </summary>
     /// <param name="server">Server</param>
     /// <param name="requests">Requests</param>
+    /// <param name="timeoutSecs">Timeout in seconds</param>
     /// <returns>Result</returns>
-    public static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests) {
+    public static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests, int timeoutSecs = 5) {
         const string uuid = "be7b89d7-efed-452d-a716-4c0eec4c8e2d";
         const string name = "ServerOverflow";
         var client = new TcpClient();
         try {
-            var timeout = TimeSpan.FromSeconds(5);
+            var timeout = TimeSpan.FromSeconds(timeoutSecs);
             await client.ConnectAsync(server.IP, server.Port).WaitAsync(timeout);
             await using var stream = client.GetStream();
             using var packet = new MemoryStream();
@@ -49,11 +50,11 @@ public static class JoinBot {
             // handshake packet
             var protocol = server.Ping.Version?.Protocol ?? 47;
             var ip = server.IP + (server.Ping.IsForge ? "\0FML\0" : "");
-            await packet.WriteVarInt(0x00);              // Packet ID
-            await packet.WriteVarInt(protocol);          // Protocol Version
-            await packet.WriteString(ip);                // Server IP
-            await packet.WriteShort((short)server.Port); // Server Port
-            await packet.WriteVarInt(2);                 // Next State
+            await packet.WriteVarInt(0x00);               // Packet ID
+            await packet.WriteVarInt(protocol);           // Protocol Version
+            await packet.WriteString(ip);                 // Server IP
+            await packet.WriteShort((ushort)server.Port); // Server Port
+            await packet.WriteVarInt(2);                  // Next State
             await stream.WriteVarInt((int) packet.Position).WaitAsync(timeout);
             await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position)).AsTask().WaitAsync(timeout);
             packet.Position = 0;
@@ -99,9 +100,10 @@ public static class JoinBot {
     /// Joins a server and returns the modified values
     /// </summary>
     /// <param name="server">Server</param>
-    public static async Task<Server> JoinServer(Server server) {
+    /// <param name="timeout">Timeout in seconds</param>
+    public static async Task<Server> JoinServer(Server server, int timeout = 5) {
         var requests = new ConcurrentBag<WriteModel<Server>>();
-        await Connect(server, requests);
+        await Connect(server, requests, timeout);
         await Controller.Servers.BulkWriteAsync(requests);
         return (await Server.Get(server.Id.ToString()))!;
     }

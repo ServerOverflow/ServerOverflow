@@ -34,13 +34,13 @@ public static class Extensions {
     /// <param name="stream">Binary Writer</param>
     /// <param name="value">Integer</param>
     public static async Task WriteVarInt(this Stream stream, int value) {
-        var buf = new byte[5]; var len = 0;
+        var buf = new byte[5];
         if (value == 0) await stream.WriteAsync(buf.AsMemory(0, 1));
+        var len = 0;
         while (value != 0) {
             var lol = value & 0x7F;
             value = (value >> 7) & (int.MaxValue >> 6);
-            if (value != 0)
-                lol |= 0b1000_0000;
+            if (value != 0) lol |= 0b1000_0000;
             buf[len] = (byte)lol;
             len += 1;
         }
@@ -83,8 +83,8 @@ public static class Extensions {
     /// </summary>
     /// <param name="stream">Stream</param>
     /// <param name="value">Value</param>
-    public static async Task WriteShort(this Stream stream, short value)
-        => await stream.WriteBytes(BitConverter.GetBytes(value));
+    public static async Task WriteShort(this Stream stream, ushort value)
+        => await stream.WriteBytes(BitConverter.GetBytes(value).Reverse().ToArray());
     
     /// <summary>
     /// Computers a minecraft SHA-1 digest

@@ -1,14 +1,16 @@
+using System.Net.Sockets;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using MineProtocol;
 using Serilog;
 using Serilog.Events;
 using ServerOverflow;
 using ServerOverflow.Database;
 
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning) 
+Log.Logger = new LoggerConfiguration().MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .WriteTo.Console().CreateLogger();
+    .WriteTo.Console()
+    .CreateLogger();
 
 Log.Information("Starting ServerOverflow");
 var accounts = await Controller.Accounts.EstimatedCount();
@@ -31,11 +33,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
     });
-builder.Services.AddControllers().AddJsonOptions(options => {
-    options.JsonSerializerOptions.IncludeFields = true;
-    options.JsonSerializerOptions.Converters.Add(
-        new JsonStringEnumConverter());
-});
+builder.Services.AddControllers()
+    .AddJsonOptions(options => {
+        options.JsonSerializerOptions.IncludeFields = true;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddControllersWithViews();
 builder.Services.AddSerilog();
 
@@ -50,8 +52,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStatusCodePagesWithReExecute("/error");
-app.MapControllerRoute(name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 Log.Information("Website is now running");
 app.Run();
