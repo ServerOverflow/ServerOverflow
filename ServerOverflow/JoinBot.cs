@@ -143,6 +143,8 @@ public static class JoinBot {
                         .Select(x => Connect(x));
                     foreach (var item in items)
                         _tasks.Add(item);
+                    while (_tasks.Count >= 1000)
+                        await Task.Delay(100);
                 }
                 
                 _active = false;
