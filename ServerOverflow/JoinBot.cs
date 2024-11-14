@@ -19,16 +19,6 @@ public static class JoinBot {
     /// A list for calculating average servers per second
     /// </summary>
     private static List<int> _serversAvg = [0];
-
-    /// <summary>
-    /// Concurrent write model list
-    /// </summary>
-    private static readonly List<WriteModel<Server>> _requests = [];
-    
-    /// <summary>
-    /// Concurrent task list
-    /// </summary>
-    private static readonly List<Task> _tasks = [];
     
     /// <summary>
     /// Servers per second value
@@ -44,9 +34,10 @@ public static class JoinBot {
     /// Connects to a Minecraft server
     /// </summary>
     /// <param name="server">Server</param>
+    /// <param name="requests">Requests</param>
     /// <param name="timeoutSecs">Timeout in seconds</param>
     /// <returns>Result</returns>
-    public static async Task Connect(Server server, int timeoutSecs = 5) {
+    public static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests, int timeoutSecs = 5) {
         const string uuid = "be7b89d7-efed-452d-a716-4c0eec4c8e2d";
         const string name = "ServerOverflow";
         var client = new TcpClient();
@@ -95,12 +86,12 @@ public static class JoinBot {
             };
             
             Interlocked.Increment(ref _servers);
-            _requests.Add(new ReplaceOneModel<Server>(
+            requests.Add(new ReplaceOneModel<Server>(
                 Builders<Server>.Filter.Eq(y => y.Id, server.Id), server));
         } catch (Exception e) {
             server.JoinResult = new Result { Success = false, ErrorMessage = e.Message };
             Interlocked.Increment(ref _servers);
-            _requests.Add(new ReplaceOneModel<Server>(
+            requests.Add(new ReplaceOneModel<Server>(
                 Builders<Server>.Filter.Eq(y => y.Id, server.Id), server));
         }
     }
@@ -111,16 +102,16 @@ public static class JoinBot {
     /// <param name="server">Server</param>
     /// <param name="timeout">Timeout in seconds</param>
     public static async Task<Server> JoinServer(Server server, int timeout = 5) {
-        await Connect(server, timeout);
-        await Controller.Servers.BulkWriteAsync(_requests);
+        var requests = new ConcurrentBag<WriteModel<Server>>();
+        await Connect(server, requests, timeout);
+        await Controller.Servers.BulkWriteAsync(requests);
         return (await Server.Get(server.Id.ToString()))!;
     }
 
     /// <summary>
     /// Main worker thread
     /// </summary>
-    public static async Task MainThread() {
-        _ = Task.Run(WorkerThread);
+    public static async Task WorkerThread() {
         _ = Task.Run(LoggerThread);
         while (true) {
             try {
@@ -133,18 +124,17 @@ public static class JoinBot {
                 
                 Log.Information("Bulk joining {0} servers", total);
                 using var cursor = await Controller.Servers.FindAsync(
-                    query, new FindOptions<Server> { BatchSize = 500 });
+                    query, new FindOptions<Server> { BatchSize = 1000 });
 
                 _active = true;
                 var exclusions = await Exclusion.GetAll();
                 while (await cursor.MoveNextAsync()) {
-                    var items = cursor.Current
+                    var requests = new ConcurrentBag<WriteModel<Server>>();
+                    var tasks = cursor.Current
                         .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
-                        .Select(x => Connect(x));
-                    foreach (var item in items)
-                        _tasks.Add(item);
-                    while (_tasks.Count >= 1000)
-                        await Task.Delay(100);
+                        .Select(x => Connect(x, requests)).ToArray();
+                    await Task.WhenAll(tasks);
+                    await Controller.Servers.BulkWriteAsync(requests);
                 }
                 
                 _active = false;
@@ -152,22 +142,6 @@ public static class JoinBot {
             } catch (Exception e) {
                 Log.Error("Join bot thread crashed: {0}", e);
                 _active = false;
-            }
-        }
-    }
-    
-    /// <summary>
-    /// Main worker thread
-    /// </summary>
-    private static async Task WorkerThread() {
-        while (true) {
-            try {
-                while (_tasks.Count == 0) await Task.Delay(100);
-                var task = await Task.WhenAny(_tasks); _tasks.Remove(task);
-                if (_requests.Count >= 50 || (_tasks.Count == 0 && _requests.Count != 0))
-                    await Controller.Servers.BulkWriteAsync(_requests.ToArray());
-            } catch (Exception e) {
-                Log.Error("Join bot worker crashed: {0}", e);
             }
         }
     }
