@@ -134,7 +134,8 @@ public static class JoinBot {
                         .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
                         .Select(x => Connect(x, requests)).ToArray();
                     await Task.WhenAll(tasks);
-                    await Controller.Servers.BulkWriteAsync(requests);
+                    if (requests.Count != 0)
+                        await Controller.Servers.BulkWriteAsync(requests);
                 }
                 
                 _active = false;
