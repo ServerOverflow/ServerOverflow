@@ -23,9 +23,9 @@ if (accounts == 0 && invites == 0) {
 
 Log.Information("Starting background threads");
 new Thread(async () => await Statistics.ProcessorThread()).Start();
-#if !DEBUG // don't want to disturb servers while debugging
-    new Thread(async () => await JoinBot.WorkerThread()).Start();
-#endif
+//#if !DEBUG // don't want to disturb servers while debugging
+    new Thread(async () => await JoinBot.MainThread()).Start();
+//#endif
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
