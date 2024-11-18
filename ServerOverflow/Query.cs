@@ -92,8 +92,10 @@ public static class Query {
                 case "hasPlayer": {
                     if (reversed) throw new SyntaxErrorException("Has player operator do not allow reversing");
                     if (Guid.TryParse(content, out _))
-                        return Builders<Server>.Filter.ElemMatch(x => x.Players!, x => x.Key == content);
-                    return Builders<Server>.Filter.ElemMatch(x => x.Players!, x => x.Key == content);
+                        return Builders<Server>.Filter.ElemMatch(x => x.Players!,
+                            Builders<KeyValuePair<string,PlayerInfo>>.Filter.Eq(y => y.Key, content.Replace("-","")));
+                    return Builders<Server>.Filter.ElemMatch(x => x.Players!,
+                        Builders<KeyValuePair<string,PlayerInfo>>.Filter.Eq(y => y.Value.Name, content));
                 }
                 case "hasMod": {
                     if (reversed) throw new SyntaxErrorException("Has mod operator do not allow reversing");
