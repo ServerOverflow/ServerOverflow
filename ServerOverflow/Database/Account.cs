@@ -1,4 +1,5 @@
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace ServerOverflow.Database;
@@ -6,7 +7,12 @@ namespace ServerOverflow.Database;
 /// <summary>
 /// A user's account
 /// </summary>
-public class Account : Document {
+public class Account {
+    /// <summary>
+    /// Document's object identifier
+    /// </summary>
+    [BsonId] public ObjectId Id { get; set; }
+    
     /// <summary>
     /// Account's username
     /// </summary>

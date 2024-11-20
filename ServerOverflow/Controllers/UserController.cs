@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using MineProtocol.Authentication;
+using Serilog;
 using ServerOverflow.Database;
 using ServerOverflow.Models;
 using Controller = Microsoft.AspNetCore.Mvc.Controller;
+using Profile = ServerOverflow.Database.Profile;
 
 namespace ServerOverflow.Controllers;
 
@@ -177,12 +180,77 @@ public class UserController : Controller {
                 model.Success = true;
                 break;
             }
-            case "deleteAccount": { // Delete account (stub)
+            case "deleteAccount": { // Delete account
+                if (!account.HasPermission(Permission.Administrator)) {
+                    model.Message = "Only administrators can delete accounts!";
+                    break;
+                }
+                
+                if (!HttpContext.Request.Form.TryGetValue(
+                        "uuid", out var id))
+                    break;
+
+                await Database.Controller.Profiles.Delete(x => x.UUID == id.ToString());
+                model.Message = "Successfully deleted the account!";
+                model.Success = true;
+                break;
+            }
+            case "addAccount": { // Add account
+                if (!HttpContext.Request.Form.TryGetValue(
+                        "deviceCode", out var code))
+                    break;
+
+                try {
+                    var token = await OAuth2.PollToken(code.ToString());
+                    var profile = new Profile { Microsoft = token! };
+                    await profile.Refresh();
+                    await Database.Controller.Profiles.InsertOneAsync(profile);
+                    model.Message = $"Successfully added {profile.Username} to accounts!";
+                    model.Success = true;
+                } catch (Exception e) {
+                    Log.Warning("Failed to add account: {0}", e);
+                    model.Message = "Failed to add account, check logs for more details";
+                }
+                
                 break;
             }
         }
         
         return View(model);
+    }
+
+    [Route("devicecode")]
+    public async Task<IActionResult> DeviceCode()
+        => Content(await OAuth2.DeviceCode(), "application/json");
+
+    [Route("poll/{code}")]
+    public async Task<IActionResult> Poll(string code) {
+        TokenPair? token;
+        try {
+            token = await OAuth2.PollToken(code);
+        } catch {
+            return BadRequest(new StatusModel {
+                Message = "Device code has expired"
+            });
+        }
+        
+        if (token == null) return Ok(new StatusModel {
+            Message = "Polling is still in progress"
+        });
+        
+        try {
+            var profile = new Profile { Microsoft = token };
+            await profile.Refresh(); profile.Valid = true;
+            await Database.Controller.Profiles.InsertOneAsync(profile);
+            return Ok(new StatusModel {
+                Message = "Successfully added account", Success = true
+            });
+        } catch (Exception e) {
+            Console.WriteLine(e);
+            return NotFound(new StatusModel {
+                Message = "Account does not own Minecraft"
+            });
+        }
     }
 
     [Route("profile")]

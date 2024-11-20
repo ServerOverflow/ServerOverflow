@@ -8,16 +8,16 @@ namespace MineProtocol.Authentication;
 /// <summary>
 /// Minecraft account
 /// </summary>
-public class Account {
+public class Profile {
     /// <summary>
     /// Microsoft token pair
     /// </summary>
-    public TokenPair Microsoft { get; }
+    public TokenPair Microsoft { get; set; }
 
     /// <summary>
     /// The Minecraft access token
     /// </summary>
-    public GenericToken? AccessToken { get; set; }
+    public GenericToken? Minecraft { get; set; }
     
     /// <summary>
     /// Username of the account
@@ -34,9 +34,9 @@ public class Account {
     /// Will throw an exception in case a validation error occurs.
     /// </summary>
     public async Task Refresh() {
-        if (Microsoft.RefreshToken!.ExpireAt > DateTime.UtcNow)
+        if (Microsoft.RefreshToken!.ExpireAt < DateTime.UtcNow)
             throw new InvalidDataException("Refresh token has expired");
-        if (AccessToken?.ExpireAt > DateTime.UtcNow) return;
+        if (Minecraft?.ExpireAt > DateTime.UtcNow) return;
         await OAuth2.Refresh(Microsoft);
         using var client = new HttpClient();
         var res = await client.SendAsync(
@@ -77,14 +77,14 @@ public class Account {
         if (!res.IsSuccessStatusCode)
             throw new InvalidDataException("Failed to authenticate Minecraft user");
         json = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
-        AccessToken = new GenericToken(
+        Minecraft = new GenericToken(
             json.RootElement.GetProperty("access_token").GetString()!,
             DateTime.UtcNow + TimeSpan.FromSeconds(json.RootElement.GetProperty("expires_in").GetInt32()));
         res = await client.SendAsync(
             new HttpRequestMessage {
                 RequestUri = new Uri("https://api.minecraftservices.com/minecraft/profile"),
                 Headers = {
-                    Authorization = new AuthenticationHeaderValue("Bearer", AccessToken.Token),
+                    Authorization = new AuthenticationHeaderValue("Bearer", Minecraft.Token),
                     Accept = { new MediaTypeWithQualityHeaderValue("application/json") }
                 },
                 Method = HttpMethod.Get
@@ -100,7 +100,12 @@ public class Account {
     /// Creates a new Minecraft profile
     /// </summary>
     /// <param name="microsoft">Microsoft Token Pair</param>
-    public Account(TokenPair microsoft) {
+    public Profile(TokenPair microsoft) {
         Microsoft = microsoft;
     }
+
+    /// <summary>
+    /// Creates an empty profile
+    /// </summary>
+    public Profile() { }
 }

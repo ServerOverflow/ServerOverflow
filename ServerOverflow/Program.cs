@@ -1,11 +1,10 @@
-using System.Net.Sockets;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using MineProtocol;
 using Serilog;
 using Serilog.Events;
 using ServerOverflow;
 using ServerOverflow.Database;
+using ServerOverflow.Processors;
 
 Log.Logger = new LoggerConfiguration().MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -22,9 +21,10 @@ if (accounts == 0 && invites == 0) {
 }
 
 Log.Information("Starting background threads");
-new Thread(async () => await Statistics.ProcessorThread()).Start();
+new Thread(async () => await Profiles.MainThread()).Start();
+new Thread(async () => await Statistics.MainThread()).Start();
 #if !DEBUG // don't want to disturb servers while debugging
-    new Thread(async () => await JoinBot.WorkerThread()).Start();
+    new Thread(async () => await JoinBot.MainThread()).Start();
 #endif
 
 var builder = WebApplication.CreateBuilder(args);

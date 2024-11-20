@@ -6,6 +6,7 @@
 
     var invites = await Invitation.GetAll();
     var exclusions = await Exclusion.GetAll();
+    var profiles = await Profile.GetAll();
 }
 
 <div class="tabs mb-0 mt-1">
@@ -146,46 +147,44 @@
         </div>
 
         <div id="bot-accounts" class="tab-content" style="display: none;">
-            <h1>THIS IS A STUB</h1>
             <h2>List of bot accounts</h2>
             <table class="table is-striped">
                 <thead>
                 <tr>
                     <th>#</th>
                     <th>Username</th>
+                    <th>Valid</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <th>1</th>
-                    <td>TheAirBlow</td>
-                    <td>
-                        <form method="POST">
-                            <input type="hidden" name="type" value="deleteAccount"/>
-                            <input type="hidden" name="uuid" value="7aa72c62-54bb-4155-ab18-c15c854d20cf"/>
-                            <input type="submit" class="button is-danger is-small" value="Delete">
-                        </form>
-                    </td>
-                </tr>
-                <tr>
-                    <th>2</th>
-                    <td>CabalousForce</td>
-                    <td>
-                        <form method="POST">
-                            <input type="hidden" name="type" value="deleteAccount"/>
-                            <input type="hidden" name="uuid" value="110bf942-9e0e-4016-aebb-87b49e902bb1"/>
-                            <input type="submit" class="button is-danger is-small" value="Delete">
-                        </form>
-                    </td>
-                </tr>
+                @for (var i = 0; i < profiles.Count; i++) {
+                    <tr>
+                        <th>@(i+1)</th>
+                        <td>@profiles[i].Username</td>
+                        <td>
+                            <label class="b-checkbox checkbox">
+                                <input type="checkbox" disabled @(profiles[i].Valid ? "checked" : "")>
+                                <span class="check"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="type" value="deleteAccount"/>
+                                <input type="hidden" name="uuid" value="@profiles[i].UUID"/>
+                                <input type="submit" class="button is-danger is-small" value="Delete">
+                            </form>
+                        </td>
+                    </tr>
+                }
                 </tbody>
             </table>
 
-            <p>Maximum speed: 24 joins per minute</p>
-            <a href="https://example.com/">
-                <button class="button is-primary">Add account</button>
-            </a>
+            <p>Maximum speed: @(3f*profiles.Count/15*60) joins per minute</p>
+            <div class="control">
+                <button id="addAccount" class="button is-primary">Add account</button>
+                <p class="help" style="display: none;"></p>
+            </div>
         </div>
 
         <div id="exclusions" class="tab-content" style="display: none;">
@@ -248,3 +247,5 @@
         </div>
     </div>
 </div>
+
+<script src="~/js/manage.js" asp-append-version="true"></script>

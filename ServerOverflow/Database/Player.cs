@@ -7,7 +7,12 @@ namespace ServerOverflow.Database;
 /// <summary>
 /// Minecraft player
 /// </summary>
-public class Player : Document {
+public class Player {
+    /// <summary>
+    /// Document's object identifier
+    /// </summary>
+    [BsonId] public ObjectId Id { get; set; }
+    
     /// <summary>
     /// Player's unique UUID
     /// </summary>

@@ -1,13 +1,20 @@
 using MongoDB.Driver;
 using MineProtocol;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using ServerOverflow.Processors;
 
 namespace ServerOverflow.Database;
 
 /// <summary>
 /// A minecraft server
 /// </summary>
-public class Server : Document {
+public class Server {
+    /// <summary>
+    /// Document's object identifier
+    /// </summary>
+    [BsonId] public ObjectId Id { get; set; }
+    
     /// <summary>
     /// Server's IP address
     /// </summary>

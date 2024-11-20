@@ -1,4 +1,5 @@
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace ServerOverflow.Database; 
@@ -6,7 +7,12 @@ namespace ServerOverflow.Database;
 /// <summary>
 /// An invitation code
 /// </summary>
-public class Invitation : Document {
+public class Invitation {
+    /// <summary>
+    /// Document's object identifier
+    /// </summary>
+    [BsonId] public ObjectId Id { get; set; }
+    
     /// <summary>
     /// Invitation code
     /// </summary>

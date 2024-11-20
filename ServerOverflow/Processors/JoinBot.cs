@@ -1,15 +1,12 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Sockets;
-using System.Text.Json;
-using Humanizer;
 using MineProtocol;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using Serilog;
 using ServerOverflow.Database;
 
-namespace ServerOverflow;
+namespace ServerOverflow.Processors;
 
 /// <summary>
 /// A simple bot that joins servers and checks if it has online mode enabled
@@ -111,7 +108,7 @@ public static class JoinBot {
     /// <summary>
     /// Main worker thread
     /// </summary>
-    public static async Task WorkerThread() {
+    public static async Task MainThread() {
         _ = Task.Run(LoggerThread);
         while (true) {
             try {

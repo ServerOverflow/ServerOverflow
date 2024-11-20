@@ -5,7 +5,7 @@ using MongoDB.Driver;
 using Serilog;
 using ServerOverflow.Database;
 
-namespace ServerOverflow;
+namespace ServerOverflow.Processors;
 
 /// <summary>
 /// Statistics processor
@@ -94,7 +94,7 @@ public class Statistics {
     /// <summary>
     /// Statistics processor thread
     /// </summary>
-    public static async Task ProcessorThread() {
+    public static async Task MainThread() {
         while (true) {
             try {
                 if (Stats.CollectAt > DateTime.UtcNow)

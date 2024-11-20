@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace ServerOverflow.Database;
@@ -5,7 +6,12 @@ namespace ServerOverflow.Database;
 /// <summary>
 /// Bad IP address entry
 /// </summary>
-public class BadIP : Document {
+public class BadIP {
+    /// <summary>
+    /// Document's object identifier
+    /// </summary>
+    [BsonId] public ObjectId Id { get; set; }
+    
     /// <summary>
     /// The IP address in question
     /// </summary>

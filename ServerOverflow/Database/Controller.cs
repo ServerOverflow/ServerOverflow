@@ -11,6 +11,7 @@ public static class Controller {
     public static readonly IMongoCollection<Account> Accounts;
     public static readonly IMongoCollection<Invitation> Invitations;
     public static readonly IMongoCollection<Exclusion> Exclusions;
+    public static readonly IMongoCollection<Profile> Profiles;
     public static readonly IMongoCollection<Server> Servers;
     public static readonly IMongoCollection<Player> Players;
     public static readonly IMongoCollection<BadIP> BadIPs;
@@ -32,6 +33,7 @@ public static class Controller {
         var database = client.GetDatabase("server-overflow");
         Invitations = database.GetCollection<Invitation>("invitations");
         Accounts = database.GetCollection<Account>("accounts");
+        Profiles = database.GetCollection<Profile>("profiles");
         Players = database.GetCollection<Player>("players");
         var matscan = client.GetDatabase("matscan");
         Exclusions = matscan.GetCollection<Exclusion>("exclusions");
