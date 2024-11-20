@@ -219,12 +219,29 @@ public class UserController : Controller {
         return View(model);
     }
 
+    [Route("profile")]
+    public async Task<IActionResult> Profile() {
+        var account = await HttpContext.GetAccount();
+        return Redirect(account == null ? "/user/login" : $"/account/{account.Id}");
+    }
+    
+    [Route("logout")]
+    public async Task<IActionResult> Logout() {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return Redirect("/");
+    }
+    
     [Route("devicecode")]
     public async Task<IActionResult> DeviceCode()
         => Content(await OAuth2.DeviceCode(), "application/json");
-
+    
     [Route("poll/{code}")]
     public async Task<IActionResult> Poll(string code) {
+        var account = await HttpContext.GetAccount();
+        if (account == null) return Unauthorized(new StatusModel {
+            Message = "You must be logged in"
+        });
+        
         TokenPair? token;
         try {
             token = await OAuth2.PollToken(code);
@@ -245,23 +262,10 @@ public class UserController : Controller {
             return Ok(new StatusModel {
                 Message = "Successfully added account", Success = true
             });
-        } catch (Exception e) {
-            Console.WriteLine(e);
+        } catch {
             return NotFound(new StatusModel {
                 Message = "Account does not own Minecraft"
             });
         }
-    }
-
-    [Route("profile")]
-    public async Task<IActionResult> Profile() {
-        var account = await HttpContext.GetAccount();
-        return Redirect(account == null ? "/user/login" : $"/account/{account.Id}");
-    }
-    
-    [Route("logout")]
-    public async Task<IActionResult> Logout() {
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return Redirect("/");
     }
 }

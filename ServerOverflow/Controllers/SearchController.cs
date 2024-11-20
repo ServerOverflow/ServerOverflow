@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Serilog;
 using ServerOverflow.Database;
 using ServerOverflow.Models;
 using static System.Int32;
@@ -42,6 +43,7 @@ public class SearchController : Controller {
                 return View(model);
             }
             
+            Log.Information("{0} searched for {1}", account.Username, model.Query);
             model.TotalPages = (int)Math.Ceiling(model.TotalMatches / 50f);
             if (model.CurrentPage > model.TotalPages) model.CurrentPage = model.TotalPages;
             using var cursor = await find.Skip(50 * (model.CurrentPage-1)).Limit(50).ToCursorAsync();
