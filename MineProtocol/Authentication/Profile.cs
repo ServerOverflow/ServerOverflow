@@ -37,7 +37,8 @@ public class Profile {
         if (Microsoft.RefreshToken!.ExpireAt < DateTime.UtcNow)
             throw new InvalidDataException("Refresh token has expired");
         if (Minecraft?.ExpireAt > DateTime.UtcNow) return;
-        await OAuth2.Refresh(Microsoft);
+        if (Microsoft.AccessToken!.ExpireAt < DateTime.UtcNow)
+            await OAuth2.Refresh(Microsoft);
         using var client = new HttpClient();
         var res = await client.SendAsync(
             new HttpRequestMessage {
