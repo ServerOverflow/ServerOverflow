@@ -1,3 +1,4 @@
+using static ServerOverflow.Configuration;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using Serilog;
@@ -26,18 +27,14 @@ public static class Controller {
             new CamelCaseElementNameConvention()
         };
         ConventionRegistry.Register("ServerOverflow", pack, _ => true);
-        var client = new MongoClient(new MongoClientSettings {
-            Server = new MongoServerAddress("localhost"),
-            MaxConnectionPoolSize = 5000
-        });
+        var client = new MongoClient(Config.MongoUri);
         var database = client.GetDatabase("server-overflow");
         Invitations = database.GetCollection<Invitation>("invitations");
         Accounts = database.GetCollection<Account>("accounts");
         Profiles = database.GetCollection<Profile>("profiles");
         Players = database.GetCollection<Player>("players");
-        var matscan = client.GetDatabase("matscan");
-        Exclusions = matscan.GetCollection<Exclusion>("exclusions");
-        Servers = matscan.GetCollection<Server>("servers");
-        BadIPs = matscan.GetCollection<BadIP>("bad_servers");
+        Exclusions = database.GetCollection<Exclusion>("exclusions");
+        Servers = database.GetCollection<Server>("servers");
+        BadIPs = database.GetCollection<BadIP>("bad_servers");
     }
 }
