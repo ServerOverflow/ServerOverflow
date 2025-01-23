@@ -3,8 +3,8 @@ This is a Minecraft server scanner, which was created for data hoarding and coll
 
 ## Features
 - Whitelist and online mode detection (fully async)
-- Probably the best UI made for a scanner
-- Statistics collection
+- Probably the best UI made for a server scanner
+- Statistics collection (fully public)
 
 ## Authors
 Project is maintained by [TheAirBlow](https://github.com/TheAirBlow) from [Sussy Development Inc.](https://sussy.dev/) \
