@@ -22,7 +22,7 @@ jobs:
       with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           ARGS: "-rlgoDzvc -i"
-          SOURCE: "ServerOverflow/bin/Release/net8.0/linux-x64/"
+          SOURCE: "ServerOverflow/bin/Release/net8.0/linux-x64/publish/"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
