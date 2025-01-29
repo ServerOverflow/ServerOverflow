@@ -1,4 +1,5 @@
-﻿@using System.Web
+﻿@using System.Text.Json
+@using System.Web
 @{
     ViewData["Description"] = "Statistics";
     ViewData["Title"] = "Statistics";
@@ -22,7 +23,7 @@
                         </button>
                     </header>
                     <div class="card-content">
-                        <div id="general"></div>
+                        <div id="general" style="min-height: 365px;"></div>
                     </div>
                 </div>
             </div>
@@ -41,7 +42,7 @@
                         </button>
                     </header>
                     <div class="card-content">
-                        <div id="modding"></div>
+                        <div id="modding" style="min-height: 365px;"></div>
                     </div>
                 </div>
             </div>
@@ -63,7 +64,7 @@
                         </button>
                     </header>
                     <div class="card-content">
-                        <div id="software"></div>
+                        <div id="software" style="min-height: 454px;"></div>
                     </div>
                 </div>
             </div>
@@ -82,7 +83,7 @@
                         </button>
                     </header>
                     <div class="card-content">
-                        <div id="versions"></div>
+                        <div id="versions" style="min-height: 454px;"></div>
                     </div>
                 </div>
             </div>
@@ -101,7 +102,7 @@
                         </button>
                     </header>
                     <div class="card-content">
-                        <div id="mods"></div>
+                        <div id="mods" style="min-height: 454px;"></div>
                     </div>
                 </div>
             </div>
@@ -128,49 +129,39 @@
         return out;
     }
 
-    function getValues(dict) {
+    function getValues(dict, num) {
         let list = [];
-        for (let i = 0; i < dict.length; i++)
+        for (let i = 0; i < Math.min(dict.length, num); i++)
             list.push(dict[i][1]);
 
         return list;
     }
     
-    function getLabels(dict) {
+    function getLabels(dict, num) {
         let list = [];
-        for (let i = 0; i < dict.length; i++)
+        for (let i = 0; i < Math.min(dict.length, num); i++)
             list.push(dict[i][0]);
         
         return list;
     }
 
-    let forgeMods = [@Html.Raw(string.Join(",", Stats.ForgeModsPopularity.Take(10).Select(x => $"[\"{HttpUtility.JavaScriptStringEncode(x.Key)}\",{x.Value}]")))];
-    let software = [@Html.Raw(string.Join(",", Stats.SoftwarePopularity.Take(10).Select(x => $"[\"{HttpUtility.JavaScriptStringEncode(x.Key)}\",{x.Value}]")))];
-    let versions = [@Html.Raw(string.Join(",", Stats.VersionPopularity.Take(10).Select(x => $"[\"{HttpUtility.JavaScriptStringEncode(x.Key)}\",{x.Value}]")))];
-    let customSoftware = [@string.Join(",", Stats.CustomSoftware.TakeLast(48))];
-    let chatReporting = [@string.Join(",", Stats.ChatReporting.TakeLast(48))];
-    let totalServers = [@string.Join(",", Stats.TotalServers.TakeLast(48))];
-    let forgeServers = [@string.Join(",", Stats.ForgeServers.TakeLast(48))];
-    let onlineMode = [@string.Join(",", Stats.OnlineMode.TakeLast(48))];
-    let whitelist = [@string.Join(",", Stats.Whitelist.TakeLast(48))];
-    let antiDDoS = [@string.Join(",", Stats.AntiDDoS.TakeLast(48))];
-    
+    let data = JSON.parse(@Html.Raw(HttpUtility.JavaScriptStringEncode(JsonSerializer.Serialize(Stats), true)));
     new ApexCharts($("#general")[0], {
         series: [{
             name: 'All servers',
-            data: get(totalServers, 48)
+            data: get(data.TotalServers, 48)
         }, {
             name: 'Chat reporting',
-            data: get(chatReporting, 48)
+            data: get(data.ChatReporting, 48)
         }, {
             name: 'Online mode',
-            data: get(onlineMode, 48)
+            data: get(data.OnlineMode, 48)
         }, {
             name: 'Whitelisted',
-            data: get(whitelist, 48)
+            data: get(data.Whitelist, 48)
         }, {
             name: 'Anti-DDoS proxy',
-            data: get(antiDDoS, 48)
+            data: get(data.AntiDDoS, 48)
         }],
         animations: {
             enabled: false
@@ -201,13 +192,13 @@
     new ApexCharts($("#modding")[0], {
         series: [{
             name: 'All servers',
-            data: get(totalServers, 48)
+            data: get(data.TotalServers, 48)
         }, {
             name: 'Forge servers',
-            data: get(forgeServers, 48)
+            data: get(data.ForgeServers, 48)
         }, {
             name: 'Custom software',
-            data: get(customSoftware, 48)
+            data: get(data.CustomSoftware, 48)
         }],
         animations: {
             enabled: false
@@ -236,7 +227,7 @@
     }).render();
 
     new ApexCharts($("#software")[0], {
-        series: getValues(software),
+        series: getValues(data.SoftwarePopularity, 10),
         animations: {
             enabled: false
         },
@@ -248,14 +239,14 @@
         dataLabels: {
             enabled: false
         },
-        labels: getLabels(software),
+        labels: getLabels(data.SoftwarePopularity, 10),
         tooltip: {
             theme: 'dark'
         }
     }).render();
 
     new ApexCharts($("#versions")[0], {
-        series: getValues(versions),
+        series: getValues(data.VersionPopularity, 10),
         animations: {
             enabled: false
         },
@@ -267,14 +258,14 @@
         dataLabels: {
             enabled: false
         },
-        labels: getLabels(versions),
+        labels: getLabels(data.VersionPopularity, 10),
         tooltip: {
             theme: 'dark'
         }
     }).render();
 
     new ApexCharts($("#mods")[0], {
-        series: getValues(forgeMods),
+        series: getValues(data.ForgeModsPopularity, 10),
         animations: {
             enabled: false
         },
@@ -286,7 +277,7 @@
         dataLabels: {
             enabled: false
         },
-        labels: getLabels(forgeMods),
+        labels: getLabels(data.ForgeModsPopularity, 10),
         tooltip: {
             theme: 'dark'
         }
