@@ -117,21 +117,7 @@ public class Statistics {
                 Stats.CustomSoftware.Add((int)await Controller.Servers.Count(x => 
                     x.Ping.Version != null && x.Ping.Version.Name != null &&
                     x.Ping.Version.Name.Contains(' ')));
-                Stats.AntiDDoS.Add((int)await Controller.Servers.Count(x => 
-                    (x.Ping.CleanDescription != null && (
-                        x.Ping.CleanDescription.Contains("Blad pobierania statusu. Polacz sie bezposrednio!") ||
-                        x.Ping.CleanDescription.Contains("Ochrona DDoS: Przekroczono limit polaczen.") ||
-                        x.Ping.CleanDescription.Contains("Start the server at FalixNodes.net/start") ||
-                        x.Ping.CleanDescription.Contains("Serwer jest aktualnie wy") ||
-                        x.Ping.CleanDescription.Contains("Hosted in GreatHost.es") ||
-                        x.Ping.CleanDescription.Contains("\u00a8 |  ")
-                    )) || (x.Ping.Version != null && x.Ping.Version.Name != null && (
-                        x.Ping.Version.Name.Contains("§c§l\u2b24 OFFLINE") ||
-                        x.Ping.Version.Name.Contains("COSMIC GUARD") ||
-                        x.Ping.Version.Name.Contains("TCPShield.com") ||
-                        x.Ping.Version.Name.Contains("â\u009a\u00a0 Error") ||
-                        x.Ping.Version.Name.Contains("\u26a0 Error")
-                    ))));
+                Stats.AntiDDoS.Add(0);
                 
                 var software = new Dictionary<string, int>();
                 var versions = new Dictionary<string, int>();
@@ -142,11 +128,14 @@ public class Statistics {
                     new FindOptions<Server> { BatchSize = 1000 });
                 while (await cursor.MoveNextAsync())
                     foreach (var server in cursor.Current) {
+                        if (server.IsAntiDDoS()) {
+                            Stats.AntiDDoS[^1]++;
+                            continue;
+                        }
+                        
                         if (server.Ping.Version?.Name != null) {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
-                            if (Config.SoftwareAntiDDoS.Contains(version))
-                                version = "Anti-DDoS";
                             if (!software.TryGetValue(version, out _))
                                 software.Add(version, 1);
                             else software[version] += 1;
