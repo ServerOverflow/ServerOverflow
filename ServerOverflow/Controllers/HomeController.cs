@@ -19,10 +19,8 @@ public class HomeController : Controller {
     public IActionResult Stats() => View();
 
     [Route("stats.json")]
-    public IActionResult StatsDownload() {
-        using var file = new FileStream("stats.json", FileMode.Open);
-        return File(file, "application/json");
-    }
+    public IActionResult StatsDownload()
+        => File(System.IO.File.OpenRead("stats.json"), "application/json");
     
     [Route("error")]
     public IActionResult Error() => View(new ErrorModel { StatusCode = Response.StatusCode });
