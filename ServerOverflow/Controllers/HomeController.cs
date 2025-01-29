@@ -17,9 +17,12 @@ public class HomeController : Controller {
 
     [Route("stats")]
     public IActionResult Stats() => View();
-    
+
     [Route("stats.json")]
-    public IActionResult StatsDownload() => File(System.IO.File.ReadAllBytes("stats.json"), "application/json");
+    public IActionResult StatsDownload() {
+        using var file = new FileStream("stats.json", FileMode.Open);
+        return File(file, "application/json");
+    }
     
     [Route("error")]
     public IActionResult Error() => View(new ErrorModel { StatusCode = Response.StatusCode });
