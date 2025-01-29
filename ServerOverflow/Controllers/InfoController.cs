@@ -57,20 +57,19 @@ public class InfoController : Controller {
         var account = await HttpContext.GetAccount();
         var target = await Database.Account.Get(id);
         if (target == null) return NotFound();
-        var model = new AccountModel {
-            OtherTarget = true,
-            Account = account!,
-            Target = target
-        };
-
         ViewData["Image"] = "/img/user.png";
-        ViewData["Title"] = model.Target.Username;
+        ViewData["Title"] = target.Username;
         ViewData["Description"] = "Click to view account";
         
         if (account == null)
             return View("Error", new ErrorModel {
                 StatusCode = StatusCodes.Status401Unauthorized
             });
+
+        var model = new AccountModel {
+            OtherTarget = account.Id != target.Id,
+            Account = account, Target = target
+        };
         
         if (!model.Account.HasPermission(Permission.SearchAccounts) && model.OtherTarget)
             return View("Error", new ErrorModel {
