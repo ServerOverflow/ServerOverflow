@@ -1,3 +1,4 @@
+using static ServerOverflow.Configuration;
 using System.Diagnostics;
 using System.Text.Json;
 using MineProtocol;
@@ -143,7 +144,7 @@ public class Statistics {
                         if (server.Ping.Version?.Name != null) {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
-                            if (version is not "COSMIC" and not "⚠" and not "§c§l⬤")
+                            if (Config.SoftwareBlacklist.Contains(version))
                                 if (!software.TryGetValue(version, out _))
                                     software.Add(version, 1);
                                 else software[version] += 1;
@@ -167,7 +168,7 @@ public class Statistics {
                         if (server.Ping.LegacyForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.LegacyForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
-                                if (mod.ModId is not "minecraft" and not "forge" and not "mcp" and not "FML")
+                                if (Config.ModsBlacklist.Contains(mod.ModId))
                                     if (!mods.TryGetValue(mod.ModId, out _))
                                         mods.Add(mod.ModId, 1);
                                     else mods[mod.ModId] += 1;

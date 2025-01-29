@@ -49,6 +49,16 @@ public class Configuration {
     /// MongoDB connection URI
     /// </summary>
     public string MongoUri { get; set; } = "mongodb://127.0.0.1:27017?maxPoolSize=5000";
+
+    /// <summary>
+    /// Software names blacklist
+    /// </summary>
+    public string[] SoftwareBlacklist { get; set; } = [ "COSMIC", "⚠", "§c§l⬤", "§l§6✘", "§l§9•", "Requires" ];
+    
+    /// <summary>
+    /// Mod IDs blacklist
+    /// </summary>
+    public string[] ModsBlacklist { get; set; } = [ "minecraft", "mcp", "forge", "FML" ];
     
     /// <summary>
     /// Save configuration changes
