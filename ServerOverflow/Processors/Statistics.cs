@@ -144,7 +144,7 @@ public class Statistics {
                         if (server.Ping.Version?.Name != null) {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
-                            if (Config.SoftwareBlacklist.Contains(version))
+                            if (!Config.SoftwareBlacklist.Contains(version))
                                 if (!software.TryGetValue(version, out _))
                                     software.Add(version, 1);
                                 else software[version] += 1;
@@ -160,15 +160,16 @@ public class Statistics {
                         if (server.Ping.ModernForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.ModernForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
-                                if (!mods.TryGetValue(mod.ModId, out _))
-                                    mods.Add(mod.ModId, 1);
-                                else mods[mod.ModId] += 1;
+                                if (!Config.ModsBlacklist.Contains(mod.ModId))
+                                    if (!mods.TryGetValue(mod.ModId, out _))
+                                        mods.Add(mod.ModId, 1);
+                                    else mods[mod.ModId] += 1;
                             }
                         
                         if (server.Ping.LegacyForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.LegacyForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
-                                if (Config.ModsBlacklist.Contains(mod.ModId))
+                                if (!Config.ModsBlacklist.Contains(mod.ModId))
                                     if (!mods.TryGetValue(mod.ModId, out _))
                                         mods.Add(mod.ModId, 1);
                                     else mods[mod.ModId] += 1;
