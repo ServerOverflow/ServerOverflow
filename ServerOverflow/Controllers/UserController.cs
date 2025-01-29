@@ -190,28 +190,9 @@ public class UserController : Controller {
                         "uuid", out var id))
                     break;
 
-                await Database.Controller.Profiles.Delete(x => x.UUID == id.ToString());
+                await Database.Controller.Profiles.Delete(x => x.Instance.UUID == id.ToString());
                 model.Message = "Successfully deleted the account!";
                 model.Success = true;
-                break;
-            }
-            case "addAccount": { // Add account
-                if (!HttpContext.Request.Form.TryGetValue(
-                        "deviceCode", out var code))
-                    break;
-
-                try {
-                    var token = await OAuth2.PollToken(code.ToString());
-                    var profile = new Profile { Microsoft = token! };
-                    await profile.Refresh();
-                    await Database.Controller.Profiles.InsertOneAsync(profile);
-                    model.Message = $"Successfully added {profile.Username} to accounts!";
-                    model.Success = true;
-                } catch (Exception e) {
-                    Log.Warning("Failed to add account: {0}", e);
-                    model.Message = "Failed to add account, check logs for more details";
-                }
-                
                 break;
             }
         }
@@ -256,8 +237,11 @@ public class UserController : Controller {
         });
         
         try {
-            var profile = new Profile { Microsoft = token };
-            await profile.Refresh(); profile.Valid = true;
+            var profile = new Profile {
+                Instance = new MineProtocol.Authentication.Profile(token),
+                Valid = true
+            };
+            
             await Database.Controller.Profiles.InsertOneAsync(profile);
             return Ok(new StatusModel {
                 Message = "Successfully added account", Success = true

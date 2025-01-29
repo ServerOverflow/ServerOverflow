@@ -12,28 +12,29 @@ public class Profile {
     /// <summary>
     /// Microsoft token pair
     /// </summary>
-    public TokenPair Microsoft { get; set; }
+    public TokenPair? Microsoft { get; set; }
 
     /// <summary>
     /// The Minecraft access token
     /// </summary>
     public GenericToken? Minecraft { get; set; }
-    
+
     /// <summary>
     /// Username of the account
     /// </summary>
-    public string? Username { get; set; }
-    
+    public string Username { get; set; } = null!;
+
     /// <summary>
     /// UUID of the account
     /// </summary>
-    public string? UUID { get; set; }
+    public string UUID { get; set; } = null!;
 
     /// <summary>
     /// Validates the current profile and refreshes tokens if necessary.
     /// Will throw an exception in case a validation error occurs.
     /// </summary>
     public async Task Refresh() {
+        if (Microsoft == null) return;
         if (Microsoft.RefreshToken!.ExpireAt < DateTime.UtcNow)
             throw new InvalidDataException("Refresh token has expired");
         if (Minecraft?.ExpireAt > DateTime.UtcNow) return;
@@ -103,6 +104,16 @@ public class Profile {
     /// <param name="microsoft">Microsoft Token Pair</param>
     public Profile(TokenPair microsoft) {
         Microsoft = microsoft;
+        Refresh().GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    /// Creates an offline profile
+    /// </summary>
+    /// <param name="username">Username</param>
+    /// <param name="uuid">UUID</param>
+    public Profile(string username, string uuid) {
+        Username = username; UUID = uuid;
     }
 
     /// <summary>

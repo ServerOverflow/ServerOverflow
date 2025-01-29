@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 using ServerOverflow.Database;
 using ServerOverflow.Models;
 using ServerOverflow.Processors;
@@ -44,7 +45,11 @@ public class InfoController : Controller {
 
         switch (type) {
             case "refresh": { // Refresh
-                model.Item = await JoinBot.JoinServer(server, 60);
+                var result = await JoinBot.Join(server);
+                await Database.Controller.Servers.UpdateOneAsync(
+                    Builders<Server>.Filter.Eq(y => y.Id, server.Id),
+                    Builders<Server>.Update.Set(x => x.JoinResult, result));
+                server.JoinResult = result;
                 break;
             }
         }

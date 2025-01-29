@@ -161,7 +161,7 @@
                 @for (var i = 0; i < profiles.Count; i++) {
                     <tr>
                         <th>@(i+1)</th>
-                        <td>@profiles[i].Username</td>
+                        <td>@profiles[i].Instance.Username</td>
                         <td>
                             <label class="b-checkbox checkbox">
                                 <input type="checkbox" disabled @(profiles[i].Valid ? "checked" : "")>
@@ -171,7 +171,7 @@
                         <td>
                             <form method="POST">
                                 <input type="hidden" name="type" value="deleteAccount"/>
-                                <input type="hidden" name="uuid" value="@profiles[i].UUID"/>
+                                <input type="hidden" name="uuid" value="@profiles[i].Instance.UUID"/>
                                 <input type="submit" class="button is-danger is-small" value="Delete">
                             </form>
                         </td>

@@ -16,11 +16,11 @@ public class Profiles {
                 var profiles = await Profile.GetAll();
                 foreach (var profile in profiles) {
                     try {
-                        await profile.Refresh();
+                        await profile.Instance.Refresh();
                         profile.Valid = true;
                     } catch (Exception e) {
                         Log.Warning("Failed to validate {0}: {1}",
-                            profile.Username, e);
+                            profile.Instance.Username, e);
                         profile.Valid = false;
                     }
 

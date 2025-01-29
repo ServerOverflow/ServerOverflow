@@ -56,7 +56,7 @@ public class Server {
     /// <summary>
     /// Join bot's result
     /// </summary>
-    public TinyProtocol.Result? JoinResult { get; set; }
+    public JoinBot.Result? JoinResult { get; set; }
     
     /// <summary>
     /// Server's fingerprint
@@ -102,11 +102,11 @@ public class PlayerInfo {
     /// When was the player last seen
     /// </summary>
     public DateTime LastSeen { get; set; }
-    
+
     /// <summary>
     /// Player's username
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 }
 
 /// <summary>

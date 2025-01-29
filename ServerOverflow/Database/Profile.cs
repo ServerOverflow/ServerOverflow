@@ -7,11 +7,16 @@ namespace ServerOverflow.Database;
 /// <summary>
 /// Minecraft profile
 /// </summary>
-public class Profile : MineProtocol.Authentication.Profile {
+public class Profile {
     /// <summary>
     /// Document's object identifier
     /// </summary>
     [BsonId] public ObjectId Id { get; set; }
+
+    /// <summary>
+    /// Underlying profile instance
+    /// </summary>
+    public MineProtocol.Authentication.Profile Instance { get; set; } = null!;
     
     /// <summary>
     /// Is the account still valid

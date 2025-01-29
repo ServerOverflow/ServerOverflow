@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Net.Sockets;
 using MineProtocol;
 using MongoDB.Driver;
 using Serilog;
 using ServerOverflow.Database;
+using Profile = MineProtocol.Authentication.Profile;
 
 namespace ServerOverflow.Processors;
 
@@ -12,6 +12,11 @@ namespace ServerOverflow.Processors;
 /// A simple bot that joins servers and checks if it has online mode enabled
 /// </summary>
 public static class JoinBot {
+    /// <summary>
+    /// Offline mode profile
+    /// </summary>
+    private static readonly Profile _offline = new("ServerOverflow", "be7b89d7-efed-452d-a716-4c0eec4c8e2d");
+    
     /// <summary>
     /// A list for calculating average servers per second
     /// </summary>
@@ -28,32 +33,39 @@ public static class JoinBot {
     private static bool _active;
 
     /// <summary>
+    /// Joins a server and returns the result
+    /// </summary>
+    /// <param name="server">server</param>
+    /// <returns>Result</returns>
+    public static async Task<Result> Join(Server server) {
+        try {
+            using var proto = new TinyProtocol(server.IP, server.Port, server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge);
+            await proto.Connect();
+            await proto.Handshake();
+            await proto.LoginStart(_offline);
+            var packet = await proto.Receive();
+            return packet.Id switch {
+                0x00 => new Result { Success = true, Whitelist = true, DisconnectReason = await packet.Stream.ReadString() },
+                0x01 => new Result { Success = true, OnlineMode = true },
+                _ => new Result { Success = true, OnlineMode = false }
+            };
+        } catch (Exception e) {
+            return new Result { Success = false, ErrorMessage = e.Message };
+        }
+    }
+    
+    /// <summary>
     /// Connects to a Minecraft server
     /// </summary>
     /// <param name="server">Server</param>
     /// <param name="requests">Requests</param>
-    /// <param name="timeoutSecs">Timeout in seconds</param>
     /// <returns>Result</returns>
-    private static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests, int timeoutSecs = 5) {
-        var result = await TinyProtocol.Join(server.IP, server.Port, server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge);
+    private static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests) {
+        var result = await Join(server);
         Interlocked.Increment(ref _servers);
         requests.Add(new UpdateOneModel<Server>(
             Builders<Server>.Filter.Eq(y => y.Id, server.Id),
             Builders<Server>.Update.Set(x => x.JoinResult, result)));
-    }
-
-    /// <summary>
-    /// Joins a server and returns the modified values
-    /// </summary>
-    /// <param name="server">Server</param>
-    /// <param name="timeout">Timeout in seconds</param>
-    public static async Task<Server> JoinServer(Server server, int timeout = 5) {
-        var result = await TinyProtocol.Join(server.IP, server.Port, server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge);
-        await Controller.Servers.UpdateOneAsync(
-            Builders<Server>.Filter.Eq(y => y.Id, server.Id),
-            Builders<Server>.Update.Set(x => x.JoinResult, result));
-        server.JoinResult = result;
-        return server;
     }
 
     /// <summary>
@@ -120,6 +132,55 @@ public static class JoinBot {
             }
             
             Log.Information("Completed bulk join in {0}", watch.Elapsed);
+        }
+    }
+    
+    /// <summary>
+    /// Join result
+    /// </summary>
+    public class Result {
+        /// <summary>
+        /// Was the attempt successful
+        /// </summary>
+        public bool Success { get; set; }
+        
+        /// <summary>
+        /// Error message if failed
+        /// </summary>
+        public string? ErrorMessage { get; set; }
+        
+        /// <summary>
+        /// Is online mode enabled
+        /// </summary>
+        public bool? OnlineMode { get; set; }
+        
+        /// <summary>
+        /// Is whitelist enabled
+        /// </summary>
+        public bool? Whitelist { get; set; }
+
+        /// <summary>
+        /// Reason for the disconnect
+        /// </summary>
+        public string? DisconnectReason { get; set; }
+
+        /// <summary>
+        /// When was the result produced
+        /// </summary>
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        
+        /// <summary>
+        /// Encodes the description into HTML
+        /// </summary>
+        /// <returns>Raw HTML</returns>
+        public string? ReasonToHtml() {
+            if (DisconnectReason == null) return null;
+            
+            try {
+                return TextComponent.Parse(DisconnectReason).ToHtml();
+            } catch {
+                return "<b>Failed to deserialize the chat component!</b>";
+            }
         }
     }
 }
