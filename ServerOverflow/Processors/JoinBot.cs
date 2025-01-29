@@ -34,63 +34,12 @@ public static class JoinBot {
     /// <param name="requests">Requests</param>
     /// <param name="timeoutSecs">Timeout in seconds</param>
     /// <returns>Result</returns>
-    public static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests, int timeoutSecs = 5) {
-        const string uuid = "be7b89d7-efed-452d-a716-4c0eec4c8e2d";
-        const string name = "ServerOverflow";
-        var client = new TcpClient();
-        try {
-            var timeout = TimeSpan.FromSeconds(timeoutSecs);
-            await client.ConnectAsync(server.IP, server.Port).WaitAsync(timeout);
-            await using var stream = client.GetStream();
-            using var packet = new MemoryStream();
-            
-            // handshake packet
-            var protocol = server.Ping.Version?.Protocol ?? 47;
-            var ip = server.IP + (server.Ping.IsForge ? "\0FML\0" : "");
-            await packet.WriteVarInt(0x00);               // Packet ID
-            await packet.WriteVarInt(protocol);           // Protocol Version
-            await packet.WriteString(ip);                 // Server IP
-            await packet.WriteShort((ushort)server.Port); // Server Port
-            await packet.WriteVarInt(2);                  // Next State
-            await stream.WriteVarInt((int) packet.Position).WaitAsync(timeout);
-            await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position)).AsTask().WaitAsync(timeout);
-            packet.Position = 0;
-            
-            // login start packet
-            await packet.WriteVarInt(0x00);    // Packet ID
-            await packet.WriteString(name);    // Username
-            if (protocol is >= 759 and <= 760)
-                await packet.WriteBytes(0);    // Has signature
-            if (protocol >= 760) {
-                var guidBytes = new Guid(uuid).ToByteArray();            
-                var uuidBytes = new[] {
-                    guidBytes[6], guidBytes[7], guidBytes[4], guidBytes[5],
-                    guidBytes[0], guidBytes[1], guidBytes[2], guidBytes[3],
-                    guidBytes[15], guidBytes[14], guidBytes[13], guidBytes[12],
-                    guidBytes[11], guidBytes[10], guidBytes[9], guidBytes[8]
-                };
-                if (protocol <= 763)
-                    await packet.WriteBytes(1);     // Has UUID
-                await packet.WriteBytes(uuidBytes); // UUID
-            }
-            await stream.WriteVarInt((int) packet.Position).WaitAsync(timeout);
-            await stream.WriteAsync(packet.ToArray().AsMemory(0, (int)packet.Position)).AsTask().WaitAsync(timeout);
-            await stream.ReadVarInt().WaitAsync(timeout); // ignore packet length
-            server.JoinResult = await stream.ReadVarInt().WaitAsync(timeout) switch {
-                0x00 => new Result { Success = true, Whitelist = true, DisconnectReason = await stream.ReadString() },
-                0x01 => new Result { Success = true, OnlineMode = true },
-                _ => new Result { Success = true, OnlineMode = false }
-            };
-            
-            Interlocked.Increment(ref _servers);
-            requests.Add(new ReplaceOneModel<Server>(
-                Builders<Server>.Filter.Eq(y => y.Id, server.Id), server));
-        } catch (Exception e) {
-            server.JoinResult = new Result { Success = false, ErrorMessage = e.Message };
-            Interlocked.Increment(ref _servers);
-            requests.Add(new ReplaceOneModel<Server>(
-                Builders<Server>.Filter.Eq(y => y.Id, server.Id), server));
-        }
+    private static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests, int timeoutSecs = 5) {
+        var result = await TinyProtocol.Join(server.IP, server.Port, server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge);
+        Interlocked.Increment(ref _servers);
+        requests.Add(new UpdateOneModel<Server>(
+            Builders<Server>.Filter.Eq(y => y.Id, server.Id),
+            Builders<Server>.Update.Set(x => x.JoinResult, result)));
     }
 
     /// <summary>
@@ -99,10 +48,12 @@ public static class JoinBot {
     /// <param name="server">Server</param>
     /// <param name="timeout">Timeout in seconds</param>
     public static async Task<Server> JoinServer(Server server, int timeout = 5) {
-        var requests = new ConcurrentBag<WriteModel<Server>>();
-        await Connect(server, requests, timeout);
-        await Controller.Servers.BulkWriteAsync(requests);
-        return (await Server.Get(server.Id.ToString()))!;
+        var result = await TinyProtocol.Join(server.IP, server.Port, server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge);
+        await Controller.Servers.UpdateOneAsync(
+            Builders<Server>.Filter.Eq(y => y.Id, server.Id),
+            Builders<Server>.Update.Set(x => x.JoinResult, result));
+        server.JoinResult = result;
+        return server;
     }
 
     /// <summary>
@@ -114,8 +65,8 @@ public static class JoinBot {
             try {
                 var builder = Builders<Server>.Filter;
                 var query = builder.Eq(x => x.JoinResult, null) |
-                            builder.Gt(x => x.JoinResult!.Timestamp,
-                                DateTime.UtcNow + TimeSpan.FromDays(1));
+                            builder.Lt(x => x.JoinResult!.Timestamp,
+                                DateTime.UtcNow - TimeSpan.FromDays(1));
                 var total = await Controller.Servers.CountDocumentsAsync(query);
                 if (total == 0) continue;
                 
@@ -129,6 +80,7 @@ public static class JoinBot {
                     var requests = new ConcurrentBag<WriteModel<Server>>();
                     var tasks = cursor.Current
                         .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
+                        .Where(x => !x.IsAntiDDoS())
                         .Select(x => Connect(x, requests)).ToArray();
                     await Task.WhenAll(tasks);
                     if (requests.Count != 0)
@@ -168,55 +120,6 @@ public static class JoinBot {
             }
             
             Log.Information("Completed bulk join in {0}", watch.Elapsed);
-        }
-    }
-    
-    /// <summary>
-    /// Join result
-    /// </summary>
-    public class Result {
-        /// <summary>
-        /// Was the attempt successful
-        /// </summary>
-        public bool Success { get; set; }
-        
-        /// <summary>
-        /// Error message if failed
-        /// </summary>
-        public string? ErrorMessage { get; set; }
-        
-        /// <summary>
-        /// Is online mode enabled
-        /// </summary>
-        public bool? OnlineMode { get; set; }
-        
-        /// <summary>
-        /// Is whitelist enabled
-        /// </summary>
-        public bool? Whitelist { get; set; }
-
-        /// <summary>
-        /// Reason for the disconnect
-        /// </summary>
-        public string? DisconnectReason { get; set; }
-
-        /// <summary>
-        /// When was the result produced
-        /// </summary>
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-        
-        /// <summary>
-        /// Encodes the description into HTML
-        /// </summary>
-        /// <returns>Raw HTML</returns>
-        public string? ReasonToHtml() {
-            if (DisconnectReason == null) return null;
-            
-            try {
-                return TextComponent.Parse(DisconnectReason).ToHtml();
-            } catch {
-                return "<b>Failed to deserialize the chat component!</b>";
-            }
         }
     }
 }

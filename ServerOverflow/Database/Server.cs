@@ -56,7 +56,7 @@ public class Server {
     /// <summary>
     /// Join bot's result
     /// </summary>
-    public JoinBot.Result? JoinResult { get; set; }
+    public TinyProtocol.Result? JoinResult { get; set; }
     
     /// <summary>
     /// Server's fingerprint
