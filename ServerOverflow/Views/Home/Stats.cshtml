@@ -130,17 +130,19 @@
     }
 
     function getValues(dict, num) {
+        let arr = Object.entries(dict);
         let list = [];
-        for (let i = 0; i < Math.min(dict.length, num); i++)
-            list.push(dict[i][1]);
+        for (let i = 0; i < Math.min(arr.length, num); i++)
+            list.push(arr[i][1]);
 
         return list;
     }
     
     function getLabels(dict, num) {
+        let arr = Object.entries(dict);
         let list = [];
-        for (let i = 0; i < Math.min(dict.length, num); i++)
-            list.push(dict[i][0]);
+        for (let i = 0; i < Math.min(arr.length, num); i++)
+            list.push(arr[i][0]);
         
         return list;
     }
