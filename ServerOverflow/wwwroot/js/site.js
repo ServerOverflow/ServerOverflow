@@ -9,7 +9,7 @@ $(document).ready(function() {
             let len = el.text().length;
             let output = "";
             for (let i = 0; i < len; i++)
-                output += String.fromCharCode(randInt(32, 591));
+                output += String.fromCharCode(randInt(32, 125));
             el.text(output);
         });
     }, 50);
