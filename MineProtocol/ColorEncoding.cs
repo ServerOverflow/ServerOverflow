@@ -91,6 +91,11 @@ public static class ColorEncoding {
                 case '§':
                     expectChar = true;
                     continue;
+                case '\n':
+                    component.Text += "\n";
+                    component = new TextComponent();
+                    parent.Extra.Add(component);
+                    continue;
             }
 
             component.Text += i;
