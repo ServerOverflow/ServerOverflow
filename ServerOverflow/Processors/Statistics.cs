@@ -118,14 +118,15 @@ public class Statistics {
                     x.Ping.Version != null && x.Ping.Version.Name != null &&
                     x.Ping.Version.Name.Contains(' ')));
                 Stats.AntiDDoS.Add((int)await Controller.Servers.Count(x => 
-                    (x.Ping.Description != null && (
-                        x.Ping.Description.Contains("Blad pobierania statusu. Polacz sie bezposrednio!") ||
-                        x.Ping.Description.Contains("This server is offline Powered by FalixNodes.net") ||
-                        x.Ping.Description.Contains("Ochrona DDoS: Przekroczono limit polaczen.") ||
-                        x.Ping.Description.Contains("Start the server at FalixNodes.net/start") ||
-                        x.Ping.Description.Contains("Serwer jest aktualnie wy") ||
-                        x.Ping.Description.Contains("\u00a8 |  ")
+                    (x.Ping.CleanDescription != null && (
+                        x.Ping.CleanDescription.Contains("Blad pobierania statusu. Polacz sie bezposrednio!") ||
+                        x.Ping.CleanDescription.Contains("Ochrona DDoS: Przekroczono limit polaczen.") ||
+                        x.Ping.CleanDescription.Contains("Start the server at FalixNodes.net/start") ||
+                        x.Ping.CleanDescription.Contains("Serwer jest aktualnie wy") ||
+                        x.Ping.CleanDescription.Contains("Hosted in GreatHost.es") ||
+                        x.Ping.CleanDescription.Contains("\u00a8 |  ")
                     )) || (x.Ping.Version != null && x.Ping.Version.Name != null && (
+                        x.Ping.Version.Name.Contains("§c§l\u2b24 OFFLINE") ||
                         x.Ping.Version.Name.Contains("COSMIC GUARD") ||
                         x.Ping.Version.Name.Contains("TCPShield.com") ||
                         x.Ping.Version.Name.Contains("â\u009a\u00a0 Error") ||
