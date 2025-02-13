@@ -104,7 +104,6 @@ public static class JoinBot {
                 Whitelist = true, DisconnectReason = e.Message, LastSeen = DateTime.UtcNow
             };
         } catch (Exception e) {
-            Log.Error("An exception occured: {0}", e);
             return new JoinResult { Success = false, ErrorMessage = e.Message };
         }
     }

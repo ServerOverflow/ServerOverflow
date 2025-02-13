@@ -277,6 +277,8 @@ public class TinyProtocol : IDisposable {
         }
 
         length -= 1;
+        if (length < 0)
+            throw new InvalidOperationException($"Invalid packet payload length of {length}");
         var id = (PacketId)await stream.ReadVarInt().WaitAsync(Timeout);
         var buf = new byte[length];
         if (length >= 2097152)
