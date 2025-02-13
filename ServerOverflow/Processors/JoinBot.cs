@@ -44,7 +44,7 @@ public static class JoinBot {
     public static async Task<JoinResult> Join(Server server, int? protocol = null, int depth = 0) {
         try {
             if (depth > 3)
-                throw new InvalidOperationException("Depth is too high to continue");
+                throw new InvalidOperationException("Detected outdated client cycle");
             using var proto = new TinyProtocol(server.IP, server.Port,
                 protocol ?? server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge,
                 server.Ping.ModernForgeMods?.ProtocolVersion ?? 0);

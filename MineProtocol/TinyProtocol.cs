@@ -259,10 +259,10 @@ public class TinyProtocol : IDisposable {
 
     /// <summary>
     /// Receives a packet and returns the stream.
-    /// If a packet was processed by this method, it will return null.
+    /// Some packets during the login stage are automatically processed.
     /// </summary>
     /// <returns>Packet</returns>
-    public async Task<Packet?> Receive() {
+    public async Task<Packet> Receive() {
         if (_output == null) throw new InvalidOperationException("Connect to the server first");
         var length = await _output.ReadVarInt().WaitAsync(Timeout);
         
@@ -276,7 +276,11 @@ public class TinyProtocol : IDisposable {
         }
 
         var id = (PacketId)await stream.ReadVarInt().WaitAsync(Timeout);
-        var packet = new Packet(this, stream, length, id);
+        var buf = new byte[length];
+        if (length >= 2097152)
+            throw new InvalidOperationException($"Payload of size {length} is too large");
+        await stream.ReadAsync(buf, 0, buf.Length).WaitAsync(Timeout);
+        var packet = new Packet(this, new MemoryStream(buf), length, id);
 
         if (State == ConnectionState.Login) {
             if (packet.Id == PacketId.SetCompression) {
@@ -333,7 +337,7 @@ public class TinyProtocol : IDisposable {
         /// <summary>
         /// Payload stream
         /// </summary>
-        public Stream Stream { get; set; }
+        public MemoryStream Stream { get; set; }
         
         /// <summary>
         /// Packet length
@@ -351,16 +355,11 @@ public class TinyProtocol : IDisposable {
         public bool Handled { get; set; }
 
         /// <summary>
-        /// Original stream position
-        /// </summary>
-        private readonly long _originalPosition;
-
-        /// <summary>
         /// Skips the payload
         /// </summary>
         public async Task Skip() {
             if (Handled) return;
-            var buf = new byte[Length - (Stream.Position - _originalPosition)];
+            var buf = new byte[Length - Stream.Position];
             await Stream.ReadExactlyAsync(buf, 0, buf.Length).AsTask().WaitAsync(Parent.Timeout);
             Handled = true;
         }
@@ -372,9 +371,8 @@ public class TinyProtocol : IDisposable {
         /// <param name="stream">Stream</param>
         /// <param name="length">Length</param>
         /// <param name="id">Packet ID</param>
-        public Packet(TinyProtocol proto, Stream stream, int length, PacketId id) {
+        public Packet(TinyProtocol proto, MemoryStream stream, int length, PacketId id) {
             Parent = proto; Stream = stream; Length = length; Id = id;
-            _originalPosition = stream.Position;
         }
     }
 
