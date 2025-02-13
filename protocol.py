@@ -19,12 +19,12 @@ if not table:
 
 for tr in table.find_all("tr"):
     td = tr.find_all("td")
-    if len(td) != 2:
+    if len(td) == 0:
         continue
     name = td[0].text.strip().replace("Java Edition ", "").replace(" Release Candidate ", "-rc").replace(" Pre-Release ", "-pre")
     if row_span == 0:
-        if "rowspan" in td[1]:
-            row_span = int(td[1]["rowspan"]) - 1
+        if td[1].has_attr('rowspan'):
+            row_span = int(td[1]["rowspan"])
         else:
             row_span = 1
         text = td[1].text
@@ -32,7 +32,10 @@ for tr in table.find_all("tr"):
             proto = int(text[text.index('(')+1:-1])
         else:
             proto = int(text)
-        data[proto] = name
+        data[name] = proto
+    else:
+        # ✨ python magic ✨
+        data[name] = proto
     row_span -= 1
 
 with open("MineProtocol/Resources/protocol.json", "w") as f:

@@ -83,13 +83,13 @@ public class TinyProtocol : IDisposable {
     public TinyProtocol(IPEndPoint endpoint, int protocol = 47, bool forge = false, int fmlProtocol = 0) {
         EndPoint = endpoint; Protocol = protocol; Forge = forge; ForgeProtocol = fmlProtocol;
     }
-
+    
     /// <summary>
     /// Connects to the server
-    /// </summary>r
+    /// </summary>
     public async Task Connect() {
         await _client.ConnectAsync(EndPoint).WaitAsync(Timeout);
-        _input = _output = _client.GetStream();
+        _input = _output = new BufferedStream(_client.GetStream(), 8192);
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class TinyProtocol : IDisposable {
     public async Task Handshake(bool slp = false) {
         if (_input == null) throw new InvalidOperationException("Connect to the server first");
         if (State != ConnectionState.Handshake) throw new InvalidOperationException($"Invalid connection state {State}");
-        var ip = EndPoint.Address + (Forge ? $"\0FML\0FORGE{ForgeProtocol}\0" : "");
+        var ip = EndPoint.Address + (Forge ? $"\0FML{ForgeProtocol}\0FML\0FORGE{ForgeProtocol}\0" : "");
         var port = EndPoint.Port;
         
         using var packet = new MemoryStream();
@@ -257,7 +257,7 @@ public class TinyProtocol : IDisposable {
             await _input.WriteVarInt(uncompressed.Value).WaitAsync(Timeout);      // Uncompressed length
         await _input.WriteAsync(packet.ToArray()).AsTask().WaitAsync(Timeout);  // Packet data
     }
-
+    
     /// <summary>
     /// Receives a packet and returns the stream.
     /// Some packets during the login stage are automatically processed.
@@ -265,21 +265,21 @@ public class TinyProtocol : IDisposable {
     /// <returns>Packet</returns>
     public async Task<Packet> Receive() {
         if (_output == null) throw new InvalidOperationException("Connect to the server first");
-        var length = await _output.ReadVarInt().WaitAsync(Timeout);
+        var length = await _output.ReadVarInt(Timeout);
         
         var stream = _output;
         if (_compressThreshold >= 0) {
-            var compressed = await _output.ReadVarInt().WaitAsync(Timeout);
+            var compressed = await _output.ReadVarInt(Timeout);
             if (compressed != 0) {
                 stream = new ZLibStream(stream, CompressionMode.Decompress);
                 length = compressed;
             }
         }
-
+        
+        var id = (PacketId)await stream.ReadVarInt(Timeout);
         length -= 1;
-        if (length < 0)
+        if (length <= 0)
             throw new InvalidOperationException($"Invalid packet payload length of {length}");
-        var id = (PacketId)await stream.ReadVarInt().WaitAsync(Timeout);
         var buf = new byte[length];
         if (length >= 2097152)
             throw new InvalidOperationException($"Payload of size {length} is too large");
@@ -288,7 +288,7 @@ public class TinyProtocol : IDisposable {
 
         if (State == ConnectionState.Login) {
             if (packet.Id == PacketId.SetCompression) {
-                _compressThreshold = await packet.Stream.ReadVarInt().WaitAsync(Timeout);
+                _compressThreshold = await packet.Stream.ReadVarInt();
                 await packet.Skip();
             }
 
@@ -298,9 +298,7 @@ public class TinyProtocol : IDisposable {
             }
 
             if (packet.Id == PacketId.LoginPluginRequest) {
-                var msgId = await packet.Stream.ReadVarInt();
-                await packet.Skip();
-                await LoginPluginResponse(msgId);
+                await HandlePluginRequest(packet);
             }
             
             if (packet.Id == PacketId.CookieRequest) {
@@ -310,12 +308,99 @@ public class TinyProtocol : IDisposable {
             }
 
             if (packet.Id == PacketId.Disconnect) {
-                var raw = await packet.Stream.ReadString().WaitAsync(Timeout);
+                var raw = await packet.Stream.ReadString();
                 Disconnect(); throw new DisconnectedException(raw);
             }
         }
 
         return packet;
+    }
+
+    /// <summary>
+    /// Handles plugin request (mostly to support modern FML)
+    /// </summary>
+    /// <param name="packet"></param>
+    private async Task HandlePluginRequest(Packet packet) {
+        var msgId = await packet.Stream.ReadVarInt();
+        var channel = await packet.Stream.ReadString();
+        switch (channel) {
+            case "fml:loginwrapper":
+                var pluginChannel = await packet.Stream.ReadString();
+                if (pluginChannel != "fml:handshake") {
+                    await packet.Skip();
+                    await LoginPluginResponse(msgId);
+                    return;
+                }
+
+                // we don't care about the length
+                _ = await packet.Stream.ReadVarInt();
+                var id = await packet.Stream.ReadVarInt();
+                switch (id) {
+                    case 1: { // Mod list
+                        using var payload = new MemoryStream();
+                        await payload.WriteVarInt(2);
+                        
+                        var modCount = await packet.Stream.ReadVarInt();
+                        await payload.WriteVarInt(modCount);
+                        for (var i = 0; i < modCount; i++) {
+                            var name = await packet.Stream.ReadString();
+                            await payload.WriteString(name);
+                        }
+                        
+                        var channelCount = await packet.Stream.ReadVarInt();
+                        await payload.WriteVarInt(channelCount);
+                        for (var i = 0; i < channelCount; i++) {
+                            var name = await packet.Stream.ReadString();
+                            var marker = await packet.Stream.ReadString();
+                            await payload.WriteString(name);
+                            await payload.WriteString(marker);
+                        }
+                        
+                        var registryCount = await packet.Stream.ReadVarInt();
+                        await payload.WriteVarInt(registryCount);
+                        for (var i = 0; i < registryCount; i++) {
+                            var name = await packet.Stream.ReadString();
+                            await payload.WriteString(name);
+                            await payload.WriteString("");
+                        }
+                        
+                        var buf = await WrapForgePayload(payload);
+                        await LoginPluginResponse(msgId, buf);
+                        return;
+                    } 
+                    case 3:   // Server registry
+                    case 4: { // Configuration data
+                        await packet.Skip();
+                        using var payload = new MemoryStream();
+                        await payload.WriteVarInt(99);
+                        
+                        var buf = await WrapForgePayload(payload);
+                        await LoginPluginResponse(msgId, buf);
+                        return;
+                    }
+                }
+                
+                await packet.Skip();
+                await LoginPluginResponse(msgId);
+                return;
+            default:
+                Console.WriteLine($"Unknown channel {channel}");
+                await packet.Skip();
+                await LoginPluginResponse(msgId);
+                return;
+        }
+    }
+    
+    /// <summary>
+    /// Wraps FML plugin payload
+    /// </summary>
+    /// <param name="packet">Packet</param>
+    public async Task<byte[]> WrapForgePayload(MemoryStream packet) {
+        using var wrapper = new MemoryStream();
+        await wrapper.WriteString("fml:handshake");
+        await wrapper.WriteVarInt((int)packet.Length);
+        wrapper.Write(packet.ToArray());
+        return wrapper.ToArray();
     }
     
     /// <summary>

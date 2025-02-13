@@ -30,7 +30,7 @@ public static class Resources {
         using var proto = ass.GetManifestResourceStream("protocol.json")!;
         using var lang = ass.GetManifestResourceStream("language.json")!;
         Language = JsonSerializer.Deserialize<Dictionary<string, string>>(lang)!;
-        Protocol = JsonSerializer.Deserialize<Dictionary<int, string>>(proto)!;
-        Version = Protocol.ToDictionary(x => x.Value, x => x.Key);
+        Version = JsonSerializer.Deserialize<Dictionary<string, int>>(proto)!;
+        Protocol = Version.DistinctBy(x => x.Value).ToDictionary(x => x.Value, x => x.Key);
     }
 }

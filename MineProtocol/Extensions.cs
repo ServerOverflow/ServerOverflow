@@ -13,19 +13,46 @@ public static class Extensions {
     /// Reads a minecraft VarInt
     /// </summary>
     /// <param name="stream">Stream</param>
+    /// <param name="timeout">Timeout</param>
     /// <returns>Integer</returns>
-    public static async Task<int> ReadVarInt(this Stream stream) {
+    public static async ValueTask<int> ReadVarInt(this Stream stream, TimeSpan? timeout = null) {
+        timeout ??= TimeSpan.FromMilliseconds(-1);
         var value = 0;
         var size = 0;
         
         var buf = new byte[1];
-        while (await stream.ReadAsync(buf.AsMemory(0, 1)) > 0) {
+        var read = 0;
+        while (await stream.ReadAsync(buf.AsMemory(0, 1)).AsTask().WaitAsync(timeout.Value) > 0) {
+            read++;
             if ((buf[0] & 0x80) != 0x80) break;
             value |= (buf[0] & 0x7F) << (size++ * 7);
-            if (size > 5) throw new IOException("This VarInt is an imposter!");
+            if (size > 5) throw new IOException("This VarInt is an imposter");
         }
 
+        if (read == 0)
+            throw new IOException("Failed to read VarInt");
         return value | ((buf[0] & 0x7F) << (size * 7));
+    }
+    
+    /// <summary>
+    /// Reads a string prefixed with VarInt
+    /// </summary>
+    /// <param name="stream">Stream</param>
+    public static async Task<string> ReadString(this Stream stream) {
+        var len = await stream.ReadVarInt();
+        var buf = new byte[len];
+        var read = await stream.ReadAsync(buf.AsMemory(0, len));
+        return Encoding.UTF8.GetString(buf, 0, read);
+    }
+    
+    /// <summary>
+    /// Reads a boolean
+    /// </summary>
+    /// <param name="stream">Stream</param>
+    public static async Task<bool> ReadBoolean(this Stream stream) {
+        var buf = new byte[1];
+        _ = await stream.ReadAsync(buf.AsMemory(0, 1));
+        return buf[0] == 0x01;
     }
     
     /// <summary>
@@ -67,27 +94,6 @@ public static class Extensions {
         var buffer = Encoding.UTF8.GetBytes(data);
         await stream.WriteVarInt(buffer.Length);
         await stream.WriteAsync(buffer);
-    }
-    
-    /// <summary>
-    /// Reads a string prefixed with VarInt
-    /// </summary>
-    /// <param name="stream">Stream</param>
-    public static async Task<string> ReadString(this Stream stream) {
-        var len = await stream.ReadVarInt();
-        var buf = new byte[len];
-        var read = await stream.ReadAsync(buf.AsMemory(0, len));
-        return Encoding.UTF8.GetString(buf, 0, read);
-    }
-    
-    /// <summary>
-    /// Reads a boolean
-    /// </summary>
-    /// <param name="stream">Stream</param>
-    public static async Task<bool> ReadBoolean(this Stream stream) {
-        var buf = new byte[1];
-        _ = await stream.ReadAsync(buf.AsMemory(0, 1));
-        return buf[0] == 0x01;
     }
     
     /// <summary>

@@ -56,7 +56,6 @@ public static class JoinBot {
             await proto.LoginStart(profile);
             while (true) {
                 var packet = await proto.Receive();
-                if (packet == null) throw new Exception("Unexpected packet received");
                 switch (packet.Id) {
                     case TinyProtocol.PacketId.EncryptionRequest:
                         if (profile.Minecraft != null) {
@@ -104,6 +103,7 @@ public static class JoinBot {
                 Whitelist = true, DisconnectReason = e.Message, LastSeen = DateTime.UtcNow
             };
         } catch (Exception e) {
+            Console.WriteLine(e);
             return new JoinResult { Success = false, ErrorMessage = e.Message };
         }
     }
@@ -215,7 +215,10 @@ public static class JoinBot {
                         continue;
                     }
                     
-                    var tasks = servers[i..(i+batch)].Select(x => Connect(x, requests)).ToArray();
+                    var tasks = servers[i..(i+batch)]
+                        .Zip(profiles.SelectMany(x => (Storage.Profile[])[x, x, x]),
+                            (server, profile) => Connect(server, requests, profile.Instance))
+                        .ToArray();
                     await Task.WhenAll(tasks);
                     if (requests.Count != 0)
                         await Database.Servers.BulkWriteAsync(requests);
