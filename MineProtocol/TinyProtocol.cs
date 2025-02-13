@@ -201,6 +201,42 @@ public class TinyProtocol : IDisposable {
     }
 
     /// <summary>
+    /// Respond to a plugin request during login
+    /// </summary>
+    /// <param name="id">Message ID</param>
+    /// <param name="data">Payload</param>
+    public async Task LoginPluginResponse(int id, byte[]? data = null) {
+        if (_input == null) throw new InvalidOperationException("Connect to the server first");
+        if (State != ConnectionState.Login) throw new InvalidOperationException($"Invalid connection state {State}");
+
+        using var packet = new MemoryStream();
+        await packet.WriteVarInt((int)PacketId.LoginPluginResponse); // Packet ID
+        await packet.WriteVarInt(id);             // Message ID
+        await packet.WriteBoolean(data != null);  // Has payload
+        if (data != null)
+            await packet.WriteAsync(data);      // Payload
+        await Send(packet);
+    }
+
+    /// <summary>
+    /// Respond to a cookie request
+    /// </summary>
+    /// <param name="key">Identifier</param>
+    /// <param name="data">Payload</param>
+    public async Task CookieResponse(string key, byte[]? data = null) {
+        if (_input == null) throw new InvalidOperationException("Connect to the server first");
+        if (State != ConnectionState.Login) throw new InvalidOperationException($"Invalid connection state {State}");
+
+        using var packet = new MemoryStream();
+        await packet.WriteVarInt((int)PacketId.CookieResponse); // Packet ID
+        await packet.WriteString(key);            // Key identifier
+        await packet.WriteBoolean(data != null);  // Has payload
+        if (data != null)
+            await packet.WriteAsync(data);      // Payload
+        await Send(packet);
+    }
+    
+    /// <summary>
     /// Sends an arbitrary packet
     /// </summary>
     /// <param name="packet">Packet</param>
@@ -253,9 +289,21 @@ public class TinyProtocol : IDisposable {
                 await LoginAck();
             }
 
+            if (packet.Id == PacketId.LoginPluginRequest) {
+                var msgId = await packet.Stream.ReadVarInt();
+                await packet.Skip();
+                await LoginPluginResponse(msgId);
+            }
+            
+            if (packet.Id == PacketId.CookieRequest) {
+                var key = await packet.Stream.ReadString();
+                await packet.Skip();
+                await CookieResponse(key);
+            }
+
             if (packet.Id == PacketId.Disconnect) {
                 var raw = await packet.Stream.ReadString().WaitAsync(Timeout);
-                throw new DisconnectedException(raw);
+                Disconnect(); throw new DisconnectedException(raw);
             }
         }
 
@@ -303,12 +351,16 @@ public class TinyProtocol : IDisposable {
         public bool Handled { get; set; }
 
         /// <summary>
+        /// Original stream position
+        /// </summary>
+        private readonly long _originalPosition;
+
+        /// <summary>
         /// Skips the payload
         /// </summary>
-        /// <param name="length">Length</param>
-        public async Task Skip(int? length = null) {
-            length ??= Length;
-            var buf = new byte[length.Value];
+        public async Task Skip() {
+            if (Handled) return;
+            var buf = new byte[Length - (Stream.Position - _originalPosition)];
             await Stream.ReadExactlyAsync(buf, 0, buf.Length).AsTask().WaitAsync(Parent.Timeout);
             Handled = true;
         }
@@ -322,6 +374,7 @@ public class TinyProtocol : IDisposable {
         /// <param name="id">Packet ID</param>
         public Packet(TinyProtocol proto, Stream stream, int length, PacketId id) {
             Parent = proto; Stream = stream; Length = length; Id = id;
+            _originalPosition = stream.Position;
         }
     }
 

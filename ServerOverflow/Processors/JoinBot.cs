@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using MineProtocol;
+using MineProtocol.Exceptions;
 using MongoDB.Driver;
 using Serilog;
 using ServerOverflow.Database;
@@ -45,30 +46,33 @@ public static class JoinBot {
             if (depth > 3)
                 throw new InvalidOperationException("Depth is too high to continue");
             using var proto = new TinyProtocol(server.IP, server.Port,
-                server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge,
+                protocol ?? server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge,
                 server.Ping.ModernForgeMods?.ProtocolVersion ?? 0);
             await proto.Connect();
             await proto.Handshake();
             await proto.LoginStart(_offline);
-            var packet = await proto.Receive();
-            if (packet == null) throw new Exception("Unexpected packet received");
-            switch (packet.Id) {
-                case TinyProtocol.PacketId.Disconnect:
-                    proto.Disconnect();
-                    var reason = await packet.Stream.ReadString();
-                    if (reason.Contains("1.13 and above"))
-                        return await Join(server, 393, depth + 1);
-                    var match = Regex.Match(reason, @"Outdated client! Please use (\d\.\d+\.\d+)");
-                    if (match.Success && Resources.Version.TryGetValue(match.Groups[1].Value, out var newProto))
-                        return await Join(server, newProto, depth + 1);
-                    return new JoinResult { Success = true, OnlineMode = false, Whitelist = true, DisconnectReason = reason };
-                case TinyProtocol.PacketId.EncryptionRequest:
-                    return new JoinResult { Success = true, OnlineMode = true };
-                case TinyProtocol.PacketId.LoginSuccess:
-                    return new JoinResult { Success = true, Whitelist = false, OnlineMode = false };
+            while (true) {
+                var packet = await proto.Receive();
+                if (packet == null) throw new Exception("Unexpected packet received");
+                switch (packet.Id) {
+                    case TinyProtocol.PacketId.EncryptionRequest:
+                        proto.Disconnect();
+                        return new JoinResult { Success = true, OnlineMode = true };
+                    case TinyProtocol.PacketId.LoginSuccess:
+                        proto.Disconnect();
+                        return new JoinResult { Success = true, Whitelist = false, OnlineMode = false };
+                    default:
+                        await packet.Skip();
+                        break;
+                }
             }
-
-            throw new Exception("Client hasn't received login success");
+        } catch (DisconnectedException e) {
+            if (e.Message.Contains("1.13 and above"))
+                return await Join(server, 393, depth + 1);
+            var match = Regex.Match(e.Message, @"Outdated client! Please use (\d\.\d+\.\d+)");
+            if (match.Success && Resources.Version.TryGetValue(match.Groups[1].Value, out var newProto))
+                return await Join(server, newProto, depth + 1);
+            return new JoinResult { Success = true, OnlineMode = false, Whitelist = true, DisconnectReason = e.Message };
         } catch (Exception e) {
             return new JoinResult { Success = false, ErrorMessage = e.Message };
         }

@@ -47,6 +47,16 @@ public static class Extensions {
         
         await stream.WriteAsync(buf.AsMemory(0, len));
     }
+    
+    /// <summary>
+    /// Writes a minecraft VarInt
+    /// </summary>
+    /// <param name="stream">Binary Writer</param>
+    /// <param name="value">Integer</param>
+    public static async Task WriteBoolean(this Stream stream, bool value) {
+        var buf = new byte[1]; buf[0] = (byte)(value ? 1 : 0);
+        await stream.WriteAsync(buf.AsMemory(0, 1));
+    }
 
     /// <summary>
     /// Writes a string prefixed with VarInt
