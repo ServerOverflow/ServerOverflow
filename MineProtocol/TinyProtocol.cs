@@ -89,7 +89,7 @@ public class TinyProtocol : IDisposable {
     /// </summary>
     public async Task Connect() {
         await _client.ConnectAsync(EndPoint).WaitAsync(Timeout);
-        _input = _output = new BufferedStream(_client.GetStream(), 8192);
+        _input = _output =_client.GetStream();
     }
 
     /// <summary>
@@ -384,7 +384,6 @@ public class TinyProtocol : IDisposable {
                 await LoginPluginResponse(msgId);
                 return;
             default:
-                Console.WriteLine($"Unknown channel {channel}");
                 await packet.Skip();
                 await LoginPluginResponse(msgId);
                 return;

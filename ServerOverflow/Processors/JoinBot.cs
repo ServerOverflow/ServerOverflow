@@ -103,7 +103,6 @@ public static class JoinBot {
                 Whitelist = true, DisconnectReason = e.Message, LastSeen = DateTime.UtcNow
             };
         } catch (Exception e) {
-            Console.WriteLine(e);
             return new JoinResult { Success = false, ErrorMessage = e.Message };
         }
     }
