@@ -1,7 +1,10 @@
-﻿@{
+﻿@using ServerOverflow.Storage
+@{
     ViewData["Description"] = "Frequently Asked Questions";
     ViewData["Title"] = "FAQ";
     Layout = "Markdown";
+
+    var profiles = await Profile.GetAll();
 }
 
 ## What is ServerOverflow?
@@ -43,7 +46,11 @@ I can't guarantee how often you would get pinged. \
 Though, a bot should only join your server once.
 
 ## What bot accounts does ServerOverflow use?
-<p>The bot primarily uses <a href="https://namemc.com/profile/be7b89d7-efed-452d-a716-4c0eec4c8e2d">ServerOverflow</a> for joining servers for checking online mode.</p>
+<ul>
+    @foreach (var profile in profiles) {
+        <li><a href="https://namemc.com/profile/@profile.Instance.UUID">@profile.Instance.Username</a></li>
+    }
+</ul>
 
 ## How do I contact you?
 You can DM me on discord, telegram, or email me over at `theairblow@gmail.com`.
