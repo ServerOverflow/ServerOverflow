@@ -46,7 +46,7 @@ public class InfoController : Controller {
         switch (type) {
             case "refresh": { // Refresh
                 var result = await JoinBot.Join(server);
-                await Database.Controller.Servers.UpdateOneAsync(
+                await Database.Database.Servers.UpdateOneAsync(
                     Builders<Server>.Filter.Eq(y => y.Id, server.Id),
                     Builders<Server>.Update.Set(x => x.JoinResult, result));
                 server.JoinResult = result;
@@ -163,7 +163,7 @@ public class InfoController : Controller {
                     break;
                 }
 
-                await Database.Controller.Accounts.Delete(x => x.Id == model.Target.Id);
+                await Database.Database.Accounts.Delete(x => x.Id == model.Target.Id);
                 return Redirect("/");
             case "changeUsername": { // Change Username
                 if (model.OtherTarget && !account.HasPermission(Permission.ModifyAccounts)) {

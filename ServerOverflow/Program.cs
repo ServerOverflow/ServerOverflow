@@ -12,8 +12,10 @@ Log.Logger = new LoggerConfiguration().MinimumLevel.Override("Microsoft.AspNetCo
     .CreateLogger();
 
 Log.Information("Starting ServerOverflow");
-var accounts = await Controller.Accounts.EstimatedCount();
-var invites = await Controller.Invitations.EstimatedCount();
+var builder = WebApplication.CreateBuilder(args);
+Database.Initialize(builder.Configuration["mongo-uri"] ?? "mongodb://127.0.0.1:27017?maxPoolSize=5000");
+var accounts = await Database.Accounts.EstimatedCount();
+var invites = await Database.Invitations.EstimatedCount();
 if (accounts == 0 && invites == 0) {
     var invite = await Invitation.Create("Administrator");
     Log.Warning("There aren't any accounts or invitations!");
@@ -27,7 +29,6 @@ new Thread(async () => await Statistics.MainThread()).Start();
     new Thread(async () => await JoinBot.MainThread()).Start();
 #endif
 
-var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
@@ -40,6 +41,7 @@ builder.Services.AddControllers()
     });
 builder.Services.AddControllersWithViews();
 builder.Services.AddSerilog();
+
 
 var app = builder.Build();
 if (!app.Environment.IsDevelopment()) {

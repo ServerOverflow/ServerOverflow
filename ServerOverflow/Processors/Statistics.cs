@@ -1,4 +1,3 @@
-using static ServerOverflow.Configuration;
 using System.Diagnostics;
 using System.Text.Json;
 using MineProtocol;
@@ -109,12 +108,12 @@ public class Statistics {
                 if (Stats.CustomSoftware.Count >= 720) Stats.CustomSoftware.RemoveAt(0);
                 if (Stats.AntiDDoS.Count >= 720) Stats.AntiDDoS.RemoveAt(0);
                 
-                Stats.TotalServers.Add((int)await Controller.Servers.Count(x => true));
-                Stats.ChatReporting.Add((int)await Controller.Servers.Count(x => x.Ping.ChatReporting));
-                Stats.OnlineMode.Add((int)await Controller.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
-                Stats.Whitelist.Add((int)await Controller.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
-                Stats.ForgeServers.Add((int)await Controller.Servers.Count(x => x.Ping.IsForge));
-                Stats.CustomSoftware.Add((int)await Controller.Servers.Count(x => 
+                Stats.TotalServers.Add((int)await Database.Database.Servers.Count(x => true));
+                Stats.ChatReporting.Add((int)await Database.Database.Servers.Count(x => x.Ping.ChatReporting));
+                Stats.OnlineMode.Add((int)await Database.Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
+                Stats.Whitelist.Add((int)await Database.Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
+                Stats.ForgeServers.Add((int)await Database.Database.Servers.Count(x => x.Ping.IsForge));
+                Stats.CustomSoftware.Add((int)await Database.Database.Servers.Count(x => 
                     x.Ping.Version != null && x.Ping.Version.Name != null &&
                     x.Ping.Version.Name.Contains(' ')));
                 Stats.AntiDDoS.Add(0);
@@ -124,7 +123,7 @@ public class Statistics {
                 var mods = new Dictionary<string, int>();
                 
                 var filter = Builders<Server>.Filter.Empty;
-                using var cursor = await Controller.Servers.FindAsync(filter,
+                using var cursor = await Database.Database.Servers.FindAsync(filter,
                     new FindOptions<Server> { BatchSize = 1000 });
                 while (await cursor.MoveNextAsync())
                     foreach (var server in cursor.Current) {
@@ -136,6 +135,7 @@ public class Statistics {
                         if (server.Ping.Version?.Name != null) {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
+                            if (version.All(char.IsDigit)) version = $"{version} (fuck JS sorting)";
                             if (!software.TryGetValue(version, out _))
                                 software.Add(version, 1);
                             else software[version] += 1;
@@ -151,7 +151,8 @@ public class Statistics {
                         if (server.Ping.ModernForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.ModernForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
-                                if (!Config.ModsBlacklist.Contains(mod.ModId))
+                                if (mod.ModId.All(char.IsDigit)) mod.ModId = $"{mod.ModId} (fuck JS sorting)";
+                                if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
                                     if (!mods.TryGetValue(mod.ModId, out _))
                                         mods.Add(mod.ModId, 1);
                                     else mods[mod.ModId] += 1;
@@ -160,7 +161,8 @@ public class Statistics {
                         if (server.Ping.LegacyForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.LegacyForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
-                                if (!Config.ModsBlacklist.Contains(mod.ModId))
+                                if (mod.ModId.All(char.IsDigit)) mod.ModId = $"{mod.ModId} (fuck JS sorting)";
+                                if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
                                     if (!mods.TryGetValue(mod.ModId, out _))
                                         mods.Add(mod.ModId, 1);
                                     else mods[mod.ModId] += 1;

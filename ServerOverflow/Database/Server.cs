@@ -56,7 +56,7 @@ public class Server {
     /// <summary>
     /// Join bot's result
     /// </summary>
-    public JoinBot.Result? JoinResult { get; set; }
+    public JoinResult? JoinResult { get; set; }
     
     /// <summary>
     /// Server's fingerprint
@@ -74,14 +74,14 @@ public class Server {
     /// <param name="id">Object identifier</param>
     /// <returns>Server, may be null</returns>
     public static async Task<Server?> Get(string id)
-        => await Controller.Servers.QueryFirst(x => x.Id.ToString() == id);
+        => await Database.Servers.QueryFirst(x => x.Id.ToString() == id);
     
     /// <summary>
     /// Updates whole document
     /// </summary>
     public async Task Update() {
         var filter = Builders<Server>.Filter.Eq(account => account.Id, Id);
-        await Controller.Servers.ReplaceOneAsync(filter, this);
+        await Database.Servers.ReplaceOneAsync(filter, this);
     }
 }
 
@@ -271,6 +271,12 @@ public class ServerListPing {
         /// </summary>
         [BsonElement("mods")]
         public List<ModClass>? ModList { get; set; } = [];
+        
+        /// <summary>
+        /// FML protocol version
+        /// </summary>
+        [BsonElement("fmlNetworkVersion")]
+        public int ProtocolVersion { get; set; }
     }
     
     /// <summary>
@@ -344,6 +350,55 @@ public class ServerListPing {
         
         try {
             return TextComponent.Parse(Description).ToText();
+        } catch {
+            return "<b>Failed to deserialize the chat component!</b>";
+        }
+    }
+}
+
+/// <summary>
+/// Join result
+/// </summary>
+public class JoinResult {
+    /// <summary>
+    /// Was the attempt successful
+    /// </summary>
+    public bool Success { get; set; }
+        
+    /// <summary>
+    /// Error message if failed
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+        
+    /// <summary>
+    /// Is online mode enabled
+    /// </summary>
+    public bool? OnlineMode { get; set; }
+        
+    /// <summary>
+    /// Is whitelist enabled
+    /// </summary>
+    public bool? Whitelist { get; set; }
+
+    /// <summary>
+    /// Reason for the disconnect
+    /// </summary>
+    public string? DisconnectReason { get; set; }
+
+    /// <summary>
+    /// When was the result produced
+    /// </summary>
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        
+    /// <summary>
+    /// Encodes the description into HTML
+    /// </summary>
+    /// <returns>Raw HTML</returns>
+    public string? ReasonToHtml() {
+        if (DisconnectReason == null) return null;
+            
+        try {
+            return TextComponent.Parse(DisconnectReason).ToHtml();
         } catch {
             return "<b>Failed to deserialize the chat component!</b>";
         }

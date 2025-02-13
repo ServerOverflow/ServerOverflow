@@ -39,14 +39,14 @@ public class Invitation {
     /// <param name="code">Invitation code</param>
     /// <returns>Invitation, may be null</returns>
     public static async Task<Invitation?> Get(string code)
-        => await Controller.Invitations.QueryFirst(x => x.Code == code);
+        => await Database.Invitations.QueryFirst(x => x.Code == code);
 
     /// <summary>
     /// Fetches all invitations created
     /// </summary>
     /// <returns>List of invitations</returns>
     public static async Task<List<Invitation>> GetAll()
-        => await Controller.Invitations.QueryAll(x => true);
+        => await Database.Invitations.QueryAll(x => true);
 
     /// <summary>
     /// Creates a new invitation code
@@ -60,7 +60,7 @@ public class Invitation {
             BadgeText = badge
         };
 
-        await Controller.Invitations.InsertOneAsync(invitation);
+        await Database.Invitations.InsertOneAsync(invitation);
         return invitation;
     }
     
@@ -69,6 +69,6 @@ public class Invitation {
     /// </summary>
     public async Task Update() {
         var filter = Builders<Invitation>.Filter.Eq(account => account.Id, Id);
-        await Controller.Invitations.ReplaceOneAsync(filter, this);
+        await Database.Invitations.ReplaceOneAsync(filter, this);
     }
 }

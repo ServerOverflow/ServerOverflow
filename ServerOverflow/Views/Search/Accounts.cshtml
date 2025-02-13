@@ -1,10 +1,9 @@
-﻿@using Controller = ServerOverflow.Database.Controller
-@{
+﻿@{
     ViewData["Description"] = "Search accounts";
     ViewData["Title"] = "Accounts";
 
     // I don't expect to have a lot of accounts, so this will do
-    var accounts = await Controller.Accounts.QueryAll(x => true);
+    var accounts = await Database.Accounts.QueryAll(x => true);
 }
 
 <div class="section">

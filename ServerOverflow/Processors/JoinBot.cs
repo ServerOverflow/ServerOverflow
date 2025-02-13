@@ -37,20 +37,23 @@ public static class JoinBot {
     /// </summary>
     /// <param name="server">server</param>
     /// <returns>Result</returns>
-    public static async Task<Result> Join(Server server) {
+    public static async Task<JoinResult> Join(Server server) {
         try {
-            using var proto = new TinyProtocol(server.IP, server.Port, server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge);
+            using var proto = new TinyProtocol(server.IP, server.Port, 
+                server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge,
+                server.Ping.ModernForgeMods?.ProtocolVersion ?? 0);
             await proto.Connect();
             await proto.Handshake();
             await proto.LoginStart(_offline);
             var packet = await proto.Receive();
+            if (packet == null) throw new Exception("Unexpected packet received");
             return packet.Id switch {
-                0x00 => new Result { Success = true, Whitelist = true, DisconnectReason = await packet.Stream.ReadString() },
-                0x01 => new Result { Success = true, OnlineMode = true },
-                _ => new Result { Success = true, OnlineMode = false }
+                TinyProtocol.PacketId.Disconnect => new JoinResult { Success = true, OnlineMode = false, Whitelist = true, DisconnectReason = await packet.Stream.ReadString() },
+                TinyProtocol.PacketId.EncryptionRequest => new JoinResult { Success = true, OnlineMode = true },
+                _ => new JoinResult { Success = true, Whitelist = false, OnlineMode = false }
             };
         } catch (Exception e) {
-            return new Result { Success = false, ErrorMessage = e.Message };
+            return new JoinResult { Success = false, ErrorMessage = e.Message };
         }
     }
     
@@ -79,11 +82,11 @@ public static class JoinBot {
                 var query = builder.Eq(x => x.JoinResult, null) |
                             builder.Lt(x => x.JoinResult!.Timestamp,
                                 DateTime.UtcNow - TimeSpan.FromDays(1));
-                var total = await Controller.Servers.CountDocumentsAsync(query);
+                var total = await Database.Database.Servers.CountDocumentsAsync(query);
                 if (total == 0) continue;
                 
                 Log.Information("Bulk joining {0} servers", total);
-                using var cursor = await Controller.Servers.FindAsync(
+                using var cursor = await Database.Database.Servers.FindAsync(
                     query, new FindOptions<Server> { BatchSize = 1000 });
 
                 _active = true;
@@ -96,7 +99,7 @@ public static class JoinBot {
                         .Select(x => Connect(x, requests)).ToArray();
                     await Task.WhenAll(tasks);
                     if (requests.Count != 0)
-                        await Controller.Servers.BulkWriteAsync(requests);
+                        await Database.Database.Servers.BulkWriteAsync(requests);
                 }
                 
                 _active = false;
@@ -132,55 +135,6 @@ public static class JoinBot {
             }
             
             Log.Information("Completed bulk join in {0}", watch.Elapsed);
-        }
-    }
-    
-    /// <summary>
-    /// Join result
-    /// </summary>
-    public class Result {
-        /// <summary>
-        /// Was the attempt successful
-        /// </summary>
-        public bool Success { get; set; }
-        
-        /// <summary>
-        /// Error message if failed
-        /// </summary>
-        public string? ErrorMessage { get; set; }
-        
-        /// <summary>
-        /// Is online mode enabled
-        /// </summary>
-        public bool? OnlineMode { get; set; }
-        
-        /// <summary>
-        /// Is whitelist enabled
-        /// </summary>
-        public bool? Whitelist { get; set; }
-
-        /// <summary>
-        /// Reason for the disconnect
-        /// </summary>
-        public string? DisconnectReason { get; set; }
-
-        /// <summary>
-        /// When was the result produced
-        /// </summary>
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-        
-        /// <summary>
-        /// Encodes the description into HTML
-        /// </summary>
-        /// <returns>Raw HTML</returns>
-        public string? ReasonToHtml() {
-            if (DisconnectReason == null) return null;
-            
-            try {
-                return TextComponent.Parse(DisconnectReason).ToHtml();
-            } catch {
-                return "<b>Failed to deserialize the chat component!</b>";
-            }
         }
     }
 }

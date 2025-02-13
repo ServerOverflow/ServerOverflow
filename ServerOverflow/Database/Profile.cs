@@ -28,13 +28,13 @@ public class Profile {
     /// </summary>
     /// <returns>List of profiles</returns>
     public static async Task<List<Profile>> GetAll()
-        => await Controller.Profiles.QueryAll(x => true);
+        => await Database.Profiles.QueryAll(x => true);
     
     /// <summary>
     /// Updates whole document
     /// </summary>
     public async Task Update() {
         var filter = Builders<Profile>.Filter.Eq(x => x.Id, Id);
-        await Controller.Profiles.ReplaceOneAsync(filter, this);
+        await Database.Profiles.ReplaceOneAsync(filter, this);
     }
 }

@@ -72,7 +72,7 @@ public class Account {
     /// <param name="id">Object identifier</param>
     /// <returns>Account, may be null</returns>
     public static async Task<Account?> Get(string id)
-        => await Controller.Accounts.QueryFirst(x => x.Id.ToString() == id);
+        => await Database.Accounts.QueryFirst(x => x.Id.ToString() == id);
     
     /// <summary>
     /// Fetches an account by username
@@ -80,7 +80,7 @@ public class Account {
     /// <param name="username">Username</param>
     /// <returns>Account, may be null</returns>
     public static async Task<Account?> GetByName(string username)
-        => await Controller.Accounts.QueryFirst(x => x.Username.ToLower() == username);
+        => await Database.Accounts.QueryFirst(x => x.Username.ToLower() == username);
     
     /// <summary>
     /// Fetches an account by username and password
@@ -89,7 +89,7 @@ public class Account {
     /// <param name="password">Password</param>
     /// <returns>Account, may be null</returns>
     public static async Task<Account?> Get(string username, string password)
-        => await Controller.Accounts.QueryFirst(x => x.Username.ToLower() == username.ToLower() && x.Password == password.GetHash());
+        => await Database.Accounts.QueryFirst(x => x.Username.ToLower() == username.ToLower() && x.Password == password.GetHash());
     
     /// <summary>
     /// Creates a new account and invalidates specified invitation
@@ -106,9 +106,9 @@ public class Account {
             Invitee = invitation.Creator
         };
         
-        var accounts = await Controller.Accounts.EstimatedCount();
+        var accounts = await Database.Accounts.EstimatedCount();
         if (accounts == 0) account.Permissions.Add(Permission.Administrator);
-        await Controller.Accounts.InsertOneAsync(account);
+        await Database.Accounts.InsertOneAsync(account);
         invitation.Used = true; await invitation.Update();
         return account;
     }
@@ -118,7 +118,7 @@ public class Account {
     /// </summary>
     public async Task Update() {
         var filter = Builders<Account>.Filter.Eq(account => account.Id, Id);
-        await Controller.Accounts.ReplaceOneAsync(filter, this);
+        await Database.Accounts.ReplaceOneAsync(filter, this);
     }
 }
 

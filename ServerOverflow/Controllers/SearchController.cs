@@ -35,7 +35,7 @@ public class SearchController : Controller {
         
         try {
             var doc = Query.Servers(model.Query!);
-            var find = Database.Controller.Servers.Find(doc);
+            var find = Database.Database.Servers.Find(doc);
             model.TotalMatches = await find.CountDocumentsAsync();
             if (model.TotalMatches == 0) {
                 model.Message = "No matches found for your query";

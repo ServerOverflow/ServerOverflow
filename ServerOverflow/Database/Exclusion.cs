@@ -30,14 +30,14 @@ public class Exclusion {
     /// <param name="id">Exclusion ID</param>
     /// <returns>Exclusion, may be null</returns>
     public static async Task<Exclusion?> Get(string id)
-        => await Controller.Exclusions.QueryFirst(x => x.Id.ToString() == id);
+        => await Database.Exclusions.QueryFirst(x => x.Id.ToString() == id);
     
     /// <summary>
     /// Fetches all exclusions
     /// </summary>
     /// <returns>List of exclusions</returns>
     public static async Task<List<Exclusion>> GetAll()
-        => await Controller.Exclusions.QueryAll(x => true);
+        => await Database.Exclusions.QueryAll(x => true);
     
     /// <summary>
     /// Creates a new exclusion
@@ -51,7 +51,7 @@ public class Exclusion {
             Comment = comment
         };
         
-        await Controller.Exclusions.InsertOneAsync(exclusion);
+        await Database.Exclusions.InsertOneAsync(exclusion);
         return exclusion;
     }
     
@@ -60,7 +60,7 @@ public class Exclusion {
     /// </summary>
     public async Task Update() {
         var filter = Builders<Exclusion>.Filter.Eq(account => account.Id, Id);
-        await Controller.Exclusions.ReplaceOneAsync(filter, this);
+        await Database.Exclusions.ReplaceOneAsync(filter, this);
     }
 
     /// <summary>

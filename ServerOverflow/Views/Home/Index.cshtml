@@ -1,10 +1,7 @@
-﻿@using Controller = ServerOverflow.Database.Controller
-@{
+﻿@{
     ViewData["Description"] = "Home Page";
     ViewData["Title"] = "Home";
     Layout = "Markdown";
-
-    var amount = await Controller.Servers.EstimatedCount();
 }
 
 ## Welcome to ServerOverflow!

@@ -99,6 +99,26 @@ public class Profile {
     }
 
     /// <summary>
+    /// Sends a server join request
+    /// </summary>
+    /// <param name="serverId">Server ID</param>
+    /// <param name="secret">Shared Secret</param>
+    /// <param name="publicKey">Public Key</param>
+    /// <returns>True on success</returns>
+    public async Task<bool> Join(string serverId, byte[] secret, byte[] publicKey) {
+        using var client = new HttpClient();
+        var req = new HttpRequestMessage {
+            Content = JsonContent.Create(new JoinServerRequest(this, serverId, secret, publicKey)),
+            RequestUri = new Uri("https://sessionserver.mojang.com/session/minecraft/join"),
+            Method = HttpMethod.Post
+        };
+        var rng = new Random();
+        req.Headers.Add("X-ForWarDed-For", $"{rng.Next(1, 255)}.{rng.Next(1, 255)}.{rng.Next(1, 255)}.{rng.Next(1, 255)}");
+        var res = await client.SendAsync(req);
+        return res.IsSuccessStatusCode;
+    }
+
+    /// <summary>
     /// Creates a new Minecraft profile
     /// </summary>
     /// <param name="microsoft">Microsoft Token Pair</param>

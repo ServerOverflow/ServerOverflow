@@ -1,18 +1,25 @@
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using MineProtocol.Authentication;
+using MineProtocol.Exceptions;
 
 namespace MineProtocol;
 
 /// <summary>
-/// Tiny minecraft protocol implementation.
+/// Tiny minecraft protocol implementation
 /// </summary>
 public class TinyProtocol : IDisposable {
     /// <summary>
     /// How long to wait for I/O operations until timing out
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Current connection state
+    /// </summary>
+    public ConnectionState State { get; private set; } = ConnectionState.Handshake;
     
     /// <summary>
     /// Destination endpoint
@@ -28,6 +35,11 @@ public class TinyProtocol : IDisposable {
     /// Is Forge enabled
     /// </summary>
     public bool Forge { get; init; }
+    
+    /// <summary>
+    /// Forge protocol version
+    /// </summary>
+    public int ForgeProtocol { get; init; }
 
     /// <summary>
     /// TCP client connection
@@ -35,14 +47,19 @@ public class TinyProtocol : IDisposable {
     private readonly TcpClient _client = new();
     
     /// <summary>
-    /// Underlying TCP network stream
+    /// Serverbound network stream
     /// </summary>
-    private NetworkStream? _stream;
+    private Stream? _input;
+    
+    /// <summary>
+    /// Clientbound network stream
+    /// </summary>
+    private Stream? _output;
 
     /// <summary>
     /// Compression threshold
     /// </summary>
-    private int? _compressThreshold;
+    private int _compressThreshold = -1;
 
     /// <summary>
     /// Creates a new TinyProtocol connection
@@ -51,8 +68,9 @@ public class TinyProtocol : IDisposable {
     /// <param name="port">Server port</param>
     /// <param name="protocol">Protocol version</param>
     /// <param name="forge">Is Forge enabled</param>
-    public TinyProtocol(string ip, int port, int protocol = 47, bool forge = false)
-        : this(new IPEndPoint(IPAddress.Parse(ip), port), protocol, forge) { }
+    /// <param name="fmlProtocol">FML protocol version</param>
+    public TinyProtocol(string ip, int port, int protocol = 47, bool forge = false, int fmlProtocol = 0)
+        : this(new IPEndPoint(IPAddress.Parse(ip), port), protocol, forge, fmlProtocol) { }
 
     /// <summary>
     /// Creates a new TinyProtocol connection
@@ -60,8 +78,9 @@ public class TinyProtocol : IDisposable {
     /// <param name="endpoint">Destination endpoint</param>
     /// <param name="protocol">Protocol version</param>
     /// <param name="forge">Is Forge enabled</param>
-    public TinyProtocol(IPEndPoint endpoint, int protocol = 47, bool forge = false) {
-        EndPoint = endpoint; Protocol = protocol; Forge = forge;
+    /// <param name="fmlProtocol">FML protocol version</param>
+    public TinyProtocol(IPEndPoint endpoint, int protocol = 47, bool forge = false, int fmlProtocol = 0) {
+        EndPoint = endpoint; Protocol = protocol; Forge = forge; ForgeProtocol = fmlProtocol;
     }
 
     /// <summary>
@@ -69,7 +88,7 @@ public class TinyProtocol : IDisposable {
     /// </summary>r
     public async Task Connect() {
         await _client.ConnectAsync(EndPoint).WaitAsync(Timeout);
-        _stream = _client.GetStream();
+        _input = _output = _client.GetStream();
     }
 
     /// <summary>
@@ -83,30 +102,48 @@ public class TinyProtocol : IDisposable {
     /// </summary>
     /// <param name="slp">Perform SLP</param>
     public async Task Handshake(bool slp = false) {
-        if (_stream == null) throw new InvalidOperationException("Connect to the server first");
-        var ip = EndPoint.Address + (Forge ? "\0FML\0" : "");
+        if (_input == null) throw new InvalidOperationException("Connect to the server first");
+        if (State != ConnectionState.Handshake) throw new InvalidOperationException($"Invalid connection state {State}");
+        var ip = EndPoint.Address + (Forge ? $"\0FML\0FORGE{ForgeProtocol}\0" : "");
         var port = EndPoint.Port;
         
         using var packet = new MemoryStream();
-        await packet.WriteVarInt(0x00);         // Packet ID
-        await packet.WriteVarInt(Protocol);     // Protocol Version
-        await packet.WriteString(ip);           // Server IP
-        await packet.WriteShort((ushort)port);  // Server Port
-        await packet.WriteVarInt(slp ? 1 : 2);  // Next State
+        await packet.WriteVarInt((int)PacketId.Handshake); // Packet ID
+        await packet.WriteVarInt(Protocol);                // Protocol Version
+        await packet.WriteString(ip);                      // Server IP
+        await packet.WriteShort((ushort)port);             // Server Port
+        await packet.WriteVarInt(slp ? 1 : 2);             // Next State
         await Send(packet);
+        State = ConnectionState.Login;
     }
 
+    /// <summary>
+    /// Performs login and proceeds to play state
+    /// </summary>
+    /// <param name="profile">Login</param>
+    public async Task Login(Profile profile) {
+        if (State != ConnectionState.Login) throw new InvalidOperationException($"Invalid connection state {State}");
+        await LoginStart(profile);
+        Packet? packet = null;
+        while (packet == null)
+            packet = await Receive();
+        if (packet.Id == PacketId.EncryptionRequest) {
+            // TODO: handle encryption request
+        }
+    }
+    
     /// <summary>
     /// Sends login start packet
     /// </summary>
     /// <param name="profile">Profile</param>
     public async Task LoginStart(Profile profile) {
-        if (_stream == null) throw new InvalidOperationException("Connect to the server first");
+        if (State != ConnectionState.Login) throw new InvalidOperationException($"Invalid connection state {State}");
+        if (_input == null) throw new InvalidOperationException("Connect to the server first");
         using var packet = new MemoryStream();
-        await packet.WriteVarInt(0x00);              // Packet ID
-        await packet.WriteString(profile.Username);  // Username
+        await packet.WriteVarInt((int)PacketId.LoginStart); // Packet ID
+        await packet.WriteString(profile.Username);         // Username
         if (Protocol is >= 759 and <= 760)
-            await packet.WriteBytes(0);              // Has signature
+            await packet.WriteBytes(0);                     // Has signature
         if (Protocol >= 760) {
             var guidBytes = new Guid(profile.UUID).ToByteArray();            
             var uuidBytes = new[] {
@@ -116,10 +153,50 @@ public class TinyProtocol : IDisposable {
                 guidBytes[11], guidBytes[10], guidBytes[9], guidBytes[8]
             };
             if (Protocol <= 763)
-                await packet.WriteBytes(1);          // Has UUID
-            await packet.WriteBytes(uuidBytes);      // UUID
+                await packet.WriteBytes(1);                 // Has UUID
+            await packet.WriteBytes(uuidBytes);             // UUID
         }
 
+        await Send(packet);
+    }
+
+    /// <summary>
+    /// Enables encryption and sends encryption response packet
+    /// </summary>
+    /// <param name="publicKey">Public Key</param>
+    /// <param name="verifyKey">Verify Key</param>
+    public async Task Encrypt(byte[] publicKey, byte[] verifyKey) {
+        if (_input == null || _output == null) throw new InvalidOperationException("Connect to the server first");
+        using var rsa = RSA.Create();
+        rsa.ImportSubjectPublicKeyInfo(publicKey, out _);
+        var secretKey = RandomNumberGenerator.GetBytes(16);
+        var encSecret = rsa.Encrypt(secretKey, RSAEncryptionPadding.Pkcs1);
+        var encVerify = rsa.Encrypt(verifyKey, RSAEncryptionPadding.Pkcs1);
+
+        using var aes = Aes.Create();
+        aes.Key = secretKey;
+        aes.IV = secretKey;
+        aes.Mode = CipherMode.CFB;
+        aes.Padding = PaddingMode.None;
+        aes.FeedbackSize = 8;
+        _input = new CryptoStream(_input, aes.CreateEncryptor(), CryptoStreamMode.Write);
+        _output = new CryptoStream(_input, aes.CreateDecryptor(), CryptoStreamMode.Read);
+        
+        using var packet = new MemoryStream();
+        await packet.WriteVarInt((int)PacketId.EncryptionResponse); // Packet ID
+        await packet.WriteVarInt(encSecret.Length);                 // Shared secret length
+        packet.Write(encSecret, 0, encSecret.Length);               // Shared secret
+        await packet.WriteVarInt(encVerify.Length);                 // Verify key length
+        packet.Write(encVerify, 0, encVerify.Length);               // Verify key
+        await Send(packet);
+    }
+
+    /// <summary>
+    /// Acknowledges login success
+    /// </summary>
+    public async Task LoginAck() {
+        using var packet = new MemoryStream();
+        await packet.WriteVarInt((int)PacketId.LoginAcknowledged); // Packet ID
         await Send(packet);
     }
 
@@ -128,42 +205,61 @@ public class TinyProtocol : IDisposable {
     /// </summary>
     /// <param name="packet">Packet</param>
     public async Task Send(MemoryStream packet) {
-        if (_stream == null) throw new InvalidOperationException("Connect to the server first");
+        if (_input == null) throw new InvalidOperationException("Connect to the server first");
         int? uncompressed = null;
-        if (_compressThreshold.HasValue)
+        if (_compressThreshold >= 0)
             if (packet.Length >= _compressThreshold) {
                 await using var stream = new ZLibStream(packet, CompressionLevel.Fastest);
                 packet = new MemoryStream();
                 await stream.CopyToAsync(packet);
                 uncompressed = (int)packet.Position;
             } else uncompressed = 0;
-        
-        await _stream.WriteVarInt((int)packet.Position).WaitAsync(Timeout);
+
+        await _input.WriteVarInt((int)packet.Position).WaitAsync(Timeout);        // Packet length
         if (uncompressed.HasValue)
-            await _stream.WriteVarInt(uncompressed.Value).WaitAsync(Timeout);
-        await _stream.WriteAsync(packet.ToArray()).AsTask().WaitAsync(Timeout);
+            await _input.WriteVarInt(uncompressed.Value).WaitAsync(Timeout);      // Uncompressed length
+        await _input.WriteAsync(packet.ToArray()).AsTask().WaitAsync(Timeout);  // Packet data
     }
 
     /// <summary>
-    /// Receives a packet
+    /// Receives a packet and returns the stream.
+    /// If a packet was processed by this method, it will return null.
     /// </summary>
     /// <returns>Packet</returns>
-    public async Task<Packet> Receive() {
-        if (_stream == null) throw new InvalidOperationException("Connect to the server first");
-        var length = await _stream.ReadVarInt().WaitAsync(Timeout);
+    public async Task<Packet?> Receive() {
+        if (_output == null) throw new InvalidOperationException("Connect to the server first");
+        var length = await _output.ReadVarInt().WaitAsync(Timeout);
         
-        Stream stream = _stream;
-        if (_compressThreshold.HasValue) {
-            var compressed = await _stream.ReadVarInt().WaitAsync(Timeout);
+        var stream = _output;
+        if (_compressThreshold >= 0) {
+            var compressed = await _output.ReadVarInt().WaitAsync(Timeout);
             if (compressed != 0) {
                 stream = new ZLibStream(stream, CompressionMode.Decompress);
                 length = compressed;
             }
         }
 
-        var id = await stream.ReadVarInt().WaitAsync(Timeout);
-        if (id == 0x03) _compressThreshold = await stream.ReadVarInt().WaitAsync(Timeout);
-        return new Packet(stream, length, id);
+        var id = (PacketId)await stream.ReadVarInt().WaitAsync(Timeout);
+        var packet = new Packet(this, stream, length, id);
+
+        if (State == ConnectionState.Login) {
+            if (packet.Id == PacketId.SetCompression) {
+                _compressThreshold = await packet.Stream.ReadVarInt().WaitAsync(Timeout);
+                packet.Handled = true;
+            }
+
+            if (packet.Id == PacketId.LoginSuccess && Protocol >= 764) {
+                await packet.Skip();
+                await LoginAck();
+            }
+
+            if (packet.Id == PacketId.Disconnect) {
+                var raw = await packet.Stream.ReadString().WaitAsync(Timeout);
+                throw new DisconnectedException(raw);
+            }
+        }
+
+        return packet;
     }
     
     /// <summary>
@@ -171,7 +267,9 @@ public class TinyProtocol : IDisposable {
     /// </summary>
     public void Dispose() {
         Disconnect();
-        _stream?.Dispose();
+        _input?.Dispose();
+        if (_output != _input)
+            _output?.Dispose();
         _client.Dispose();
     }
 
@@ -179,6 +277,11 @@ public class TinyProtocol : IDisposable {
     /// Incoming packet info
     /// </summary>
     public class Packet {
+        /// <summary>
+        /// Tiny protocol instance
+        /// </summary>
+        public TinyProtocol Parent { get; set; }
+        
         /// <summary>
         /// Payload stream
         /// </summary>
@@ -192,16 +295,60 @@ public class TinyProtocol : IDisposable {
         /// <summary>
         /// Packet ID
         /// </summary>
-        public int Id { get; set; }
+        public PacketId Id { get; set; }
+
+        /// <summary>
+        /// Was this packet handled internally
+        /// </summary>
+        public bool Handled { get; set; }
+
+        /// <summary>
+        /// Skips the payload
+        /// </summary>
+        public async Task Skip() {
+            var buf = new byte[Length];
+            await Stream.ReadExactlyAsync(buf, 0, buf.Length).AsTask().WaitAsync(Parent.Timeout);
+            Handled = true;
+        }
 
         /// <summary>
         /// Creates a new packet
         /// </summary>
+        /// <param name="proto">Tiny Protocol</param>
         /// <param name="stream">Stream</param>
         /// <param name="length">Length</param>
         /// <param name="id">Packet ID</param>
-        public Packet(Stream stream, int length, int id) {
-            Stream = stream; Length = length; Id = id;
+        public Packet(TinyProtocol proto, Stream stream, int length, PacketId id) {
+            Parent = proto; Stream = stream; Length = length; Id = id;
         }
+    }
+
+    /// <summary>
+    /// Common packet IDs
+    /// </summary>
+    public enum PacketId {
+        // Handshake (serverbound)
+        Handshake = 0x00,
+        
+        // Login (clientbound)
+        Disconnect = 0x00,
+        EncryptionRequest = 0x01,
+        LoginSuccess = 0x02,
+        SetCompression = 0x03,
+        
+        // Login (serverbound)
+        LoginStart = 0x00,
+        EncryptionResponse = 0x01,
+        LoginAcknowledged = 0x03,
+    }
+
+    /// <summary>
+    /// Connection states
+    /// </summary>
+    public enum ConnectionState {
+        Handshake,
+        Login,
+        Configure,
+        Play
     }
 }

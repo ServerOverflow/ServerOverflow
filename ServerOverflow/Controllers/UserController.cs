@@ -99,7 +99,7 @@ public class UserController : Controller {
                         "id", out var id))
                     break;
 
-                await Database.Controller.Invitations.Delete(x => x.Id.ToString() == id.ToString());
+                await Database.Database.Invitations.Delete(x => x.Id.ToString() == id.ToString());
                 model.Message = "Successfully deleted the invitation!";
                 model.Success = true;
                 break;
@@ -129,7 +129,7 @@ public class UserController : Controller {
                         "id", out var id))
                     break;
 
-                await Database.Controller.Exclusions.Delete(x => x.Id.ToString() == id.ToString());
+                await Database.Database.Exclusions.Delete(x => x.Id.ToString() == id.ToString());
                 model.Message = "Successfully deleted the exclusion!";
                 model.Success = true;
                 break;
@@ -190,7 +190,7 @@ public class UserController : Controller {
                         "uuid", out var id))
                     break;
 
-                await Database.Controller.Profiles.Delete(x => x.Instance.UUID == id.ToString());
+                await Database.Database.Profiles.Delete(x => x.Instance.UUID == id.ToString());
                 model.Message = "Successfully deleted the account!";
                 model.Success = true;
                 break;
@@ -242,7 +242,7 @@ public class UserController : Controller {
                 Valid = true
             };
             
-            await Database.Controller.Profiles.InsertOneAsync(profile);
+            await Database.Database.Profiles.InsertOneAsync(profile);
             return Ok(new StatusModel {
                 Message = "Successfully added account", Success = true
             });

@@ -45,14 +45,14 @@ public class Player {
     /// <param name="name">Username</param>
     /// <returns>List of players matched</returns>
     public static async Task<List<Player>> GetAll(string uuid, string name)
-        => await Controller.Players.QueryAll(x => x.Uuid == uuid || x.Username == name);
+        => await Database.Players.QueryAll(x => x.Uuid == uuid || x.Username == name);
     
     /// <summary>
     /// Updates whole document
     /// </summary>
     public async Task Update() {
         var filter = Builders<Player>.Filter.Eq(account => account.Id, Id);
-        await Controller.Players.ReplaceOneAsync(filter, this);
+        await Database.Players.ReplaceOneAsync(filter, this);
     }
 }
 

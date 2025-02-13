@@ -60,7 +60,7 @@ public static class Extensions {
     }
     
     /// <summary>
-    /// Writes a string prefixed with VarInt
+    /// Reads a string prefixed with VarInt
     /// </summary>
     /// <param name="stream">Stream</param>
     public static async Task<string> ReadString(this Stream stream) {
@@ -68,6 +68,16 @@ public static class Extensions {
         var buf = new byte[len];
         var read = await stream.ReadAsync(buf.AsMemory(0, len));
         return Encoding.UTF8.GetString(buf, 0, read);
+    }
+    
+    /// <summary>
+    /// Reads a boolean
+    /// </summary>
+    /// <param name="stream">Stream</param>
+    public static async Task<bool> ReadBoolean(this Stream stream) {
+        var buf = new byte[1];
+        _ = await stream.ReadAsync(buf.AsMemory(0, 1));
+        return buf[0] == 0x01;
     }
     
     /// <summary>

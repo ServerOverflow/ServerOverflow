@@ -26,11 +26,11 @@ public class Profiles {
 
                     await profile.Update();
                 }
-                
-                await Task.Delay(3600000);
             } catch (Exception e) {
                 Log.Error("Profile refresher thread crashed: {0}", e);
             }
+            
+            await Task.Delay(3600000);
         }
     }
 }

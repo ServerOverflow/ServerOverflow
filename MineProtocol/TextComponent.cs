@@ -127,21 +127,18 @@ public class TextComponent {
     }
 
     /// <summary>
-    /// Removes all decorations from this text component.
-    /// This method modifies the object and does not make a copy! 
+    /// Removes all decorations from this text component
     /// </summary>
     /// <returns>Chat Component</returns>
-    private TextComponent Clean() {
-        foreach (var component in Extra.Append(this)) {
-            component.Obfuscated = null;
-            component.Strikethrough = null;
-            component.Underlined = null;
-            component.Italic = null;
-            component.Color = null;
-            component.Bold = null;
-        }
+    public TextComponent Clean() {
+        var component = new TextComponent {
+            Text = Text, Translate = Translate, Extra = []
+        };
         
-        return this;
+        foreach (var extra in Extra)
+            component.Extra.Add(extra.Clean());
+        
+        return component;
     }
     
     /// <summary>
