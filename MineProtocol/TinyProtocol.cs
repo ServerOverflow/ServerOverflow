@@ -89,7 +89,7 @@ public class TinyProtocol : IDisposable {
     /// </summary>
     public async Task Connect() {
         await _client.ConnectAsync(EndPoint).WaitAsync(Timeout);
-        _input = _output =_client.GetStream();
+        _input = _output = _client.GetStream();
     }
 
     /// <summary>
@@ -278,7 +278,7 @@ public class TinyProtocol : IDisposable {
         
         var id = (PacketId)await stream.ReadVarInt(Timeout);
         length -= 1;
-        if (length <= 0)
+        if (length < 0)
             throw new InvalidOperationException($"Invalid packet payload length of {length}");
         var buf = new byte[length];
         if (length >= 2097152)
