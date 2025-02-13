@@ -13,6 +13,7 @@ Log.Logger = new LoggerConfiguration().MinimumLevel.Override("Microsoft.AspNetCo
 
 Log.Information("Starting ServerOverflow");
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("config.json", optional: true);
 Database.Initialize(builder.Configuration["mongo-uri"] ?? "mongodb://127.0.0.1:27017?maxPoolSize=5000");
 var accounts = await Database.Accounts.EstimatedCount();
 var invites = await Database.Invitations.EstimatedCount();
