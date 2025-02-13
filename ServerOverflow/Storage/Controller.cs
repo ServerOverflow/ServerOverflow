@@ -2,7 +2,7 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using Serilog;
 
-namespace ServerOverflow.Database;
+namespace ServerOverflow.Storage;
 
 /// <summary>
 /// MongoDB database controller

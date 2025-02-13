@@ -2,8 +2,8 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Serilog;
-using ServerOverflow.Database;
 using ServerOverflow.Models;
+using ServerOverflow.Storage;
 using static System.Int32;
 using Controller = Microsoft.AspNetCore.Mvc.Controller;
 
@@ -35,7 +35,7 @@ public class SearchController : Controller {
         
         try {
             var doc = Query.Servers(model.Query!);
-            var find = Database.Database.Servers.Find(doc);
+            var find = Database.Servers.Find(doc);
             model.TotalMatches = await find.CountDocumentsAsync();
             if (model.TotalMatches == 0) {
                 model.Message = "No matches found for your query";

@@ -2,7 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 
-namespace ServerOverflow.Database;
+namespace ServerOverflow.Storage;
 
 /// <summary>
 /// Handles cases where instead of the expected object a JSON serialized string is passed

@@ -1,10 +1,11 @@
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Serilog;
 using Serilog.Events;
 using ServerOverflow;
-using ServerOverflow.Database;
 using ServerOverflow.Processors;
+using ServerOverflow.Storage;
 
 Log.Logger = new LoggerConfiguration().MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)

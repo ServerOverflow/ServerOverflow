@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using System.Text;
 using MineProtocol.Authentication;
 using MineProtocol.Exceptions;
 
@@ -163,24 +164,15 @@ public class TinyProtocol : IDisposable {
     /// <summary>
     /// Enables encryption and sends encryption response packet
     /// </summary>
+    /// <param name="secretKey">Secret Key (16)</param>
     /// <param name="publicKey">Public Key</param>
     /// <param name="verifyKey">Verify Key</param>
-    public async Task Encrypt(byte[] publicKey, byte[] verifyKey) {
+    public async Task Encrypt(byte[] secretKey, byte[] publicKey, byte[] verifyKey) {
         if (_input == null || _output == null) throw new InvalidOperationException("Connect to the server first");
         using var rsa = RSA.Create();
         rsa.ImportSubjectPublicKeyInfo(publicKey, out _);
-        var secretKey = RandomNumberGenerator.GetBytes(16);
         var encSecret = rsa.Encrypt(secretKey, RSAEncryptionPadding.Pkcs1);
         var encVerify = rsa.Encrypt(verifyKey, RSAEncryptionPadding.Pkcs1);
-
-        using var aes = Aes.Create();
-        aes.Key = secretKey;
-        aes.IV = secretKey;
-        aes.Mode = CipherMode.CFB;
-        aes.Padding = PaddingMode.None;
-        aes.FeedbackSize = 8;
-        _input = new CryptoStream(_input, aes.CreateEncryptor(), CryptoStreamMode.Write);
-        _output = new CryptoStream(_input, aes.CreateDecryptor(), CryptoStreamMode.Read);
         
         using var packet = new MemoryStream();
         await packet.WriteVarInt((int)PacketId.EncryptionResponse); // Packet ID
@@ -189,6 +181,15 @@ public class TinyProtocol : IDisposable {
         await packet.WriteVarInt(encVerify.Length);                 // Verify key length
         packet.Write(encVerify, 0, encVerify.Length);               // Verify key
         await Send(packet);
+        
+        using var aes = Aes.Create();
+        aes.Key = secretKey;
+        aes.IV = secretKey;
+        aes.Mode = CipherMode.CFB;
+        aes.Padding = PaddingMode.None;
+        aes.FeedbackSize = 8;
+        _input = new CryptoStream(_input, aes.CreateEncryptor(), CryptoStreamMode.Write);
+        _output = new CryptoStream(_output, aes.CreateDecryptor(), CryptoStreamMode.Read);
     }
 
     /// <summary>
@@ -275,17 +276,18 @@ public class TinyProtocol : IDisposable {
             }
         }
 
+        length -= 1;
         var id = (PacketId)await stream.ReadVarInt().WaitAsync(Timeout);
         var buf = new byte[length];
         if (length >= 2097152)
             throw new InvalidOperationException($"Payload of size {length} is too large");
-        await stream.ReadAsync(buf, 0, buf.Length).WaitAsync(Timeout);
+        await stream.ReadExactlyAsync(buf, 0, buf.Length).AsTask().WaitAsync(Timeout);
         var packet = new Packet(this, new MemoryStream(buf), length, id);
 
         if (State == ConnectionState.Login) {
             if (packet.Id == PacketId.SetCompression) {
                 _compressThreshold = await packet.Stream.ReadVarInt().WaitAsync(Timeout);
-                packet.Handled = true;
+                await packet.Skip();
             }
 
             if (packet.Id == PacketId.LoginSuccess && Protocol >= 764) {
@@ -318,11 +320,13 @@ public class TinyProtocol : IDisposable {
     /// Releases all unmanaged resources
     /// </summary>
     public void Dispose() {
-        Disconnect();
-        _input?.Dispose();
-        if (_output != _input)
-            _output?.Dispose();
-        _client.Dispose();
+        try {
+            Disconnect(); 
+            _input?.Dispose();
+            if (_output != _input)
+                _output?.Dispose();
+            _client.Dispose();
+        } catch { /* Ignore */ }
     }
 
     /// <summary>

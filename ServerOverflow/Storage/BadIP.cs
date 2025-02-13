@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace ServerOverflow.Database;
+namespace ServerOverflow.Storage;
 
 /// <summary>
 /// Bad IP address entry

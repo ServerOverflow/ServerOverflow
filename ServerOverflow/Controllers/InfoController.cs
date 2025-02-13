@@ -1,8 +1,9 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
-using ServerOverflow.Database;
 using ServerOverflow.Models;
 using ServerOverflow.Processors;
+using ServerOverflow.Storage;
 using Controller = Microsoft.AspNetCore.Mvc.Controller;
 
 namespace ServerOverflow.Controllers;
@@ -14,7 +15,7 @@ public class InfoController : Controller {
     [Route("server/{id}")]
     public async Task<IActionResult> Server(string id) {
         var account = await HttpContext.GetAccount();
-        var server = await Database.Server.Get(id);
+        var server = await Storage.Server.Get(id);
         if (server == null) return NotFound();
         ViewData["Title"] = $"{server.IP}:{server.Port}";
         ViewData["Image"] = server.Ping.Favicon != null 
@@ -45,8 +46,12 @@ public class InfoController : Controller {
 
         switch (type) {
             case "refresh": { // Refresh
-                var result = await JoinBot.Join(server);
-                await Database.Database.Servers.UpdateOneAsync(
+                var profiles = await Profile.GetAll();
+                Profile? profile = null;
+                if (profiles.Count != 0)
+                    profile = profiles[RandomNumberGenerator.GetInt32(profiles.Count)];
+                var result = await JoinBot.Join(server, profile?.Instance);
+                await Database.Servers.UpdateOneAsync(
                     Builders<Server>.Filter.Eq(y => y.Id, server.Id),
                     Builders<Server>.Update.Set(x => x.JoinResult, result));
                 server.JoinResult = result;
@@ -60,7 +65,7 @@ public class InfoController : Controller {
     [Route("account/{id}")]
     public async Task<IActionResult> Account(string id) {
         var account = await HttpContext.GetAccount();
-        var target = await Database.Account.Get(id);
+        var target = await Storage.Account.Get(id);
         if (target == null) return NotFound();
         ViewData["Image"] = "/img/user.png";
         ViewData["Title"] = target.Username;
@@ -163,7 +168,7 @@ public class InfoController : Controller {
                     break;
                 }
 
-                await Database.Database.Accounts.Delete(x => x.Id == model.Target.Id);
+                await Database.Accounts.Delete(x => x.Id == model.Target.Id);
                 return Redirect("/");
             case "changeUsername": { // Change Username
                 if (model.OtherTarget && !account.HasPermission(Permission.ModifyAccounts)) {
@@ -180,7 +185,7 @@ public class InfoController : Controller {
                         "username", out var username))
                     break;
                 
-                if (await Database.Account.GetByName(username!) != null) {
+                if (await Storage.Account.GetByName(username!) != null) {
                     model.Message = "This username has already been taken!";
                     break;
                 }

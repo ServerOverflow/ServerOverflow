@@ -1,8 +1,8 @@
 using MongoDB.Bson;
-using MongoDB.Driver;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
-namespace ServerOverflow.Database;
+namespace ServerOverflow.Storage;
 
 /// <summary>
 /// Minecraft profile

@@ -3,7 +3,7 @@ using System.Text.Json;
 using MineProtocol;
 using MongoDB.Driver;
 using Serilog;
-using ServerOverflow.Database;
+using ServerOverflow.Storage;
 
 namespace ServerOverflow.Processors;
 
@@ -108,12 +108,12 @@ public class Statistics {
                 if (Stats.CustomSoftware.Count >= 720) Stats.CustomSoftware.RemoveAt(0);
                 if (Stats.AntiDDoS.Count >= 720) Stats.AntiDDoS.RemoveAt(0);
                 
-                Stats.TotalServers.Add((int)await Database.Database.Servers.Count(x => true));
-                Stats.ChatReporting.Add((int)await Database.Database.Servers.Count(x => x.Ping.ChatReporting));
-                Stats.OnlineMode.Add((int)await Database.Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
-                Stats.Whitelist.Add((int)await Database.Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
-                Stats.ForgeServers.Add((int)await Database.Database.Servers.Count(x => x.Ping.IsForge));
-                Stats.CustomSoftware.Add((int)await Database.Database.Servers.Count(x => 
+                Stats.TotalServers.Add((int)await Database.Servers.Count(x => true));
+                Stats.ChatReporting.Add((int)await Database.Servers.Count(x => x.Ping.ChatReporting));
+                Stats.OnlineMode.Add((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
+                Stats.Whitelist.Add((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
+                Stats.ForgeServers.Add((int)await Database.Servers.Count(x => x.Ping.IsForge));
+                Stats.CustomSoftware.Add((int)await Database.Servers.Count(x => 
                     x.Ping.Version != null && x.Ping.Version.Name != null &&
                     x.Ping.Version.Name.Contains(' ')));
                 Stats.AntiDDoS.Add(0);
@@ -123,7 +123,7 @@ public class Statistics {
                 var mods = new Dictionary<string, int>();
                 
                 var filter = Builders<Server>.Filter.Empty;
-                using var cursor = await Database.Database.Servers.FindAsync(filter,
+                using var cursor = await Database.Servers.FindAsync(filter,
                     new FindOptions<Server> { BatchSize = 1000 });
                 while (await cursor.MoveNextAsync())
                     foreach (var server in cursor.Current) {

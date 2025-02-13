@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using ServerOverflow.Database;
 using ServerOverflow.Models;
+using ServerOverflow.Storage;
 using Controller = Microsoft.AspNetCore.Mvc.Controller;
 
 namespace ServerOverflow.Controllers;

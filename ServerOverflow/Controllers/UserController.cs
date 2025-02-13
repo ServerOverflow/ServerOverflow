@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using MineProtocol.Authentication;
 using Serilog;
-using ServerOverflow.Database;
 using ServerOverflow.Models;
+using ServerOverflow.Storage;
 using Controller = Microsoft.AspNetCore.Mvc.Controller;
-using Profile = ServerOverflow.Database.Profile;
+using Profile = ServerOverflow.Storage.Profile;
 
 namespace ServerOverflow.Controllers;
 
@@ -99,7 +99,7 @@ public class UserController : Controller {
                         "id", out var id))
                     break;
 
-                await Database.Database.Invitations.Delete(x => x.Id.ToString() == id.ToString());
+                await Database.Invitations.Delete(x => x.Id.ToString() == id.ToString());
                 model.Message = "Successfully deleted the invitation!";
                 model.Success = true;
                 break;
@@ -129,7 +129,7 @@ public class UserController : Controller {
                         "id", out var id))
                     break;
 
-                await Database.Database.Exclusions.Delete(x => x.Id.ToString() == id.ToString());
+                await Database.Exclusions.Delete(x => x.Id.ToString() == id.ToString());
                 model.Message = "Successfully deleted the exclusion!";
                 model.Success = true;
                 break;
@@ -190,7 +190,7 @@ public class UserController : Controller {
                         "uuid", out var id))
                     break;
 
-                await Database.Database.Profiles.Delete(x => x.Instance.UUID == id.ToString());
+                await Database.Profiles.Delete(x => x.Instance.UUID == id.ToString());
                 model.Message = "Successfully deleted the account!";
                 model.Success = true;
                 break;
@@ -242,7 +242,7 @@ public class UserController : Controller {
                 Valid = true
             };
             
-            await Database.Database.Profiles.InsertOneAsync(profile);
+            await Database.Profiles.InsertOneAsync(profile);
             return Ok(new StatusModel {
                 Message = "Successfully added account", Success = true
             });

@@ -105,7 +105,7 @@ public class Profile {
     /// <param name="secret">Shared Secret</param>
     /// <param name="publicKey">Public Key</param>
     /// <returns>True on success</returns>
-    public async Task<bool> Join(string serverId, byte[] secret, byte[] publicKey) {
+    public async Task Join(string serverId, byte[] secret, byte[] publicKey) {
         using var client = new HttpClient();
         var req = new HttpRequestMessage {
             Content = JsonContent.Create(new JoinServerRequest(this, serverId, secret, publicKey)),
@@ -115,7 +115,8 @@ public class Profile {
         var rng = new Random();
         req.Headers.Add("X-ForWarDed-For", $"{rng.Next(1, 255)}.{rng.Next(1, 255)}.{rng.Next(1, 255)}.{rng.Next(1, 255)}");
         var res = await client.SendAsync(req);
-        return res.IsSuccessStatusCode;
+        if (!res.IsSuccessStatusCode)
+            throw new InvalidOperationException("You have been ratelimited");
     }
 
     /// <summary>

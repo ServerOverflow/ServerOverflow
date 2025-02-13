@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using ServerOverflow.Database;
+using ServerOverflow.Storage;
 
 namespace ServerOverflow;
 

@@ -3,7 +3,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
-namespace ServerOverflow.Database;
+namespace ServerOverflow.Storage;
 
 /// <summary>
 /// A scanner exclusion

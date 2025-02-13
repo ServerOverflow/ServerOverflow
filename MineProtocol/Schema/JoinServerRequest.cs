@@ -36,7 +36,7 @@ public class JoinServerRequest {
     /// <param name="secret">Shared Secret</param>
     /// <param name="publicKey">Public Key</param>
     public JoinServerRequest(Profile profile, string serverId, byte[] secret, byte[] publicKey) {
-        AccessToken = profile.Minecraft?.Token ?? ""; UUID = profile.UUID ?? "";
-        JoinHash = Encoding.ASCII.GetBytes(serverId).Concat(secret).Concat(publicKey).Reverse().ToArray().MinecraftDigest();
+        AccessToken = profile.Minecraft?.Token ?? ""; UUID = profile.UUID;
+        JoinHash = Encoding.ASCII.GetBytes(serverId).Concat(secret).Concat(publicKey).ToArray().MinecraftDigest();
     }
 }

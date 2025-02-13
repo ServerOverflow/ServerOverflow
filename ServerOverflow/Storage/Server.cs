@@ -1,10 +1,9 @@
-using MongoDB.Driver;
 using MineProtocol;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using ServerOverflow.Processors;
+using MongoDB.Driver;
 
-namespace ServerOverflow.Database;
+namespace ServerOverflow.Storage;
 
 /// <summary>
 /// A minecraft server
@@ -384,6 +383,16 @@ public class JoinResult {
     /// Reason for the disconnect
     /// </summary>
     public string? DisconnectReason { get; set; }
+    
+    /// <summary>
+    /// Real protocol version
+    /// </summary>
+    public int? RealProtocol { get; set; }
+    
+    /// <summary>
+    /// When was the server last seen
+    /// </summary>
+    public DateTime? LastSeen { get; set; }
 
     /// <summary>
     /// When was the result produced
