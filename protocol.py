@@ -35,6 +35,7 @@ for tr in table.find_all("tr"):
         data[proto] = name
     row_span -= 1
 
+print(data)
 with open("MineProtocol/Resources/protocol.json", "w") as f:
     json.dump(data, f)
 

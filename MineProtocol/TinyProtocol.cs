@@ -305,8 +305,10 @@ public class TinyProtocol : IDisposable {
         /// <summary>
         /// Skips the payload
         /// </summary>
-        public async Task Skip() {
-            var buf = new byte[Length];
+        /// <param name="length">Length</param>
+        public async Task Skip(int? length = null) {
+            length ??= Length;
+            var buf = new byte[length.Value];
             await Stream.ReadExactlyAsync(buf, 0, buf.Length).AsTask().WaitAsync(Parent.Timeout);
             Handled = true;
         }
@@ -335,11 +337,15 @@ public class TinyProtocol : IDisposable {
         EncryptionRequest = 0x01,
         LoginSuccess = 0x02,
         SetCompression = 0x03,
+        LoginPluginRequest = 0x04,
+        CookieRequest = 0x05,
         
         // Login (serverbound)
         LoginStart = 0x00,
         EncryptionResponse = 0x01,
         LoginAcknowledged = 0x03,
+        LoginPluginResponse = 0x02,
+        CookieResponse = 0x04
     }
 
     /// <summary>
