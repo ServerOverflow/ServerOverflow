@@ -132,6 +132,7 @@ public class BotWorker {
                     .Where(x => !x.IsAntiDDoS())
                     .Concat(carry ?? [])
                     .ToArray();
+                Log.Information("Fetched next batch with {0} servers", servers.Length);
                 carry = null;
                 
                 for (var i = 0; i < servers.Length; i += batch) {
