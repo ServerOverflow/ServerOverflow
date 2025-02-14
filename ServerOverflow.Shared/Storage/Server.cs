@@ -287,7 +287,7 @@ public class ServerListPing {
         /// </summary>
         [BsonElement("fmlNetworkVersion")]
         [BsonSerializer(typeof(MongoSafeSerializer<int?>))]
-        public int ProtocolVersion { get; set; }
+        public int? ProtocolVersion { get; set; }
     }
     
     /// <summary>
