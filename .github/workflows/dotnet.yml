@@ -17,14 +17,25 @@ jobs:
         dotnet-version: 8.0.x
     - name: Build
       run: dotnet publish ServerOverflow.sln --no-self-contained -c Release -r linux-x64
-    - name: Deploy
+    - name: Deploy Frontend
       uses: easingthemes/ssh-deploy@main
       with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           ARGS: "-rlgoDzvc -i"
-          SOURCE: "ServerOverflow/bin/Release/net8.0/linux-x64/publish/"
+          SOURCE: "ServerOverflow.Frontend/bin/Release/net8.0/linux-x64/publish/"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
           SCRIPT_BEFORE: sudo systemctl stop ServerOverflow
           SCRIPT_AFTER: sudo systemctl start ServerOverflow
+    - name: Deploy Snooper
+      uses: easingthemes/ssh-deploy@main
+      with:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        ARGS: "-rlgoDzvc -i"
+        SOURCE: "ServerOverflow.Snooper/bin/Release/net8.0/linux-x64/publish/"
+        REMOTE_HOST: ${{ secrets.SNOOPER_REMOTE_HOST }}
+        REMOTE_USER: ${{ secrets.SNOOPER_REMOTE_USER }}
+        TARGET: ${{ secrets.SNOOPER_REMOTE_TARGET }}
+        SCRIPT_BEFORE: sudo systemctl stop ServerOverflow
+        SCRIPT_AFTER: sudo systemctl start ServerOverflow

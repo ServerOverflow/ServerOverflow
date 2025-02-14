@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -104,9 +105,10 @@ public class Profile {
     /// <param name="serverId">Server ID</param>
     /// <param name="secret">Shared Secret</param>
     /// <param name="publicKey">Public Key</param>
+    /// <param name="proxy">Web Proxy</param>
     /// <returns>True on success</returns>
-    public async Task Join(string serverId, byte[] secret, byte[] publicKey) {
-        using var client = new HttpClient();
+    public async Task Join(string serverId, byte[] secret, byte[] publicKey, WebProxy? proxy = null) {
+        using var client = new HttpClient(new HttpClientHandler { Proxy = proxy });
         var req = new HttpRequestMessage {
             Content = JsonContent.Create(new JoinServerRequest(this, serverId, secret, publicKey)),
             RequestUri = new Uri("https://sessionserver.mojang.com/session/minecraft/join"),

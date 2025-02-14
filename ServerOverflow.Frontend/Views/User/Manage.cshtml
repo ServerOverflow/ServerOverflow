@@ -1,0 +1,252 @@
+@using ServerOverflow.Shared.Storage
+@model AccountModel
+@{
+    ViewData["Description"] = "Management Panel";
+    ViewData["Title"] = "Manage";
+    Layout = "Layout";
+
+    var invites = await Invitation.GetAll();
+    var exclusions = await Exclusion.GetAll();
+    var profiles = await Profile.GetAll();
+}
+
+<div class="tabs mb-0 mt-1">
+    <ul class="ml-0">
+        <li class="is-active tab" data-target="invites">
+            <a>
+                <span class="icon is-small">
+                    <i class="fa-solid fa-ticket"></i>
+                </span>
+                <span>Invites</span>
+            </a>
+        </li>
+        <li class="tab" data-target="bot-accounts">
+            <a>
+                <span class="icon is-small">
+                    <i class="fa-solid fa-robot"></i>
+                </span>
+                <span>Bot Accounts</span>
+            </a>
+        </li>
+        <li class="tab" data-target="exclusions">
+            <a>
+                <span class="icon is-small">
+                    <i class="fa-solid fa-list-ul"></i>
+                </span>
+                <span>Exclusions</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+@for (var i = 0; i < exclusions.Count; i++) {
+    <form method="POST">
+        <input type="hidden" name="type" value="modifyExclusion"/>
+        <input type="hidden" name="id" value="@exclusions[i].Id"/>
+        <div class="modal is-active" id="exclusion-@i" style="display: none; opacity: 0;">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title"><i class="fa-solid fa-pen"></i> Edit exclusion</p>
+                    <button type="button" class="delete is-large close-button" data-target="#exclusion-@i"></button>
+                </header>
+                <section class="modal-card-body">
+                    <div class="content">
+                        <div class="field">
+                            <label class="label">IP ranges</label>
+                            <div class="control">
+                                <textarea class="textarea" rows="4" name="ranges">@string.Join("\n", exclusions[i].Ranges)</textarea>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Comment</label>
+                            <div class="control">
+                                <textarea class="textarea" rows="5" name="comment">@exclusions[i].Comment</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <footer class="modal-card-foot">
+                    <div class="buttons">
+                        <button type="button" class="button is-danger close-button" data-target="#exclusion-@i">Cancel</button>
+                        <input type="submit" class="button is-success" value="Apply changes"/>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    </form>
+}
+
+<div class="section">
+    <div class="content">
+        @if (!string.IsNullOrWhiteSpace(Model.Message)) {
+            <div class="notification @(Model.Success ? "is-success" : "is-danger")">
+                <button class="delete"></button>
+                @Html.Raw(Model.Message)
+            </div>
+        }
+
+        <div id="invites" class="tab-content">
+            <h2>All invitations</h2>
+            <table class="table is-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Code</th>
+                    <th>Badge</th>
+                    <th>Creator</th>
+                    <th>Used</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < invites.Count; i++) {
+                    var creator = await Account.Get(invites[i].Creator.ToString()!);
+                    <tr>
+                        <th>@(i + 1)</th>
+                        <td>
+                            <code>@(Model.Account.HasPermission(Permission.Administrator) ? invites[i].Code : "REDACTED")</code>
+                        </td>
+                        <td>@invites[i].BadgeText</td>
+                        <td>@(creator?.Username ?? "Unknown")</td>
+                        <td>
+                            <label class="b-checkbox checkbox">
+                                <input type="checkbox" disabled @(invites[i].Used ? "checked" : "")>
+                                <span class="check"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="type" value="deleteInvitation"/>
+                                <input type="hidden" name="id" value="@invites[i].Id"/>
+                                <input type="submit" class="button is-danger is-small" value="Delete">
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <h2>Create new invitation</h2>
+            <form method="POST">
+                <input type="hidden" name="type" value="createInvitation"/>
+                <div class="field">
+                    <label class="label">User Badge</label>
+                    <div class="control has-icons-left">
+                        <input class="input" type="text" id="badge" name="badge">
+                        <span class="icon is-small is-left">
+                            <i class="fa-solid fa-id-badge"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <input type="submit" class="button is-link" value="Generate invite"/>
+                </div>
+            </form>
+        </div>
+
+        <div id="bot-accounts" class="tab-content" style="display: none;">
+            <h2>List of bot accounts</h2>
+            <table class="table is-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Valid</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < profiles.Count; i++) {
+                    <tr>
+                        <th>@(i+1)</th>
+                        <td>@profiles[i].Instance.Username</td>
+                        <td>
+                            <label class="b-checkbox checkbox">
+                                <input type="checkbox" disabled @(profiles[i].Valid ? "checked" : "")>
+                                <span class="check"></span>
+                            </label>
+                        </td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="type" value="deleteAccount"/>
+                                <input type="hidden" name="uuid" value="@profiles[i].Instance.UUID"/>
+                                <input type="submit" class="button is-danger is-small" value="Delete">
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <p>Maximum speed: @(3f*profiles.Count/15*60) joins per minute</p>
+            <div class="control">
+                <button id="addAccount" class="button is-primary">Add account</button>
+                <p class="help" style="display: none;"></p>
+            </div>
+        </div>
+
+        <div id="exclusions" class="tab-content" style="display: none;">
+            <h2>Scanner exclusion list</h2>
+            <table class="table is-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>IP ranges</th>
+                    <th>Comment</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                @for (var i = 0; i < exclusions.Count; i++) {
+                    <tr>
+                        <th>@(i + 1)</th>
+                        <td>@exclusions[i].Ranges.Count total</td>
+                        <td>@exclusions[i].Comment.Split("\n")[0]...</td>
+                        <td>
+                            <form method="POST">
+                                <input type="hidden" name="type" value="deleteExclusion"/>
+                                <input type="hidden" name="id" value="@exclusions[i].Id"/>
+                                <div class="field has-addons">
+                                    <p class="control">
+                                        <input type="submit" class="button is-small is-danger" value="Delete"/>
+                                    </p>
+                                    <p class="control">
+                                        <button type="button" class="button is-small is-info open-modal" data-target="#exclusion-@i">Edit</button>
+                                    </p>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+
+            <h2>Add new exclusion</h2>
+            <form method="POST">
+                <input type="hidden" name="type" value="createExclusion"/>
+                <div class="field">
+                    <label class="label">IP ranges</label>
+                    <div class="control">
+                        <textarea class="textarea" rows="4" name="ranges"></textarea>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label">Comment</label>
+                    <div class="control">
+                        <textarea class="textarea" rows="5" name="comment"></textarea>
+                    </div>
+                </div>
+
+                <div class="control">
+                    <input type="submit" class="button is-primary" value="Create exclusion"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/manage.js" asp-append-version="true"></script>

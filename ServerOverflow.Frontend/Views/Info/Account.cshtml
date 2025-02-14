@@ -1,0 +1,202 @@
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using ServerOverflow.Shared.Storage
+@model AccountModel
+@{
+    Layout = "Layout";
+    var disabled = Model.Target.Invitee != null && Model.Account.HasPermission(Permission.Administrator) ? "" : "disabled";
+    var invitee = Model.Target.Invitee != null ? await Account.Get(Model.Target.Invitee!.ToString()!) : null;
+}
+
+<div class="section">
+    <div class="content">
+        @if (!string.IsNullOrWhiteSpace(Model.Message)) {
+            <div class="notification @(Model.Success ? "is-success" : "is-danger")">
+                <button class="delete"></button>
+                @Model.Message
+            </div>
+        }
+
+        <div class="card">
+            <header class="card-header">
+                <span class="card-header-title is-block">
+                    <div class="columns is-mobile">
+                        <div class="column is-narrow">
+                            <figure class="image is-96x96">
+                                <img class="is-server-icon" src="/img/user.png" alt="User Icon"/>
+                            </figure>
+                        </div>
+                        <div class="column rows">
+                            <div>
+                                <a class="is-size-3" href="/account/@Model.Target.Id">@Model.Target.Username</a>
+                                <span class="tag is-primary" style="transform: translate(2%, -30%)">@Model.Target.BadgeText</span>
+                            </div>
+                            @if (invitee == null) {
+                                <span>Invited by <obf>god himself</obf></span>
+                            } else {
+                                <span>Invited by <a href="/account/@invitee.Id">@invitee.Username</a></span>
+                            }
+                        </div>
+                    </div>
+                </span>
+            </header>
+        </div>
+
+        <div class="columns is-multiline">
+            <div class="column is-half">
+                <div class="card">
+                    <header class="card-header card-expand">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Change username</span>
+                        </span>
+                        <button class="card-header-icon">
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </header>
+                    <div class="card-content" style="display: none;">
+                        <form method="POST">
+                            <input class="input" type="hidden" name="type" value="changeUsername">
+                            <div class="field">
+                                <label class="label">New username</label>
+                                <div class="control has-icons-left">
+                                    <input class="input" type="text" iname="username" value="@Model.Target.Username">
+                                    <span class="icon is-small is-left">
+                                        <i class="fa-solid fa-user"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="control">
+                                <input type="submit" class="button is-primary" value="Change username"/>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <header class="card-header card-expand">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Change permissions</span>
+                        </span>
+                        <button class="card-header-icon">
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </header>
+                    <div class="card-content" style="display: none;">
+                        <form method="POST">
+                            <input class="input" type="hidden" name="type" value="changePermissions">
+                            @foreach (Permission value in Enum.GetValuesAsUnderlyingType<Permission>()) {
+                                <div class="field">
+                                    <label class="b-checkbox checkbox">
+                                        <input type="checkbox" name="perm-@((int)value)" @(Model.Target.Permissions.Contains(value) ? "checked" : "") @disabled>
+                                        <span class="check"></span>
+                                        <span class="control-label">@value.GetType().GetEnumName(value)!.Humanize()</span>
+                                    </label>
+                                </div>
+                            }
+
+                            <div class="control">
+                                <input type="submit" class="button is-primary" value="Apply changes" @disabled/>
+                                @if (!Model.Account.HasPermission(Permission.Administrator)) {
+                                    <p class="help">Only administrators can change permissions!</p>
+                                }
+                                @if (Model.Target.Invitee == null) {
+                                    <p class="help">You can't modify permissions of the owner</p>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <header class="card-header card-expand">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Delete account</span>
+                        </span>
+                        <button class="card-header-icon">
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </header>
+                    <div class="card-content" style="display: none;">
+                        <p>
+                            <b>This action is not at all reversible!</b><br>
+                            There is no confirmation, clicking is enough.
+                        </p>
+
+                        <form method="POST">
+                            <input class="input" type="hidden" name="type" value="deleteAccount">
+                            <div class="control">
+                                <input type="submit" class="button is-danger" value="Delete my account"/>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-half">
+                <div class="card">
+                    <header class="card-header card-expand">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">Change password</span>
+                        </span>
+                        <button class="card-header-icon">
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </header>
+                    <div class="card-content" style="display: none;">
+                        <form method="POST">
+                            <input class="input" type="hidden" name="type" value="changePassword">
+                            <div class="field">
+                                <label class="label">Old password</label>
+                                <div class="control has-icons-left">
+                                    <input class="input" type="password" name="password">
+                                    <span class="icon is-small is-left">
+                                        <i class="fa-solid fa-key"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label class="label">New password</label>
+                                <div class="control has-icons-left">
+                                    <input class="input" type="password" name="password2">
+                                    <span class="icon is-small is-left">
+                                        <i class="fa-solid fa-key"></i>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="control">
+                                <input type="submit" class="button is-primary" value="Change password"/>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <header class="card-header card-expand">
+                        <span class="card-header-title is-block">
+                            <span class="is-size-4">API token</span>
+                        </span>
+                        <button class="card-header-icon">
+                            <span class="icon">
+                                <i class="fas fa-angle-down" aria-hidden="true"></i>
+                            </span>
+                        </button>
+                    </header>
+                    <div class="card-content" style="display: none;">
+                        <p>For security reasons, you can't view your current API key.</p>
+
+                        <form method="POST">
+                            <input type="hidden" name="type" value="generateApiKey"/>
+                            <input type="submit" class="button is-primary" value="Generate new key">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

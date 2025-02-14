@@ -1,8 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerOverflow", "ServerOverflow/ServerOverflow.csproj", "{246E1B68-4893-4659-8411-4F21DDF94B2C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerOverflow.Frontend", "ServerOverflow.Frontend\ServerOverflow.Frontend.csproj", "{246E1B68-4893-4659-8411-4F21DDF94B2C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MineProtocol", "MineProtocol\MineProtocol.csproj", "{53E21CE1-8A82-41A5-AA64-89DD67A8CAC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerOverflow.Shared", "ServerOverflow.Shared\ServerOverflow.Shared.csproj", "{54D4E376-A372-48A9-9BC0-5B19953D9BF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerOverflow.Snooper", "ServerOverflow.Snooper\ServerOverflow.Snooper.csproj", "{93FCFF1C-5CD0-42F3-80AA-CF8C280A3340}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5F357E60-B282-4FB4-B2B5-D72866CE2681}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +27,13 @@ Global
 		{53E21CE1-8A82-41A5-AA64-89DD67A8CAC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53E21CE1-8A82-41A5-AA64-89DD67A8CAC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53E21CE1-8A82-41A5-AA64-89DD67A8CAC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54D4E376-A372-48A9-9BC0-5B19953D9BF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54D4E376-A372-48A9-9BC0-5B19953D9BF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54D4E376-A372-48A9-9BC0-5B19953D9BF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54D4E376-A372-48A9-9BC0-5B19953D9BF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93FCFF1C-5CD0-42F3-80AA-CF8C280A3340}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93FCFF1C-5CD0-42F3-80AA-CF8C280A3340}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93FCFF1C-5CD0-42F3-80AA-CF8C280A3340}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93FCFF1C-5CD0-42F3-80AA-CF8C280A3340}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
