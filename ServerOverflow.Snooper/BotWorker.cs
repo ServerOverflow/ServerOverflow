@@ -4,6 +4,7 @@ using MongoDB.Driver;
 using Serilog;
 using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
+using static ServerOverflow.Snooper.Configuration;
 
 namespace ServerOverflow.Snooper;
 
@@ -22,6 +23,11 @@ public class BotWorker {
     private static int _servers;
 
     /// <summary>
+    /// Failed joins per second value
+    /// </summary>
+    private static int _failed;
+
+    /// <summary>
     /// Is currently active
     /// </summary>
     private static bool _active;
@@ -35,6 +41,7 @@ public class BotWorker {
     /// <returns>Result</returns>
     private static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests, Profile? profile = null) {
         var result = await MinecraftBot.Join(server, profile?.Instance);
+        if (!result.Success) Interlocked.Increment(ref _failed);
         Interlocked.Increment(ref _servers);
         result.LastSeen ??= server.JoinResult?.LastSeen;
         result.Whitelist ??= server.JoinResult?.Whitelist;
@@ -70,16 +77,16 @@ public class BotWorker {
                 
             Log.Information("Bulk joining {0} servers (offline mode)", total);
             using var cursor = await Database.Servers.FindAsync(
-                query, new FindOptions<Server> { BatchSize = 1000 });
-
+                query, new FindOptions<Server> { BatchSize = Config.BatchSize });
+            
             _active = true;
             var exclusions = await Exclusion.GetAll();
+            var requests = new ConcurrentBag<WriteModel<Server>>();
             while (await cursor.MoveNextAsync()) {
-                var requests = new ConcurrentBag<WriteModel<Server>>();
                 var tasks = cursor.Current
                     .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
-                    .Where(x => !x.IsAntiDDoS())
                     .Select(x => Connect(x, requests)).ToArray();
+                Log.Information("Fetched next batch with {0} servers", tasks.Length);
                 await Task.WhenAll(tasks);
                 if (requests.Count != 0)
                     await Database.Servers.BulkWriteAsync(requests);
@@ -113,7 +120,7 @@ public class BotWorker {
             
             Log.Information("Bulk joining {0} servers (online mode)", total);
             using var cursor = await Database.Servers.FindAsync(
-                query, new FindOptions<Server> { BatchSize = 1000 });
+                query, new FindOptions<Server> { BatchSize = Config.BatchSize });
 
             _active = true;
             var exclusions = await Exclusion.GetAll();
@@ -162,9 +169,12 @@ public class BotWorker {
             var watch = new Stopwatch(); watch.Start();
             while (_active) {
                 _serversAvg.Add(_servers - _serversAvg[^1]);
-                if (_serversAvg.Count >= 10) {
-                    Log.Information("Joined {0} servers ({1} per second)", _servers, _serversAvg.Average());
-                    Interlocked.Exchange(ref _servers, 0); _serversAvg = [0];
+                if (_serversAvg.Count >= 5) {
+                    Log.Information("Joined {0} servers ({1} per second, {2} successful)",
+                        _servers, _serversAvg.Average(), _servers - _failed);
+                    Interlocked.Exchange(ref _servers, 0);
+                    Interlocked.Exchange(ref _failed, 0);
+                    _serversAvg = [0];
                 }
                 
                 await Task.Delay(1000);
@@ -172,8 +182,11 @@ public class BotWorker {
             
             watch.Stop();
             if (_serversAvg.Count != 0) {
-                Log.Information("Joined {0} servers ({1} per second)", _servers, _serversAvg.Average());
-                Interlocked.Exchange(ref _servers, 0); _serversAvg = [0];
+                Log.Information("Joined {0} servers ({1} per second, {2} successful)",
+                    _servers, _serversAvg.Average(), _servers - _failed);
+                Interlocked.Exchange(ref _servers, 0);
+                Interlocked.Exchange(ref _failed, 0);
+                _serversAvg = [0];
             }
             
             Log.Information("Completed bulk join in {0}", watch.Elapsed);

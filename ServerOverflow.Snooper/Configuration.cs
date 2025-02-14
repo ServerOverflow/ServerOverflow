@@ -64,6 +64,11 @@ public class Configuration {
     public string ProxyPassword { get; set; } = "edit_me";
 
     /// <summary>
+    /// Bot joiner batch size
+    /// </summary>
+    public int BatchSize { get; set; } = 5000;
+
+    /// <summary>
     /// Save configuration changes
     /// </summary>
     public void Save() => File.WriteAllText("config.json", 

@@ -175,13 +175,13 @@ public class ServerListPing {
         /// <summary>
         /// Human-readable version string
         /// </summary>
-        [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+        [BsonSerializer(typeof(MongoStringSerializer))]
         public string? Name { get; set; }
         
         /// <summary>
         /// Protocol version
         /// </summary>
-        [BsonSerializer(typeof(MongoSafeSerializer<int?>))]
+        [BsonSerializer(typeof(MongoIntSerializer))]
         public int? Protocol { get; set; }
     }
 
@@ -196,27 +196,27 @@ public class ServerListPing {
             /// <summary>
             /// Player's username
             /// </summary>
-            [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? Name { get; set; }
             
             /// <summary>
             /// Player's UUID
             /// </summary>
             [BsonElement("id")]
-            [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? UUID { get; set; }
         }
         
         /// <summary>
         /// Online players
         /// </summary>
-        [BsonSerializer(typeof(MongoSafeSerializer<int?>))]
+        [BsonSerializer(typeof(MongoIntSerializer))]
         public int? Online { get; set; }
         
         /// <summary>
         /// Maximum players
         /// </summary>
-        [BsonSerializer(typeof(MongoSafeSerializer<int?>))]
+        [BsonSerializer(typeof(MongoIntSerializer))]
         public int? Max { get; set; }
         
         /// <summary>
@@ -238,13 +238,13 @@ public class ServerListPing {
             /// Mod's identifier
             /// </summary>
             [BsonElement("modid")]
-            [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? ModId { get; set; }
             
             /// <summary>
             /// Mod's version
             /// </summary>
-            [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? Version { get; set; }
         }
 
@@ -265,14 +265,14 @@ public class ServerListPing {
             /// <summary>
             /// Mod's identifier
             /// </summary>
-            [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? ModId { get; set; }
                 
             /// <summary>
             /// Mod's version
             /// </summary>
             [BsonElement("modmarker")] 
-            [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? Version { get; set; }
         }
 
@@ -286,7 +286,7 @@ public class ServerListPing {
         /// FML protocol version
         /// </summary>
         [BsonElement("fmlNetworkVersion")]
-        [BsonSerializer(typeof(MongoSafeSerializer<int?>))]
+        [BsonSerializer(typeof(MongoIntSerializer))]
         public int? ProtocolVersion { get; set; }
     }
     
@@ -315,32 +315,30 @@ public class ServerListPing {
     /// <summary>
     /// Server's description JSON
     /// </summary>
-    [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+    [BsonSerializer(typeof(MongoStringSerializer))]
     public string? Description { get; set; }
     
     /// <summary>
     /// Server's description, cleaned of all decorations
     /// </summary>
-    [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+    [BsonSerializer(typeof(MongoStringSerializer))]
     public string? CleanDescription { get; set; }
     
     /// <summary>
     /// Server's favicon
     /// </summary>
-    [BsonSerializer(typeof(MongoSafeSerializer<string?>))]
+    [BsonSerializer(typeof(MongoStringSerializer))]
     public string? Favicon { get; set; }
     
     /// <summary>
     /// Is chat reporting enabled
     /// </summary>
     [BsonElement("enforcesSecureChat")] 
-    [BsonSerializer(typeof(MongoSafeSerializer<bool>))]
     public bool ChatReporting { get; set; }
     
     /// <summary>
     /// Is this a forge server
     /// </summary>
-    [BsonSerializer(typeof(MongoSafeSerializer<bool>))]
     public bool IsForge { get; set; }
 
     /// <summary>
