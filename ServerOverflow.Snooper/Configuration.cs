@@ -8,6 +8,13 @@ namespace ServerOverflow.Snooper;
 /// </summary>
 public class Configuration {
     /// <summary>
+    /// JSON serializer options
+    /// </summary>
+    public static readonly JsonSerializerOptions Options = new() {
+        WriteIndented = true, IncludeFields = true
+    };
+    
+    /// <summary>
     /// Static object instance
     /// </summary>
     public static readonly Configuration Config;
@@ -20,7 +27,7 @@ public class Configuration {
             Log.Information("Loading configuration file...");
             var content = File.ReadAllText("config.json");
             try {
-                Config = JsonSerializer.Deserialize(content, JsonContext.Default.Configuration)!;
+                Config = JsonSerializer.Deserialize<Configuration>(content, Options)!;
             } catch (Exception e) {
                 Log.Fatal("Failed to load config: {0}", e);
                 Environment.Exit(-1);
@@ -60,5 +67,5 @@ public class Configuration {
     /// Save configuration changes
     /// </summary>
     public void Save() => File.WriteAllText("config.json", 
-        JsonSerializer.Serialize(Config, JsonContext.Default.Configuration));
+        JsonSerializer.Serialize(Config, Options));
 }
