@@ -114,9 +114,7 @@ public class Statistics {
                 Stats.OnlineMode.Add((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
                 Stats.Whitelist.Add((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
                 Stats.ForgeServers.Add((int)await Database.Servers.Count(x => x.Ping.IsForge));
-                Stats.CustomSoftware.Add((int)await Database.Servers.Count(x => 
-                    x.Ping.Version != null && x.Ping.Version.Name != null &&
-                    x.Ping.Version.Name.Contains(' ')));
+                Stats.CustomSoftware.Add(0);
                 Stats.AntiDDoS.Add(0);
                 
                 var software = new Dictionary<string, int>();
@@ -136,6 +134,7 @@ public class Statistics {
                         if (server.Ping.Version?.Name != null) {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
+                            if (version != "Vanilla") Stats.CustomSoftware[^1]++;
                             if (version.All(char.IsDigit)) version = $"{version} (fuck JS sorting)";
                             if (!software.TryGetValue(version, out _))
                                 software.Add(version, 1);

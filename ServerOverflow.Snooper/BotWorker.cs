@@ -138,7 +138,7 @@ public class BotWorker {
                 for (var i = 0; i < servers.Length; i += batch) {
                     if (servers.Length - i < batch) {
                         carry = servers[i..];
-                        continue;
+                        break;
                     }
                     
                     var tasks = servers[i..(i+batch)]

@@ -7,7 +7,7 @@ namespace ServerOverflow.Shared.Serializers;
 /// <summary>
 /// Custom int deserializer that handles invalid types
 /// </summary>
-public class MongoIntSerializer : SerializerBase<int?> {
+public class MongoIntSerializer : SerializerBase<int?>, IBsonArraySerializer {
     /// <summary>
     /// Deserializes either a string or the specified type
     /// </summary>
@@ -39,5 +39,15 @@ public class MongoIntSerializer : SerializerBase<int?> {
     public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, int? value) {
         if (value.HasValue) context.Writer.WriteInt32(value.Value);
         else context.Writer.WriteNull();
+    }
+    
+    /// <summary>
+    /// Tries to get the serialization info for the individual items of the array
+    /// </summary>
+    /// <param name="serializationInfo">Information</param>
+    /// <returns>True if info exists</returns>
+    public bool TryGetItemSerializationInfo(out BsonSerializationInfo serializationInfo) {
+        serializationInfo = default!;
+        return true;
     }
 }

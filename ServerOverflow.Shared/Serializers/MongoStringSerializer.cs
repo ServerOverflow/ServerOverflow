@@ -7,7 +7,7 @@ namespace ServerOverflow.Shared.Serializers;
 /// <summary>
 /// Custom string deserializer that handles invalid types
 /// </summary>
-public class MongoStringSerializer : SerializerBase<string?> {
+public class MongoStringSerializer : SerializerBase<string?>, IBsonArraySerializer {
     /// <summary>
     /// Deserializes either a string or the specified type
     /// </summary>
@@ -42,5 +42,19 @@ public class MongoStringSerializer : SerializerBase<string?> {
     public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, string? value) {
         if (value != null) context.Writer.WriteString(value);
         else context.Writer.WriteNull();
+    }
+
+    /// <summary>
+    /// Tries to get the serialization info for the individual items of the array
+    /// </summary>
+    /// <param name="serializationInfo">Information</param>
+    /// <returns>True if info exists</returns>
+    public bool TryGetItemSerializationInfo(out BsonSerializationInfo serializationInfo) {
+        serializationInfo = new BsonSerializationInfo(
+            elementName: null,
+            serializer: new MongoStringSerializer(),
+            nominalType: typeof(string)
+        );
+        return true;
     }
 }
