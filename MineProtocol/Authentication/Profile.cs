@@ -100,28 +100,6 @@ public class Profile {
     }
 
     /// <summary>
-    /// Sends a server join request
-    /// </summary>
-    /// <param name="serverId">Server ID</param>
-    /// <param name="secret">Shared Secret</param>
-    /// <param name="publicKey">Public Key</param>
-    /// <param name="proxy">Web Proxy</param>
-    /// <returns>True on success</returns>
-    public async Task Join(string serverId, byte[] secret, byte[] publicKey, WebProxy? proxy = null) {
-        using var client = new HttpClient(new HttpClientHandler { Proxy = proxy });
-        var req = new HttpRequestMessage {
-            Content = JsonContent.Create(new JoinServerRequest(this, serverId, secret, publicKey)),
-            RequestUri = new Uri("https://sessionserver.mojang.com/session/minecraft/join"),
-            Method = HttpMethod.Post
-        };
-        var rng = new Random();
-        req.Headers.Add("X-ForWarDed-For", $"{rng.Next(1, 255)}.{rng.Next(1, 255)}.{rng.Next(1, 255)}.{rng.Next(1, 255)}");
-        var res = await client.SendAsync(req);
-        if (!res.IsSuccessStatusCode)
-            throw new InvalidOperationException("You have been ratelimited");
-    }
-
-    /// <summary>
     /// Creates a new Minecraft profile
     /// </summary>
     /// <param name="microsoft">Microsoft Token Pair</param>

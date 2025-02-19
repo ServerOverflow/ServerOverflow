@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using MineProtocol;
 using MineProtocol.Exceptions;
+using MineProtocol.Protocol;
 using ServerOverflow.Shared.Storage;
 using Profile = MineProtocol.Authentication.Profile;
 
@@ -44,7 +45,7 @@ public static class MinecraftBot {
         try {
             if (depth > 3)
                 throw new InvalidOperationException("Detected outdated client cycle");
-            using var proto = new TinyProtocol(server.IP, server.Port,
+            using var proto = new TinyClient(server.IP, server.Port,
                 protocol ?? server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge,
                 server.Ping.ModernForgeMods?.ProtocolVersion ?? 0);
             await proto.Connect();
@@ -53,7 +54,7 @@ public static class MinecraftBot {
             while (true) {
                 var packet = await proto.Receive();
                 switch (packet.Id) {
-                    case TinyProtocol.PacketId.EncryptionRequest:
+                    case PacketId.EncryptionRequest:
                         if (profile.Minecraft != null) {
                             var serverId = await packet.Stream.ReadString();
                             var publicKeyLen = await packet.Stream.ReadVarInt();
@@ -64,7 +65,7 @@ public static class MinecraftBot {
                             _ = packet.Stream.Read(verifyToken, 0, verifyToken.Length);
                             var secretKey = RandomNumberGenerator.GetBytes(16);
                             if (packet.Stream.Position == packet.Stream.Length || await packet.Stream.ReadBoolean())
-                                await profile.Join(serverId, secretKey, publicKey, JoinProxy);
+                                await MojangAPI.JoinServer(profile, MojangAPI.GetServerId(serverId, secretKey, publicKey), JoinProxy);
                             await packet.Skip();
                             await proto.Encrypt(secretKey, publicKey, verifyToken);
                             break;
@@ -75,7 +76,7 @@ public static class MinecraftBot {
                             RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47,
                             Success = true, OnlineMode = true, LastSeen = DateTime.UtcNow
                         };
-                    case TinyProtocol.PacketId.LoginSuccess:
+                    case PacketId.LoginSuccess:
                         proto.Disconnect();
                         return new JoinResult {
                             RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47, 

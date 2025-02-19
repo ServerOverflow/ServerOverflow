@@ -26,7 +26,7 @@ public static class Resources {
     /// Loads the resources
     /// </summary>
     static Resources() {
-        var ass = Assembly.GetCallingAssembly();
+        var ass = typeof(Resources).Assembly;
         using var proto = ass.GetManifestResourceStream("protocol.json")!;
         using var lang = ass.GetManifestResourceStream("language.json")!;
         Language = JsonSerializer.Deserialize<Dictionary<string, string>>(lang)!;

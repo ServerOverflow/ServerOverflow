@@ -2,16 +2,15 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
-using System.Text;
 using MineProtocol.Authentication;
 using MineProtocol.Exceptions;
 
-namespace MineProtocol;
+namespace MineProtocol.Protocol;
 
 /// <summary>
 /// Tiny minecraft protocol implementation
 /// </summary>
-public class TinyProtocol : IDisposable {
+public class TinyClient : IDisposable {
     /// <summary>
     /// How long to wait for I/O operations until timing out
     /// </summary>
@@ -70,7 +69,7 @@ public class TinyProtocol : IDisposable {
     /// <param name="protocol">Protocol version</param>
     /// <param name="forge">Is Forge enabled</param>
     /// <param name="fmlProtocol">FML protocol version</param>
-    public TinyProtocol(string ip, int port, int protocol = 47, bool forge = false, int fmlProtocol = 0)
+    public TinyClient(string ip, int port, int protocol = 47, bool forge = false, int fmlProtocol = 0)
         : this(new IPEndPoint(IPAddress.Parse(ip), port), protocol, forge, fmlProtocol) { }
 
     /// <summary>
@@ -80,7 +79,7 @@ public class TinyProtocol : IDisposable {
     /// <param name="protocol">Protocol version</param>
     /// <param name="forge">Is Forge enabled</param>
     /// <param name="fmlProtocol">FML protocol version</param>
-    public TinyProtocol(IPEndPoint endpoint, int protocol = 47, bool forge = false, int fmlProtocol = 0) {
+    public TinyClient(IPEndPoint endpoint, int protocol = 47, bool forge = false, int fmlProtocol = 0) {
         EndPoint = endpoint; Protocol = protocol; Forge = forge; ForgeProtocol = fmlProtocol;
     }
     
@@ -422,7 +421,7 @@ public class TinyProtocol : IDisposable {
         /// <summary>
         /// Tiny protocol instance
         /// </summary>
-        public TinyProtocol Parent { get; set; }
+        public TinyClient Parent { get; set; }
         
         /// <summary>
         /// Payload stream
@@ -461,32 +460,9 @@ public class TinyProtocol : IDisposable {
         /// <param name="stream">Stream</param>
         /// <param name="length">Length</param>
         /// <param name="id">Packet ID</param>
-        public Packet(TinyProtocol proto, MemoryStream stream, int length, PacketId id) {
+        public Packet(TinyClient proto, MemoryStream stream, int length, PacketId id) {
             Parent = proto; Stream = stream; Length = length; Id = id;
         }
-    }
-
-    /// <summary>
-    /// Common packet IDs
-    /// </summary>
-    public enum PacketId {
-        // Handshake (serverbound)
-        Handshake = 0x00,
-        
-        // Login (clientbound)
-        Disconnect = 0x00,
-        EncryptionRequest = 0x01,
-        LoginSuccess = 0x02,
-        SetCompression = 0x03,
-        LoginPluginRequest = 0x04,
-        CookieRequest = 0x05,
-        
-        // Login (serverbound)
-        LoginStart = 0x00,
-        EncryptionResponse = 0x01,
-        LoginAcknowledged = 0x03,
-        LoginPluginResponse = 0x02,
-        CookieResponse = 0x04
     }
 
     /// <summary>
