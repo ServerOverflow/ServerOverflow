@@ -2,7 +2,6 @@ using MineProtocol;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-using ServerOverflow.Shared.Serializers;
 
 namespace ServerOverflow.Shared.Storage;
 
@@ -175,13 +174,11 @@ public class ServerListPing {
         /// <summary>
         /// Human-readable version string
         /// </summary>
-        [BsonSerializer(typeof(MongoStringSerializer))]
         public string? Name { get; set; }
         
         /// <summary>
         /// Protocol version
         /// </summary>
-        [BsonSerializer(typeof(MongoIntSerializer))]
         public int? Protocol { get; set; }
     }
 
@@ -196,33 +193,28 @@ public class ServerListPing {
             /// <summary>
             /// Player's username
             /// </summary>
-            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? Name { get; set; }
             
             /// <summary>
             /// Player's UUID
             /// </summary>
             [BsonElement("id")]
-            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? UUID { get; set; }
         }
         
         /// <summary>
         /// Online players
         /// </summary>
-        [BsonSerializer(typeof(MongoIntSerializer))]
         public int? Online { get; set; }
         
         /// <summary>
         /// Maximum players
         /// </summary>
-        [BsonSerializer(typeof(MongoIntSerializer))]
         public int? Max { get; set; }
         
         /// <summary>
         /// Player samples
         /// </summary>
-        [BsonSerializer(typeof(MongoJsonSerializer<List<SampleClass>>))]
         public List<SampleClass>? Sample { get; set; } = [];
     }
 
@@ -238,13 +230,11 @@ public class ServerListPing {
             /// Mod's identifier
             /// </summary>
             [BsonElement("modid")]
-            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? ModId { get; set; }
             
             /// <summary>
             /// Mod's version
             /// </summary>
-            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? Version { get; set; }
         }
 
@@ -265,14 +255,12 @@ public class ServerListPing {
             /// <summary>
             /// Mod's identifier
             /// </summary>
-            [BsonSerializer(typeof(MongoStringSerializer))]
             public string? ModId { get; set; }
                 
             /// <summary>
             /// Mod's version
             /// </summary>
-            [BsonElement("modmarker")] 
-            [BsonSerializer(typeof(MongoStringSerializer))]
+            [BsonElement("modmarker")]
             public string? Version { get; set; }
         }
 
@@ -286,7 +274,6 @@ public class ServerListPing {
         /// FML protocol version
         /// </summary>
         [BsonElement("fmlNetworkVersion")]
-        [BsonSerializer(typeof(MongoIntSerializer))]
         public int? ProtocolVersion { get; set; }
     }
     
@@ -315,19 +302,16 @@ public class ServerListPing {
     /// <summary>
     /// Server's description JSON
     /// </summary>
-    [BsonSerializer(typeof(MongoStringSerializer))]
     public string? Description { get; set; }
     
     /// <summary>
     /// Server's description, cleaned of all decorations
     /// </summary>
-    [BsonSerializer(typeof(MongoStringSerializer))]
     public string? CleanDescription { get; set; }
     
     /// <summary>
     /// Server's favicon
     /// </summary>
-    [BsonSerializer(typeof(MongoStringSerializer))]
     public string? Favicon { get; set; }
     
     /// <summary>

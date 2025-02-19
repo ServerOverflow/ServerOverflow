@@ -91,7 +91,7 @@ public class BotWorker {
                 if (requests.Count != 0)
                     await Database.Servers.BulkWriteAsync(requests);
             }
-                
+            
             _active = false;
         } catch (Exception e) {
             Log.Error("Offline mode bulk joiner crashed: {0}", e);
