@@ -37,10 +37,8 @@ public static class MojangAPI {
             Method = HttpMethod.Post
         };
         var res = await client.SendAsync(req);
-        if (res.StatusCode == HttpStatusCode.TooManyRequests)
-            throw new InvalidOperationException($"{profile.Username} has been ratelimited");
         if (!res.IsSuccessStatusCode)
-            throw new InvalidOperationException($"{profile.Username} has been banned by Mojang");
+            throw new InvalidOperationException($"Attempting to login as {profile.Username} resulted in error code {res.StatusCode}");
     }
 
     /// <summary>
