@@ -16,7 +16,7 @@ public static class MinecraftBot {
     /// <summary>
     /// Offline mode profile
     /// </summary>
-    private static readonly Profile _offline = new("ServerOverflow", "be7b89d7-efed-452d-a716-4c0eec4c8e2d");
+    private static readonly Profile _offline = new("ServerOverflow1", "91ebb6fa-6a5d-4d97-8647-aa4f8298f587");
 
     /// <summary>
     /// Web proxy to use for join requests to the API
