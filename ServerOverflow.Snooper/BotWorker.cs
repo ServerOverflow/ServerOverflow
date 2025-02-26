@@ -46,6 +46,7 @@ public class BotWorker {
         result.LastSeen ??= server.JoinResult?.LastSeen;
         result.Whitelist ??= server.JoinResult?.Whitelist;
         result.OnlineMode ??= server.JoinResult?.OnlineMode;
+        if (profile != null) result.OnlineTimestamp = DateTime.UtcNow;
         requests.Add(new UpdateOneModel<Server>(
             Builders<Server>.Filter.Eq(y => y.Id, server.Id),
             Builders<Server>.Update.Set(x => x.JoinResult, result)));
@@ -108,8 +109,10 @@ public class BotWorker {
             var query = builder.Ne(x => x.JoinResult, null)
                 & builder.Eq(x => x.JoinResult!.OnlineMode, true)
                 & builder.Eq(x => x.JoinResult!.Whitelist, null)
-                & builder.Gt(x => x.JoinResult!.LastSeen,
-                    DateTime.UtcNow - TimeSpan.FromDays(1));
+                & builder.Eq(x => x.JoinResult!.Success, true)
+                & (builder.Eq(x => x.JoinResult!.OnlineTimestamp, null) | 
+                   builder.Lt(x => x.JoinResult!.OnlineTimestamp, 
+                       DateTime.UtcNow - TimeSpan.FromDays(1)));
             var total = await Database.Servers.CountDocumentsAsync(query);
             if (total == 0) return;
             

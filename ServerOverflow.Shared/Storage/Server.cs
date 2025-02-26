@@ -394,6 +394,11 @@ public class JoinResult {
     public DateTime? LastSeen { get; set; }
 
     /// <summary>
+    /// When was the online mode result produced
+    /// </summary>
+    public DateTime? OnlineTimestamp { get; set; }
+    
+    /// <summary>
     /// When was the result produced
     /// </summary>
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
