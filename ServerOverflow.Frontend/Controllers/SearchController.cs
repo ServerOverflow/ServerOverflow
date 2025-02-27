@@ -35,9 +35,9 @@ public class SearchController : Controller {
             model.CurrentPage = 1;
         
         try {
-            var watch = new Stopwatch(); watch.Start();
             var doc = Query.Servers(model.Query!);
             var find = Database.Servers.Find(doc);
+            var watch = new Stopwatch(); watch.Start();
             model.TotalMatches = await find.CountDocumentsAsync();
             var elapsedCount = watch.Elapsed;
             
