@@ -37,10 +37,7 @@ public class SearchController : Controller {
         try {
             var doc = Query.Servers(model.Query!);
             var find = Database.Servers.Find(doc);
-            var watch = new Stopwatch(); watch.Start();
-            model.TotalMatches = await find.CountDocumentsAsync();
-            var elapsedCount = watch.Elapsed;
-            
+            model.TotalMatches = await find.CountAsync();
             if (model.TotalMatches == 0) {
                 model.Message = "No matches found for your query";
                 model.Success = false;
@@ -49,11 +46,11 @@ public class SearchController : Controller {
             
             model.TotalPages = (int)Math.Ceiling(model.TotalMatches / 50f);
             if (model.CurrentPage > model.TotalPages) model.CurrentPage = model.TotalPages;
-            watch.Restart();
             using var cursor = await find.Skip(50 * (model.CurrentPage-1)).Limit(50).ToCursorAsync();
             model.Items = []; model.Items.AddRange(cursor.ToList());
-            Log.Information("{0} searched for {1} (took {2} to count, {3} to search)",
-                account.Username, model.Query, elapsedCount, watch.Elapsed);
+            Log.Warning("{0} searched for {1} (page {2} out of {3})",
+                account.Username, string.IsNullOrEmpty(model.Query) ? "(empty)" : model.Query,
+                model.CurrentPage, model.TotalPages);
         } catch (Exception e) {
             model.Message = e.Message;
             model.Success = false;

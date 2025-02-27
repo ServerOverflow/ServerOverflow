@@ -175,7 +175,7 @@ public static class Query {
             "Multi-word quotation wasn't closed");
         if (!string.IsNullOrWhiteSpace(clean))
             filter &= Builders<T>.Filter.Regex(def,
-                new BsonRegularExpression(clean[1..], "i"));
+                new BsonRegularExpression(clean[1..], "im"));
         return filter;
     }
 }
