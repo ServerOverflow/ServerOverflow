@@ -35,7 +35,7 @@ public class SearchController : Controller {
             model.CurrentPage = 1;
         
         try {
-            var doc = Query.Servers(model.Query!);
+            var doc = Query.Servers(model.Query!) & Builders<Server>.Filter.Ne(x => x.Id, ObjectId.Empty);
             var find = Database.Servers.Find(doc);
             model.TotalMatches = await find.CountAsync();
             if (model.TotalMatches == 0) {
