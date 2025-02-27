@@ -66,14 +66,16 @@ public class Server {
     /// Dictionary of seen players
     /// </summary>
     public Dictionary<string, PlayerInfo>? Players { get; set; }
-    
+
     /// <summary>
     /// Fetches a server by its identifier
     /// </summary>
     /// <param name="id">Object identifier</param>
     /// <returns>Server, may be null</returns>
-    public static async Task<Server?> Get(string id)
-        => await Database.Servers.QueryFirst(x => x.Id.ToString() == id);
+    public static async Task<Server?> Get(string id) {
+        var objectId = ObjectId.Parse(id);
+        return await Database.Servers.QueryFirst(x => x.Id == objectId);
+    }
     
     /// <summary>
     /// Updates whole document
