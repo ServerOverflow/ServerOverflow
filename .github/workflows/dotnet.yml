@@ -22,7 +22,7 @@ jobs:
       with:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           ARGS: "-rlgoDzvc -i"
-          SOURCE: "ServerOverflow.Frontend/bin/Release/net8.0/linux-x64/publish/"
+          SOURCE: "ServerOverflow.Frontend/bin/Release/net9.0/linux-x64/publish/"
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
@@ -33,7 +33,7 @@ jobs:
       with:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         ARGS: "-rlgoDzvc -i"
-        SOURCE: "ServerOverflow.Snooper/bin/Release/net8.0/linux-x64/publish/"
+        SOURCE: "ServerOverflow.Snooper/bin/Release/net9.0/linux-x64/publish/"
         REMOTE_HOST: ${{ secrets.SNOOPER_REMOTE_HOST }}
         REMOTE_USER: ${{ secrets.SNOOPER_REMOTE_USER }}
         TARGET: ${{ secrets.SNOOPER_REMOTE_TARGET }}
