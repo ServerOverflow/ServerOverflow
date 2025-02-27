@@ -46,6 +46,7 @@ public class BotWorker {
         result.LastSeen ??= server.JoinResult?.LastSeen;
         result.Whitelist ??= server.JoinResult?.Whitelist;
         result.OnlineMode ??= server.JoinResult?.OnlineMode;
+        result.OnlineTimestamp ??= server.JoinResult?.OnlineTimestamp;
         if (profile != null) result.OnlineTimestamp = DateTime.UtcNow;
         requests.Add(new UpdateOneModel<Server>(
             Builders<Server>.Filter.Eq(y => y.Id, server.Id),
