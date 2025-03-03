@@ -16,17 +16,12 @@ public class BotWorker {
     /// <summary>
     /// Total servers joined gauge (online, offline)
     /// </summary>
-    private static readonly Counter _serversTotal = Metrics.CreateCounter("so_total_servers_joined", "Total servers joined by the scanner", "mode");
-    
-    /// <summary>
-    /// Total dead servers gauge (online, offline)
-    /// </summary>
-    private static readonly Counter _serversDead = Metrics.CreateCounter("so_total_servers_dead", "Total servers that the bot failed to join", "mode");
+    private static readonly Counter _serversTotal = Metrics.CreateCounter("so_total_servers_joined", "Total servers joined by the scanner", "mode", "success");
 
     /// <summary>
     /// Join speed gauge (online, offline)
     /// </summary>
-    private static readonly Gauge _serversJoined = Metrics.CreateGauge("so_servers_joined", "Total servers joined in a second", "mode");
+    private static readonly Gauge _serversJoined = Metrics.CreateGauge("so_servers_joined", "Total servers joined in a second", "mode", "success");
     
     /// <summary>
     /// A list for calculating average servers per second
@@ -57,12 +52,8 @@ public class BotWorker {
     /// <returns>Result</returns>
     private static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests, Profile? profile = null) {
         var result = await MinecraftBot.Join(server, profile?.Instance);
-        if (!result.Success) {
-            _serversDead.WithLabels(profile == null ? "offline" : "online").Inc();
-            Interlocked.Increment(ref _failed);
-        }
-        
-        _serversTotal.WithLabels(profile == null ? "offline" : "online").Inc();
+        if (!result.Success) Interlocked.Increment(ref _failed);
+        _serversTotal.WithLabels(profile == null ? "offline" : "online", result.Success ? "true" : "false").Inc();
         Interlocked.Increment(ref _servers);
         result.LastSeen ??= server.JoinResult?.LastSeen;
         result.Whitelist ??= server.JoinResult?.Whitelist;
@@ -196,7 +187,8 @@ public class BotWorker {
             while (_active != 0) {
                 _serversAvg.Add(_servers - _serversAvg[^1]);
                 if (_serversAvg.Count >= 5) {
-                    _serversJoined.WithLabels(_active == 1 ? "offline" : "online").Set(_servers);
+                    _serversJoined.WithLabels(_active == 1 ? "offline" : "online", "true").Set(_servers - _failed);
+                    _serversJoined.WithLabels(_active == 1 ? "offline" : "online", "false").Set(_failed);
                     Log.Information("Joined {0} servers ({1} per second, {2} successful)",
                         _servers, _serversAvg.Average(), _servers - _failed);
                     Interlocked.Exchange(ref _servers, 0);
