@@ -95,9 +95,9 @@ public class Statistics : BackgroundService {
                 _servers.WithLabels("chat_reporting").Set(
                     await Database.Servers.CountAsync(builder.Eq(x => x.Ping.ChatReporting, true)));
                 _servers.WithLabels("online_mode").Set(
-                    await Database.Servers.CountAsync(builder.Ne(x => x.JoinResult, null) & builder.Eq(x => x.JoinResult!.OnlineMode, true)));
+                    await Database.Servers.CountAsync(builder.Eq(x => x.JoinResult!.OnlineMode, true)));
                 _servers.WithLabels("whitelist").Set(
-                    await Database.Servers.CountAsync(builder.Ne(x => x.JoinResult, null) & builder.Eq(x => x.JoinResult!.Whitelist, true)));
+                    await Database.Servers.CountAsync(builder.Eq(x => x.JoinResult!.Whitelist, true)));
                 _servers.WithLabels("forge").Set(
                     await Database.Servers.CountAsync(builder.Eq(x => x.Ping.IsForge, true)));
                 _servers.WithLabels("custom").Set(customSoftware);
