@@ -37,6 +37,9 @@ public class Statistics : BackgroundService {
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken token) {
         while (true) {
+            var watch = new Stopwatch();
+            watch.Start();
+            
             try {
                 var software = new Dictionary<string, int>();
                 var versions = new Dictionary<string, int>();
@@ -109,7 +112,7 @@ public class Statistics : BackgroundService {
                 Log.Error("Statistics processor thread crashed: {0}", e);
             }
             
-            await Task.Delay(600000, token);
+            await Task.Delay(Math.Min(1000, 600000 - (int)watch.ElapsedMilliseconds), token);
         }
     }
 }
