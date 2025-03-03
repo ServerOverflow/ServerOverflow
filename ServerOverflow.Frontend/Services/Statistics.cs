@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using MaxMind.GeoIP2;
 using MineProtocol;
 using MongoDB.Driver;
 using Prometheus;
@@ -33,17 +34,46 @@ public class Statistics : BackgroundService {
     private static readonly Gauge _forgeMods = Metrics.CreateGauge("so_forge_mods", "Forge mods popularity", "id");
     
     /// <summary>
+    /// Server distribution by ASN gauge
+    /// </summary>
+    private static readonly Gauge _asns = Metrics.CreateGauge("so_geo_asns", "Server distribution per country", "as", "company");
+    
+    /// <summary>
+    /// Server distribution by country gauge
+    /// </summary>
+    private static readonly Gauge _countries = Metrics.CreateGauge("so_geo_countries", "Server distribution per country", "lookup");
+    
+    /// <summary>
+    /// Server distribution by cities gauge
+    /// </summary>
+    private static readonly Gauge _cities = Metrics.CreateGauge("so_geo_coordinates", "Server distribution by coordinates", "city", "longitude", "latitude");
+    
+    /// <summary>
     /// Runs the main service loop
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken token) {
+        if (!File.Exists("GeoLite2-ASN.mmdb")
+            || !File.Exists("GeoLite2-Country.mmdb")
+            || !File.Exists("GeoLite2-City.mmdb")) {
+            Log.Fatal("Failed to find GeoLite2 database files within the working directory");
+            Log.Fatal("Statistics processors WILL NOT RUN without them");
+            return;
+        }
+        
         while (true) {
             var watch = new Stopwatch();
             watch.Start();
             
             try {
+                using var country = new DatabaseReader("GeoLite2-Country.mmdb");
+                using var city = new DatabaseReader("GeoLite2-City.mmdb");
+                using var asn = new DatabaseReader("GeoLite2-ASN.mmdb");
+                var cities = new Dictionary<(string, string, string), int>();
+                var asns = new Dictionary<(string, string), int>();
+                var forgeMods = new Dictionary<string, int>();
+                var countries = new Dictionary<string, int>();
                 var software = new Dictionary<string, int>();
                 var versions = new Dictionary<string, int>();
-                var forgeMods = new Dictionary<string, int>();
                 var customSoftware = 0;
                 var antiDDoS = 0;
                 
@@ -90,6 +120,26 @@ public class Statistics : BackgroundService {
                                         forgeMods.Add(mod.ModId, 1);
                                     else forgeMods[mod.ModId] += 1;
                             }
+                        
+                        if (country.TryCountry(server.IP, out var result1) && result1?.Country.IsoCode != null)
+                            if (!countries.TryGetValue(result1.Country.IsoCode, out _))
+                                countries.Add(result1.Country.IsoCode, 1);
+                            else countries[result1.Country.IsoCode] += 1;
+
+                        if (city.TryCity(server.IP, out var result2) && result2?.City.Name != null && result2.Location.HasCoordinates) {
+                            var value = (result2.City.Name,
+                                Math.Round(result2.Location.Longitude!.Value, 2).ToString(), 
+                                Math.Round(result2.Location.Latitude!.Value, 2).ToString());
+                            if (!cities.TryGetValue(value, out _))
+                                cities.Add(value, 1);
+                            else cities[value] += 1;
+                        }
+
+                        if (asn.TryAsn(server.IP, out var result3) && result3?.AutonomousSystemOrganization != null) {
+                            var value = ($"AS{result3.AutonomousSystemNumber}", result3.AutonomousSystemOrganization);
+                            if (!asns.TryGetValue(value, out _)) asns.Add(value, 1);
+                            else asns[value] += 1;
+                        }
                     }
                 
                 var builder = Builders<Server>.Filter;
@@ -108,6 +158,9 @@ public class Statistics : BackgroundService {
                 foreach (var item in software) _software.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in versions) _versions.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in forgeMods) _forgeMods.WithLabels(item.Key).Set(item.Value);
+                foreach (var item in countries) _countries.WithLabels(item.Key).Set(item.Value);
+                foreach (var item in cities) _cities.WithLabels(item.Key.Item1, item.Key.Item2, item.Key.Item3).Set(item.Value);
+                foreach (var item in asns) _asns.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
             } catch (Exception e) {
                 Log.Error("Statistics processor thread crashed: {0}", e);
             }
