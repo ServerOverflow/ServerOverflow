@@ -35,21 +35,19 @@ public class Statistics : BackgroundService {
     /// <summary>
     /// Runs the main service loop
     /// </summary>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+    protected override async Task ExecuteAsync(CancellationToken token) {
         while (true) {
             try {
-                var watch = new Stopwatch(); watch.Start();
-                var customSoftware = 0;
-                var antiDDoS = 0;
-                
                 var software = new Dictionary<string, int>();
                 var versions = new Dictionary<string, int>();
                 var forgeMods = new Dictionary<string, int>();
+                var customSoftware = 0;
+                var antiDDoS = 0;
                 
                 var filter = Builders<Server>.Filter.Empty;
                 using var cursor = await Database.Servers.FindAsync(filter,
-                    new FindOptions<Server> { BatchSize = 1000 });
-                while (await cursor.MoveNextAsync())
+                    new FindOptions<Server> { BatchSize = 5000 }, token);
+                while (await cursor.MoveNextAsync(token))
                     foreach (var server in cursor.Current) {
                         if (server.IsAntiDDoS()) {
                             antiDDoS++;
@@ -94,11 +92,17 @@ public class Statistics : BackgroundService {
                             }
                     }
                 
-                _servers.WithLabels("total").Set((int)await Database.Servers.Count(x => true));
-                _servers.WithLabels("chat_reporting").Set((int)await Database.Servers.Count(x => x.Ping.ChatReporting));
-                _servers.WithLabels("online_mode").Set((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
-                _servers.WithLabels("whitelist").Set((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
-                _servers.WithLabels("forge").Set((int)await Database.Servers.Count(x => x.Ping.IsForge));
+                var builder = Builders<Server>.Filter;
+                _servers.WithLabels("total").Set(
+                    await Database.Servers.CountAsync(builder.Empty));
+                _servers.WithLabels("chat_reporting").Set(
+                    await Database.Servers.CountAsync(builder.Eq(x => x.Ping.ChatReporting, true)));
+                _servers.WithLabels("online_mode").Set(
+                    await Database.Servers.CountAsync(builder.Ne(x => x.JoinResult, null) & builder.Eq(x => x.JoinResult!.OnlineMode, true)));
+                _servers.WithLabels("whitelist").Set(
+                    await Database.Servers.CountAsync(builder.Ne(x => x.JoinResult, null) & builder.Eq(x => x.JoinResult!.Whitelist, true)));
+                _servers.WithLabels("forge").Set(
+                    await Database.Servers.CountAsync(builder.Eq(x => x.Ping.IsForge, true)));
                 _servers.WithLabels("custom").Set(customSoftware);
                 _servers.WithLabels("anti_ddos").Set(antiDDoS);
                 foreach (var item in software) _software.WithLabels(item.Key).Set(item.Value);
@@ -108,7 +112,7 @@ public class Statistics : BackgroundService {
                 Log.Error("Statistics processor thread crashed: {0}", e);
             }
             
-            await Task.Delay(600000);
+            await Task.Delay(600000, token);
         }
     }
 }
