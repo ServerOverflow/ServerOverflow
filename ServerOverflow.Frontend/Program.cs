@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Prometheus;
 using Serilog;
 using Serilog.Events;
 using ServerOverflow.Frontend.Processors;
@@ -52,6 +53,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseStatusCodePagesWithReExecute("/error");
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+app.UseEndpoints(x => x.MapMetrics());
 
 Log.Information("Website is now running");
 app.Run();

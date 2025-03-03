@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using MongoDB.Driver;
+using Prometheus;
 using Serilog;
 using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
@@ -12,6 +13,21 @@ namespace ServerOverflow.Snooper;
 /// Minecraft bot joiner worker
 /// </summary>
 public class BotWorker {
+    /// <summary>
+    /// Total servers joined gauge (online, offline)
+    /// </summary>
+    private static readonly Counter _serversTotal = Metrics.CreateCounter("so_total_servers_joined", "Total servers joined by the scanner", "mode");
+    
+    /// <summary>
+    /// Total dead servers gauge (online, offline)
+    /// </summary>
+    private static readonly Counter _serversDead = Metrics.CreateCounter("so_total_servers_dead", "Total servers that the bot failed to join", "mode");
+
+    /// <summary>
+    /// Join speed gauge (online, offline)
+    /// </summary>
+    private static readonly Gauge _serversJoined = Metrics.CreateGauge("so_servers_joined", "Total servers joined in a second", "mode");
+    
     /// <summary>
     /// A list for calculating average servers per second
     /// </summary>
@@ -30,7 +46,7 @@ public class BotWorker {
     /// <summary>
     /// Is currently active
     /// </summary>
-    private static bool _active;
+    private static int _active = 0;
     
     /// <summary>
     /// Connects to a Minecraft server
@@ -41,7 +57,12 @@ public class BotWorker {
     /// <returns>Result</returns>
     private static async Task Connect(Server server, ConcurrentBag<WriteModel<Server>> requests, Profile? profile = null) {
         var result = await MinecraftBot.Join(server, profile?.Instance);
-        if (!result.Success) Interlocked.Increment(ref _failed);
+        if (!result.Success) {
+            _serversDead.WithLabels(profile == null ? "offline" : "online").Inc();
+            Interlocked.Increment(ref _failed);
+        }
+        
+        _serversTotal.WithLabels(profile == null ? "offline" : "online").Inc();
         Interlocked.Increment(ref _servers);
         result.LastSeen ??= server.JoinResult?.LastSeen;
         result.Whitelist ??= server.JoinResult?.Whitelist;
@@ -81,7 +102,7 @@ public class BotWorker {
             using var cursor = await Database.Servers.FindAsync(
                 query, new FindOptions<Server> { BatchSize = Config.BatchSize });
             
-            _active = true;
+            _active = 2;
             var exclusions = await Exclusion.GetAll();
             var requests = new ConcurrentBag<WriteModel<Server>>();
             while (await cursor.MoveNextAsync()) {
@@ -94,10 +115,10 @@ public class BotWorker {
                     await Database.Servers.BulkWriteAsync(requests);
             }
             
-            _active = false;
+            _active = 0;
         } catch (Exception e) {
             Log.Error("Offline mode bulk joiner crashed: {0}", e);
-            _active = false;
+            _active = 0;
         }
     }
     
@@ -126,7 +147,7 @@ public class BotWorker {
             using var cursor = await Database.Servers.FindAsync(
                 query, new FindOptions<Server> { BatchSize = Config.BatchSize });
 
-            _active = true;
+            _active = 1;
             var exclusions = await Exclusion.GetAll();
             Server[]? carry = null;
             while (await cursor.MoveNextAsync()) {
@@ -158,10 +179,10 @@ public class BotWorker {
                 }
             }
                 
-            _active = false;
+            _active = 0;
         } catch (Exception e) {
             Log.Error("Online mode bulk joiner crashed: {0}", e);
-            _active = false;
+            _active = 0;
         }
     }
 
@@ -170,11 +191,12 @@ public class BotWorker {
     /// </summary>
     private static async Task LoggerThread() {
         while (true) {
-            while (!_active) await Task.Delay(1000);
+            while (_active == 0) await Task.Delay(1000);
             var watch = new Stopwatch(); watch.Start();
-            while (_active) {
+            while (_active != 0) {
                 _serversAvg.Add(_servers - _serversAvg[^1]);
                 if (_serversAvg.Count >= 5) {
+                    _serversJoined.WithLabels(_active == 1 ? "offline" : "online").Set(_servers);
                     Log.Information("Joined {0} servers ({1} per second, {2} successful)",
                         _servers, _serversAvg.Average(), _servers - _failed);
                     Interlocked.Exchange(ref _servers, 0);
@@ -187,6 +209,7 @@ public class BotWorker {
             
             watch.Stop();
             if (_serversAvg.Count != 0) {
+                _serversJoined.WithLabels(_active == 1 ? "offline" : "online").Set(_servers);
                 Log.Information("Joined {0} servers ({1} per second, {2} successful)",
                     _servers, _serversAvg.Average(), _servers - _failed);
                 Interlocked.Exchange(ref _servers, 0);

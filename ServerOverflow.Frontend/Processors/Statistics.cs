@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using MineProtocol;
 using MongoDB.Driver;
+using Prometheus;
 using Serilog;
 using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
@@ -11,86 +12,26 @@ namespace ServerOverflow.Frontend.Processors;
 /// <summary>
 /// Statistics processor
 /// </summary>
-public class Statistics {
+public static class Statistics {
     /// <summary>
-    /// Load saved statistics
+    /// Servers gauge (total, chat_reporting, online_mode, whitelist, forge, custom, anti_ddos)
     /// </summary>
-    static Statistics() {
-        if (File.Exists("stats.json")) {
-            Log.Information("Loading statistics file...");
-            var content = File.ReadAllText("stats.json");
-            try {
-                Stats = JsonSerializer.Deserialize<Statistics>(content)!;
-            } catch (Exception e) {
-                Log.Fatal("Failed to load statistics: {0}", e);
-                Environment.Exit(-1);
-            }
-            return;
-        }
-
-        Log.Warning("Statistics file is missing, starting from scratch!");
-        Stats = new Statistics(); Stats.Save();
-    }
+    private static readonly Gauge _servers = Metrics.CreateGauge("so_servers", "Servers found by the scanner", "type");
     
     /// <summary>
-    /// Statistics instance
+    /// Server software gauge
     /// </summary>
-    public static Statistics Stats;
+    private static readonly Gauge _software = Metrics.CreateGauge("so_software", "Software brand popularity", "brand");
     
     /// <summary>
-    /// How many servers are there
+    /// Minecraft version gauge
     /// </summary>
-    public List<int> TotalServers { get; set; } = [0];
+    private static readonly Gauge _versions = Metrics.CreateGauge("so_versions", "Minecraft versions popularity", "name");
     
     /// <summary>
-    /// How many servers have chat reporting enabled
+    /// Forge mods gauge
     /// </summary>
-    public List<int> ChatReporting { get; set; } = [0];
-    
-    /// <summary>
-    /// How many servers have online mode enabled
-    /// </summary>
-    public List<int> OnlineMode { get; set; } = [0];
-    
-    /// <summary>
-    /// How many servers have whitelist enabled
-    /// </summary>
-    public List<int> Whitelist { get; set; } = [0];
-    
-    /// <summary>
-    /// How many servers use forge
-    /// </summary>
-    public List<int> ForgeServers { get; set; } = [0];
-    
-    /// <summary>
-    /// How many servers have custom software
-    /// </summary>
-    public List<int> CustomSoftware { get; set; } = [0];
-    
-    /// <summary>
-    /// How many servers are anti-DDoS proxies
-    /// </summary>
-    public List<int> AntiDDoS { get; set; } = [0];
-    
-    /// <summary>
-    /// What custom software are the most popular
-    /// </summary>
-    public Dictionary<string, int> SoftwarePopularity { get; set; } = new();
-    
-    /// <summary>
-    /// What versions are the most popular
-    /// </summary>
-    public Dictionary<string, int> VersionPopularity { get; set; } = new();
-    
-    /// <summary>
-    /// What forge mods are the most popular
-    /// </summary>
-    public Dictionary<string, int> ForgeModsPopularity { get; set; } = new();
-    
-    /// <summary>
-    /// When should statistics be collected again
-    /// </summary>
-    public DateTime CollectAt { get; set; } = DateTime.UtcNow;
+    private static readonly Gauge _forgeMods = Metrics.CreateGauge("so_forge_mods", "Forge mods popularity", "id");
     
     /// <summary>
     /// Statistics processor thread
@@ -98,28 +39,13 @@ public class Statistics {
     public static async Task MainThread() {
         while (true) {
             try {
-                if (Stats.CollectAt > DateTime.UtcNow)
-                    await Task.Delay(Stats.CollectAt - DateTime.UtcNow);
                 var watch = new Stopwatch(); watch.Start();
-                
-                if (Stats.TotalServers.Count >= 720) Stats.TotalServers.RemoveAt(0);
-                if (Stats.ChatReporting.Count >= 720) Stats.ChatReporting.RemoveAt(0);
-                if (Stats.OnlineMode.Count >= 720) Stats.OnlineMode.RemoveAt(0);
-                if (Stats.ForgeServers.Count >= 720) Stats.ForgeServers.RemoveAt(0);
-                if (Stats.CustomSoftware.Count >= 720) Stats.CustomSoftware.RemoveAt(0);
-                if (Stats.AntiDDoS.Count >= 720) Stats.AntiDDoS.RemoveAt(0);
-                
-                Stats.TotalServers.Add((int)await Database.Servers.Count(x => true));
-                Stats.ChatReporting.Add((int)await Database.Servers.Count(x => x.Ping.ChatReporting));
-                Stats.OnlineMode.Add((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
-                Stats.Whitelist.Add((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
-                Stats.ForgeServers.Add((int)await Database.Servers.Count(x => x.Ping.IsForge));
-                Stats.CustomSoftware.Add(0);
-                Stats.AntiDDoS.Add(0);
+                var customSoftware = 0;
+                var antiDDoS = 0;
                 
                 var software = new Dictionary<string, int>();
                 var versions = new Dictionary<string, int>();
-                var mods = new Dictionary<string, int>();
+                var forgeMods = new Dictionary<string, int>();
                 
                 var filter = Builders<Server>.Filter.Empty;
                 using var cursor = await Database.Servers.FindAsync(filter,
@@ -127,14 +53,14 @@ public class Statistics {
                 while (await cursor.MoveNextAsync())
                     foreach (var server in cursor.Current) {
                         if (server.IsAntiDDoS()) {
-                            Stats.AntiDDoS[^1]++;
+                            antiDDoS++;
                             continue;
                         }
                         
                         if (server.Ping.Version?.Name != null) {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
-                            if (version != "Vanilla") Stats.CustomSoftware[^1]++;
+                            if (version != "Vanilla") customSoftware++;
                             if (version.All(char.IsDigit)) version = $"{version} (fuck JS sorting)";
                             if (!software.TryGetValue(version, out _))
                                 software.Add(version, 1);
@@ -153,9 +79,9 @@ public class Statistics {
                                 if (mod.ModId == null) continue;
                                 if (mod.ModId.All(char.IsDigit)) mod.ModId = $"{mod.ModId} (fuck JS sorting)";
                                 if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
-                                    if (!mods.TryGetValue(mod.ModId, out _))
-                                        mods.Add(mod.ModId, 1);
-                                    else mods[mod.ModId] += 1;
+                                    if (!forgeMods.TryGetValue(mod.ModId, out _))
+                                        forgeMods.Add(mod.ModId, 1);
+                                    else forgeMods[mod.ModId] += 1;
                             }
                         
                         if (server.Ping.LegacyForgeMods?.ModList != null)
@@ -163,25 +89,26 @@ public class Statistics {
                                 if (mod.ModId == null) continue;
                                 if (mod.ModId.All(char.IsDigit)) mod.ModId = $"{mod.ModId} (fuck JS sorting)";
                                 if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
-                                    if (!mods.TryGetValue(mod.ModId, out _))
-                                        mods.Add(mod.ModId, 1);
-                                    else mods[mod.ModId] += 1;
+                                    if (!forgeMods.TryGetValue(mod.ModId, out _))
+                                        forgeMods.Add(mod.ModId, 1);
+                                    else forgeMods[mod.ModId] += 1;
                             }
                     }
                 
-                Stats.SoftwarePopularity = software.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-                Stats.VersionPopularity = versions.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-                Stats.ForgeModsPopularity = mods.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-                Stats.CollectAt = DateTime.UtcNow + TimeSpan.FromHours(1); watch.Stop();
-                Stats.Save();
+                _servers.WithLabels("total").Set((int)await Database.Servers.Count(x => true));
+                _servers.WithLabels("chat_reporting").Set((int)await Database.Servers.Count(x => x.Ping.ChatReporting));
+                _servers.WithLabels("online_mode").Set((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.OnlineMode == true));
+                _servers.WithLabels("whitelist").Set((int)await Database.Servers.Count(x => x.JoinResult != null && x.JoinResult.Whitelist == true));
+                _servers.WithLabels("forge").Set((int)await Database.Servers.Count(x => x.Ping.IsForge));
+                _servers.WithLabels("custom").Set(customSoftware);
+                _servers.WithLabels("anti_ddos").Set(antiDDoS);
+                foreach (var item in software) _software.WithLabels(item.Key).Set(item.Value);
+                foreach (var item in versions) _versions.WithLabels(item.Key).Set(item.Value);
+                foreach (var item in forgeMods) _forgeMods.WithLabels(item.Key).Set(item.Value);
+                await Task.Delay(600000);
             } catch (Exception e) {
                 Log.Error("Statistics processor thread crashed: {0}", e);
             }
         }
     }
-    
-    /// <summary>
-    /// Save statistics updates
-    /// </summary>
-    private void Save() => File.WriteAllText("stats.json", JsonSerializer.Serialize(Stats));
 }

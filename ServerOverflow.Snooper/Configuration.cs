@@ -42,7 +42,7 @@ public class Configuration {
         Log.Fatal("Please fill it with all the necessary information.");
         Environment.Exit(-1);
     }
-
+    
     /// <summary>
     /// MongoDB connection URI
     /// </summary>
