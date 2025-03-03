@@ -14,6 +14,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 Log.Information("Starting ServerOverflow Snooper");
+Metrics.SuppressDefaultMetrics();
 Database.Initialize(Config.MongoUri);
 MinecraftBot.JoinProxy = new WebProxy(Config.ProxyUrl)
     { Credentials = new NetworkCredential(Config.ProxyUsername, Config.ProxyPassword) };
