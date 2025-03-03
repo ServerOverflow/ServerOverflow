@@ -93,7 +93,6 @@ public class BotWorker {
             using var cursor = await Database.Servers.FindAsync(
                 query, new FindOptions<Server> { BatchSize = Config.BatchSize });
             
-            _active = 2;
             var exclusions = await Exclusion.GetAll();
             var requests = new ConcurrentBag<WriteModel<Server>>();
             while (await cursor.MoveNextAsync()) {
@@ -101,12 +100,13 @@ public class BotWorker {
                     .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
                     .Select(x => Connect(x, requests)).ToArray();
                 Log.Information("Fetched next batch with {0} servers", tasks.Length);
+                _active = 2;
                 await Task.WhenAll(tasks);
                 if (requests.Count != 0)
                     await Database.Servers.BulkWriteAsync(requests);
+                _active = 0;
             }
             
-            _active = 0;
         } catch (Exception e) {
             Log.Error("Offline mode bulk joiner crashed: {0}", e);
             _active = 0;
@@ -137,8 +137,7 @@ public class BotWorker {
             Log.Information("Bulk joining {0} servers (online mode)", total);
             using var cursor = await Database.Servers.FindAsync(
                 query, new FindOptions<Server> { BatchSize = Config.BatchSize });
-
-            _active = 1;
+            
             var exclusions = await Exclusion.GetAll();
             Server[]? carry = null;
             while (await cursor.MoveNextAsync()) {
@@ -151,6 +150,7 @@ public class BotWorker {
                 Log.Information("Fetched next batch with {0} servers", servers.Length);
                 carry = null;
                 
+                _active = 1;
                 for (var i = 0; i < servers.Length; i += batch) {
                     if (servers.Length - i < batch) {
                         carry = servers[i..];
@@ -168,9 +168,9 @@ public class BotWorker {
                     // wait out the ratelimit
                     await Task.Delay(15000);
                 }
-            }
                 
-            _active = 0;
+                _active = 0;
+            }
         } catch (Exception e) {
             Log.Error("Online mode bulk joiner crashed: {0}", e);
             _active = 0;
