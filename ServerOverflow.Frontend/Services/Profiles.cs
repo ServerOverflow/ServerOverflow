@@ -1,16 +1,16 @@
 using Serilog;
 using ServerOverflow.Shared.Storage;
 
-namespace ServerOverflow.Frontend.Processors;
+namespace ServerOverflow.Frontend.Services;
 
 /// <summary>
 /// Profile processor
 /// </summary>
-public class Profiles {
+public class Profiles : BackgroundService {
     /// <summary>
-    /// Main worker thread
+    /// Runs the main service loop
     /// </summary>
-    public static async Task MainThread() {
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         while (true) {
             try {
                 var profiles = await Profile.GetAll();

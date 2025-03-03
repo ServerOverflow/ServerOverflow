@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using MineProtocol;
 using MongoDB.Driver;
 using Prometheus;
@@ -7,12 +6,12 @@ using Serilog;
 using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
 
-namespace ServerOverflow.Frontend.Processors;
+namespace ServerOverflow.Frontend.Services;
 
 /// <summary>
 /// Statistics processor
 /// </summary>
-public static class Statistics {
+public class Statistics : BackgroundService {
     /// <summary>
     /// Servers gauge (total, chat_reporting, online_mode, whitelist, forge, custom, anti_ddos)
     /// </summary>
@@ -34,9 +33,9 @@ public static class Statistics {
     private static readonly Gauge _forgeMods = Metrics.CreateGauge("so_forge_mods", "Forge mods popularity", "id");
     
     /// <summary>
-    /// Statistics processor thread
+    /// Runs the main service loop
     /// </summary>
-    public static async Task MainThread() {
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         while (true) {
             try {
                 var watch = new Stopwatch(); watch.Start();
@@ -105,10 +104,11 @@ public static class Statistics {
                 foreach (var item in software) _software.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in versions) _versions.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in forgeMods) _forgeMods.WithLabels(item.Key).Set(item.Value);
-                await Task.Delay(600000);
             } catch (Exception e) {
                 Log.Error("Statistics processor thread crashed: {0}", e);
             }
+            
+            await Task.Delay(600000);
         }
     }
 }

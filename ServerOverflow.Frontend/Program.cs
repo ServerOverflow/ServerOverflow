@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Prometheus;
 using Serilog;
 using Serilog.Events;
-using ServerOverflow.Frontend.Processors;
+using ServerOverflow.Frontend.Services;
 using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
 
@@ -16,6 +16,8 @@ Log.Information("Starting ServerOverflow Frontend");
 Metrics.SuppressDefaultMetrics();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHostedService<Profiles>();
+builder.Services.AddHostedService<Statistics>();
 builder.Configuration.AddJsonFile("config.json", optional: true);
 Database.Initialize(builder.Configuration["mongo-uri"] ?? "mongodb://127.0.0.1:27017?maxPoolSize=5000");
 var accounts = await Database.Accounts.EstimatedCount();
@@ -25,10 +27,6 @@ if (accounts == 0 && invites == 0) {
     Log.Warning("There aren't any accounts or invitations!");
     Log.Warning("Use this code: {0}", invite.Code);
 }
-
-Log.Information("Starting background threads");
-new Thread(async () => await Profiles.MainThread()).Start();
-new Thread(async () => await Statistics.MainThread()).Start();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
