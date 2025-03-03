@@ -209,6 +209,8 @@ public class BotWorker {
                 _serversAvg = [0];
             }
             
+            _serversJoined.WithLabels("offline").Set(0);
+            _serversJoined.WithLabels("online").Set(0);
             Log.Information("Completed bulk join in {0}", watch.Elapsed);
         }
     }
