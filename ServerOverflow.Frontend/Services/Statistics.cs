@@ -58,7 +58,6 @@ public class Statistics : BackgroundService {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
                             if (version != "Vanilla") customSoftware++;
-                            if (version.All(char.IsDigit)) version = $"{version} (fuck JS sorting)";
                             if (!software.TryGetValue(version, out _))
                                 software.Add(version, 1);
                             else software[version] += 1;
@@ -74,7 +73,6 @@ public class Statistics : BackgroundService {
                         if (server.Ping.ModernForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.ModernForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
-                                if (mod.ModId.All(char.IsDigit)) mod.ModId = $"{mod.ModId} (fuck JS sorting)";
                                 if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
                                     if (!forgeMods.TryGetValue(mod.ModId, out _))
                                         forgeMods.Add(mod.ModId, 1);
@@ -84,7 +82,6 @@ public class Statistics : BackgroundService {
                         if (server.Ping.LegacyForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.LegacyForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
-                                if (mod.ModId.All(char.IsDigit)) mod.ModId = $"{mod.ModId} (fuck JS sorting)";
                                 if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
                                     if (!forgeMods.TryGetValue(mod.ModId, out _))
                                         forgeMods.Add(mod.ModId, 1);
