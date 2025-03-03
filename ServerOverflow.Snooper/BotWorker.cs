@@ -16,12 +16,12 @@ public class BotWorker {
     /// <summary>
     /// Total servers joined gauge (online, offline)
     /// </summary>
-    private static readonly Counter _serversTotal = Metrics.CreateCounter("so_total_servers_joined", "Total servers joined by the scanner", "mode", "success");
+    private static readonly Counter _serversTotal = Metrics.CreateCounter("so_bot_joined_total", "Total servers joined by the scanner", "mode", "success");
 
     /// <summary>
     /// Join speed gauge (online, offline)
     /// </summary>
-    private static readonly Gauge _serversJoined = Metrics.CreateGauge("so_servers_joined", "Total servers joined in a second", "mode", "success");
+    private static readonly Gauge _serversJoined = Metrics.CreateGauge("so_bot_joined", "Total servers joined in a second", "mode", "success");
     
     /// <summary>
     /// A list for calculating average servers per second
@@ -200,7 +200,7 @@ public class BotWorker {
             }
             
             watch.Stop();
-            if (_serversAvg.Count != 0) {
+            if (_serversAvg.Count != 0 && _servers != 0) {
                 _serversJoined.WithLabels(_active == 1 ? "offline" : "online").Set(_servers);
                 Log.Information("Joined {0} servers ({1} per second, {2} successful)",
                     _servers, _serversAvg.Average(), _servers - _failed);
