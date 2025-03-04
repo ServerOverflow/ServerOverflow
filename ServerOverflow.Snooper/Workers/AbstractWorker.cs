@@ -55,11 +55,11 @@ public abstract class AbstractWorker {
     /// </summary>
     private async Task FetcherTask() {
         while (true) {
-            while (Tasks.Count >= BatchSize)
-                await Task.Delay(10);
-
+            while (Tasks.Count >= BatchSize) await Task.Delay(10);
+            
             try {
                 var batch = await FetchTasks();
+                Log.Debug("[{0}] Fetched batch of size {1}", GetType().Name, batch.Count);
                 if (batch.Count == 0) {
                     while (Tasks.Count > 0) await Task.Delay(10);
                     await Task.Delay(RestartDelay);
@@ -81,6 +81,7 @@ public abstract class AbstractWorker {
     private async Task WorkerTask() {
         while (true) {
             while (Tasks.Count < PoolSize) {
+                Log.Debug("[{0}] Not enough items in queue, awaiting entire queue", GetType().Name);
                 var temp = new List<Task>();
                 while (Tasks.TryDequeue(out var task))
                     temp.Add(task);
@@ -95,9 +96,11 @@ public abstract class AbstractWorker {
             for (var i = 0; i < PoolSize; i++)
                 _tasks[i] = Tasks.Dequeue();
 
+            Log.Debug("[{0}] Pool filled, awaiting efficiently", GetType().Name);
             while (true) {
                 var idx = Task.WaitAny(_tasks);
                 if (Tasks.Count == 0) {
+                    Log.Debug("[{0}] Queue was emptied, awaiting leftover tasks", GetType().Name);
                     await Task.WhenAll(_tasks);
                     try {
                         await Cleanup();

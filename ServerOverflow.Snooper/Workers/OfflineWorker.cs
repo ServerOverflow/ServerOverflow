@@ -22,7 +22,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
     /// <summary>
     /// Creates a new offline mode bot join worker
     /// </summary>
-    public OfflineWorker() : base(5000, 5000) => CreateCursor();
+    public OfflineWorker() : base(2500, 5000) => CreateCursor();
 
     /// <summary>
     /// Starts the worker thread
