@@ -108,11 +108,15 @@ public abstract class AbstractWorker {
                 var idx = Task.WaitAny(_tasks);
                 
                 if (!Tasks.TryDequeue(out var task)) {
+                    if (_freeSlots.Count + 1 == _tasks.Length) {
+                        Log.Debug("[{0}] Every slot in pool was freed, waiting for tasks", GetType().Name);
+                        while (Tasks.Count == 0) await Task.Delay(10);
+                        _tasks[idx] = Task.CompletedTask;
+                        continue;
+                    }
+                    
                     _tasks[idx] = Task.Delay(-1);
                     _freeSlots.Enqueue(idx);
-                    
-                    if (_freeSlots.Count == _tasks.Length)
-                        Log.Debug("[{0}] Every slot in pool was freed, waiting for tasks", GetType().Name);
                 } else {
                     _tasks[idx] = task;
 
