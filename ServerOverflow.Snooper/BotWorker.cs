@@ -58,7 +58,7 @@ public class BotWorker {
         while (true) {
             await BulkOffline();
             await BulkOnline();
-            await Task.Delay(3600000);
+            await Task.Delay(60000);
         }
     }
 
@@ -71,10 +71,8 @@ public class BotWorker {
             var query = builder.Eq(x => x.JoinResult, null) |
                         builder.Lt(x => x.JoinResult!.Timestamp,
                             DateTime.UtcNow - TimeSpan.FromDays(1));
-            var total = await Database.Servers.CountDocumentsAsync(query);
-            if (total == 0) return;
-                
-            Log.Information("Bulk joining {0} servers (offline mode)", total);
+            
+            Log.Information("Bulk joining servers in offline mode");
             using var cursor = await Database.Servers.FindAsync(
                 query, new FindOptions<Server> { BatchSize = Config.BatchSize });
             
@@ -107,15 +105,13 @@ public class BotWorker {
                 & (builder.Eq(x => x.JoinResult!.OnlineTimestamp, null) | 
                    builder.Lt(x => x.JoinResult!.OnlineTimestamp, 
                        DateTime.UtcNow - TimeSpan.FromDays(1)));
-            var total = await Database.Servers.CountDocumentsAsync(query);
-            if (total == 0) return;
             
             var profiles = await Profile.GetAll();
             var batch = profiles.Count * 3;
             Log.Information("Using {0} profiles ({1} servers per batch)",
                 profiles.Count, batch);
             
-            Log.Information("Bulk joining {0} servers (online mode)", total);
+            Log.Information("Bulk joining servers in online mode");
             using var cursor = await Database.Servers.FindAsync(
                 query, new FindOptions<Server> { BatchSize = Config.BatchSize });
             
