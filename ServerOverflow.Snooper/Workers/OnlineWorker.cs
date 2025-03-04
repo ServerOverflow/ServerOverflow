@@ -84,7 +84,7 @@ public class OnlineWorker : AbstractWorker, IDisposable {
     /// <returns>Result</returns>
     private async Task Connect(Server server, Profile profile) {
         var result = await MinecraftBot.Join(server, profile.Instance);
-        Statistics.ServersTotal.WithLabels("offline", result.Success ? "true" : "false").Inc();
+        Statistics.ServersTotal.WithLabels("online", result.Success ? "true" : "false").Inc();
         result.LastSeen ??= server.JoinResult?.LastSeen;
         result.Whitelist ??= server.JoinResult?.Whitelist;
         result.OnlineMode ??= server.JoinResult?.OnlineMode;
