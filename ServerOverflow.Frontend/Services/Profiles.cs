@@ -26,6 +26,8 @@ public class Profiles : BackgroundService {
 
                     await profile.Update();
                 }
+            } catch (OperationCanceledException) {
+                break;
             } catch (Exception e) {
                 Log.Error("Profile refresher thread crashed: {0}", e);
             }

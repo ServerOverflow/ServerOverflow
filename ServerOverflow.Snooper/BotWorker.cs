@@ -187,8 +187,8 @@ public class BotWorker {
             while (_active != 0) {
                 _serversAvg.Add(_servers - _serversAvg[^1]);
                 if (_serversAvg.Count >= 5) {
-                    _serversJoined.WithLabels(_active == 1 ? "offline" : "online", "true").Set(_servers - _failed);
-                    _serversJoined.WithLabels(_active == 1 ? "offline" : "online", "false").Set(_failed);
+                    _serversJoined.WithLabels(_active == 2 ? "offline" : "online", "true").Set(_servers - _failed);
+                    _serversJoined.WithLabels(_active == 2 ? "offline" : "online", "false").Set(_failed);
                     Log.Information("Joined {0} servers ({1} per second, {2} successful)",
                         _servers, _serversAvg.Average(), _servers - _failed);
                     Interlocked.Exchange(ref _servers, 0);
@@ -201,7 +201,7 @@ public class BotWorker {
             
             watch.Stop();
             if (_serversAvg.Count != 0 && _servers != 0) {
-                _serversJoined.WithLabels(_active == 1 ? "offline" : "online").Set(_servers);
+                _serversJoined.WithLabels(_active == 2 ? "offline" : "online").Set(_servers);
                 Log.Information("Joined {0} servers ({1} per second, {2} successful)",
                     _servers, _serversAvg.Average(), _servers - _failed);
                 Interlocked.Exchange(ref _servers, 0);

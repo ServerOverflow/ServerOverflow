@@ -161,6 +161,8 @@ public class Statistics : BackgroundService {
                 foreach (var item in countries) _countries.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in cities) _cities.WithLabels(item.Key.Item1, item.Key.Item2, item.Key.Item3).Set(item.Value);
                 foreach (var item in asns) _asns.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
+            } catch (OperationCanceledException) {
+                break;
             } catch (Exception e) {
                 Log.Error("Statistics processor thread crashed: {0}", e);
             }
