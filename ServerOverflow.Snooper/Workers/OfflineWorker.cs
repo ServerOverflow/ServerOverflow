@@ -22,7 +22,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
     /// <summary>
     /// Creates a new offline mode bot join worker
     /// </summary>
-    public OfflineWorker() : base(2500, 5000) => CreateCursor();
+    public OfflineWorker() : base(2500) => CreateCursor();
 
     /// <summary>
     /// Starts the worker thread
@@ -52,7 +52,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
         _cursor = Database.Servers.FindSync(filter,
             new FindOptions<Server> {
                 Projection = projection, 
-                BatchSize = 5000
+                BatchSize = BatchSize
             });
     }
     
