@@ -284,9 +284,9 @@ public class TinyClient : IDisposable {
         length -= 1;
         if (length < 0)
             throw new InvalidOperationException($"Invalid packet payload length of {length}");
-        var buf = new byte[length];
-        if (length >= 2097152)
+        if (length > 2097152)
             throw new InvalidOperationException($"Payload of size {length} is too large");
+        var buf = new byte[length];
         await stream.ReadExactlyAsync(buf, 0, buf.Length).AsTask().WaitAsync(Timeout);
         var packet = new Packet(this, new MemoryStream(buf), length, id);
 

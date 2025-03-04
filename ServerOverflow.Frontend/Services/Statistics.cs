@@ -58,6 +58,18 @@ public class Statistics : BackgroundService {
             watch.Start();
             
             try {
+                var builder = Builders<Server>.Filter;
+                _servers.WithLabels("total").Set(
+                    await Database.Servers.CountDocumentsAsync(builder.Empty, cancellationToken: token));
+                _servers.WithLabels("chat_reporting").Set(
+                    await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.Ping.ChatReporting, true), cancellationToken: token));
+                _servers.WithLabels("online_mode").Set(
+                    await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.JoinResult!.OnlineMode, true), cancellationToken: token));
+                _servers.WithLabels("whitelist").Set(
+                    await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.JoinResult!.Whitelist, true), cancellationToken: token));
+                _servers.WithLabels("forge").Set(
+                    await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.Ping.IsForge, true), cancellationToken: token));
+                
                 using var city = new DatabaseReader("GeoLite2-City.mmdb");
                 using var asn = new DatabaseReader("GeoLite2-ASN.mmdb");
                 var cities = new Dictionary<(string, string), int>();
@@ -69,8 +81,20 @@ public class Statistics : BackgroundService {
                 var antiDDoS = 0;
                 
                 var filter = Builders<Server>.Filter.Empty;
+                var projection = Builders<Server>.Projection
+                    .Include(x => x.Ping.Version!.Name)
+                    .Include(x => x.Ping.Version!.Protocol)
+                    .Include(x => x.Ping.ModernForgeMods!.ModList)
+                    .Include(x => x.Ping.LegacyForgeMods!.ModList)
+                    .Include(x => x.Ping.CleanDescription)
+                    .Include(x => x.Port)
+                    .Include(x => x.IP);
+                
                 using var cursor = await Database.Servers.FindAsync(filter,
-                    new FindOptions<Server> { BatchSize = 1000 }, token);
+                    new FindOptions<Server> {
+                        Projection = projection, 
+                        BatchSize = 500
+                    }, token);
                 while (await cursor.MoveNextAsync(token))
                     foreach (var server in cursor.Current) {
                         if (server.IsAntiDDoS()) {
@@ -101,6 +125,14 @@ public class Statistics : BackgroundService {
                                     else forgeMods[mod.ModId] += 1;
                             }
                         
+                        if (server.Ping.LegacyForgeMods?.ModList != null)
+                            foreach (var mod in server.Ping.LegacyForgeMods.ModList) {
+                                if (mod.ModId == null) continue;
+                                if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
+                                    if (!forgeMods.TryGetValue(mod.ModId, out _)) forgeMods.Add(mod.ModId, 1);
+                                    else forgeMods[mod.ModId] += 1;
+                            }
+                        
                         if (city.TryCity(server.IP, out var result2) && result2?.Country.IsoCode != null) {
                             var value = (result2.Country.IsoCode, result2.City.Name ?? "Unknown");
                             if (!cities.TryGetValue(value, out _)) cities.Add(value, 1);
@@ -114,17 +146,6 @@ public class Statistics : BackgroundService {
                         }
                     }
                 
-                var builder = Builders<Server>.Filter;
-                _servers.WithLabels("total").Set(
-                    await Database.Servers.CountAsync(builder.Empty));
-                _servers.WithLabels("chat_reporting").Set(
-                    await Database.Servers.CountAsync(builder.Eq(x => x.Ping.ChatReporting, true)));
-                _servers.WithLabels("online_mode").Set(
-                    await Database.Servers.CountAsync(builder.Eq(x => x.JoinResult!.OnlineMode, true)));
-                _servers.WithLabels("whitelist").Set(
-                    await Database.Servers.CountAsync(builder.Eq(x => x.JoinResult!.Whitelist, true)));
-                _servers.WithLabels("forge").Set(
-                    await Database.Servers.CountAsync(builder.Eq(x => x.Ping.IsForge, true)));
                 _servers.WithLabels("custom").Set(customSoftware);
                 _servers.WithLabels("anti_ddos").Set(antiDDoS);
                 foreach (var item in software) _software.WithLabels(item.Key).Set(item.Value);

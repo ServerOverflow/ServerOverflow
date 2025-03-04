@@ -30,7 +30,7 @@ public static class MojangAPI {
     /// <param name="proxy">Web Proxy</param>
     /// <returns>True on success</returns>
     public static async Task JoinServer(Profile profile, string serverId, WebProxy? proxy = null) {
-        using var client = new HttpClient(new HttpClientHandler { Proxy = proxy });
+        using var client = new RetryClient(new HttpClientHandler { Proxy = proxy });
         var req = new HttpRequestMessage {
             Content = JsonContent.Create(new JoinServerRequest(profile, serverId)),
             RequestUri = new Uri("https://sessionserver.mojang.com/session/minecraft/join"),
@@ -48,7 +48,7 @@ public static class MojangAPI {
     /// <param name="serverId">Server ID</param>
     /// <returns>Player information if true</returns>
     public static async Task<PlayerJoined?> HasJoined(string username, string serverId) {
-        using var client = new HttpClient();
+        using var client = new RetryClient(new HttpClientHandler());
         username = HttpUtility.UrlEncode(username);
         serverId = HttpUtility.UrlEncode(serverId);
         var resp = await client.GetAsync($"https://sessionserver.mojang.com/session/minecraft/hasJoined?username={username}&serverId=${serverId}");

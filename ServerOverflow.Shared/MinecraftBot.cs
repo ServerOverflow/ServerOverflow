@@ -46,8 +46,8 @@ public static class MinecraftBot {
             if (depth > 3)
                 throw new InvalidOperationException("Detected outdated client cycle");
             using var proto = new TinyClient(server.IP, server.Port,
-                protocol ?? server.Ping.Version?.Protocol ?? 47, server.Ping.IsForge,
-                server.Ping.ModernForgeMods?.ProtocolVersion ?? 0);
+                protocol ?? server.JoinResult?.RealProtocol ?? server.Ping.Version?.Protocol ?? 47,
+                server.Ping.IsForge, server.Ping.ModernForgeMods?.ProtocolVersion ?? 0);
             await proto.Connect();
             await proto.Handshake();
             await proto.LoginStart(profile);
