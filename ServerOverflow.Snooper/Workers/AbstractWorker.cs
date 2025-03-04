@@ -25,6 +25,11 @@ public abstract class AbstractWorker {
     /// How long to wait after failing to fetch any items
     /// </summary>
     public TimeSpan RestartDelay { get; } = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// Free task slots
+    /// </summary>
+    private readonly Queue<int> _freeSlots = [];
     
     /// <summary>
     /// Current tasks array
@@ -101,21 +106,18 @@ public abstract class AbstractWorker {
             Log.Debug("[{0}] Pool of size {1} filled, awaiting efficiently", GetType().Name, _tasks.Length);
             while (true) {
                 var idx = Task.WaitAny(_tasks);
-                Log.Debug("[{0}] Task with index {1} finished", GetType().Name, idx);
-                if (Tasks.Count == 0) {
-                    Log.Debug("[{0}] Queue was emptied, awaiting leftover tasks", GetType().Name);
-                    await Task.WhenAll(_tasks);
-                    try {
-                        await Cleanup();
-                    } catch (Exception e) {
-                        Log.Error("Failed to clean up after finishing: {0}", e);
+                
+                if (!Tasks.TryDequeue(out var task)) {
+                    _tasks[idx] = Task.Delay(-1);
+                    _freeSlots.Enqueue(idx);
+                } else {
+                    _tasks[idx] = task;
+                    while (_freeSlots.TryPeek(out idx)) {
+                        if (!Tasks.TryDequeue(out task)) break;
+                        _tasks[idx] = task;
+                        _freeSlots.Dequeue();
                     }
-                    
-                    await Task.Delay(RestartDelay);
-                    continue;
                 }
-            
-                _tasks[idx] = Tasks.Dequeue();
             }
         }
     }
