@@ -78,14 +78,16 @@ public static class MinecraftBot {
                         proto.Disconnect();
                         return new JoinResult { 
                             RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47,
-                            Success = true, OnlineMode = true, LastSeen = DateTime.UtcNow
+                            Success = true, OnlineMode = true, LastSeen = DateTime.UtcNow,
+                            Timestamp = DateTime.UtcNow
                         };
                     case PacketId.LoginSuccess:
                         proto.Disconnect();
                         return new JoinResult {
                             RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47, 
                             Success = true, OnlineMode = profile.Minecraft != null,
-                            Whitelist = false, LastSeen = DateTime.UtcNow
+                            Whitelist = false, LastSeen = DateTime.UtcNow,
+                            Timestamp = DateTime.UtcNow
                         };
                     default:
                         await packet.Skip();
@@ -102,10 +104,13 @@ public static class MinecraftBot {
                 RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47,
                 Success = true, OnlineMode = profile.Minecraft != null,
                 Whitelist = true, DisconnectReason = e.Message,
-                LastSeen = DateTime.UtcNow
+                LastSeen = DateTime.UtcNow, Timestamp = DateTime.UtcNow
             };
         } catch (Exception e) {
-            return new JoinResult { Success = false, ErrorMessage = e.Message, Exception = e.ToString() };
+            return new JoinResult {
+                Success = false, Timestamp = DateTime.UtcNow,
+                ErrorMessage = e.Message, Exception = e.ToString()
+            };
         }
     }
 }

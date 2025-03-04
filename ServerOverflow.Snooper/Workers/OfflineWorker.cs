@@ -18,11 +18,14 @@ public class OfflineWorker : AbstractWorker, IDisposable {
     /// Database write requests bag
     /// </summary>
     private readonly ConcurrentBag<WriteModel<Server>> _requests = [];
-    
+
     /// <summary>
     /// Creates a new offline mode bot join worker
     /// </summary>
-    public OfflineWorker() : base(2500) => CreateCursor();
+    public OfflineWorker() : base(5000) {
+        CreateCursor();
+        BatchSize = 10000;
+    }
 
     /// <summary>
     /// Starts the worker thread
