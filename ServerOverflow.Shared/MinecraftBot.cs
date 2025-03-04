@@ -65,7 +65,11 @@ public static class MinecraftBot {
                             _ = packet.Stream.Read(verifyToken, 0, verifyToken.Length);
                             var secretKey = RandomNumberGenerator.GetBytes(16);
                             if (packet.Stream.Position == packet.Stream.Length || await packet.Stream.ReadBoolean())
-                                await MojangAPI.JoinServer(profile, MojangAPI.GetServerId(serverId, secretKey, publicKey), JoinProxy);
+                                try {
+                                    await MojangAPI.JoinServer(profile, MojangAPI.GetServerId(serverId, secretKey, publicKey), JoinProxy);
+                                } catch (Exception e) {
+                                    throw new Exception("Failed to authenticate with Mojang", e);
+                                }
                             await packet.Skip();
                             await proto.Encrypt(secretKey, publicKey, verifyToken);
                             break;
@@ -97,10 +101,11 @@ public static class MinecraftBot {
             return new JoinResult {
                 RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47,
                 Success = true, OnlineMode = profile.Minecraft != null,
-                Whitelist = true, DisconnectReason = e.Message, LastSeen = DateTime.UtcNow
+                Whitelist = true, DisconnectReason = e.Message,
+                LastSeen = DateTime.UtcNow
             };
         } catch (Exception e) {
-            return new JoinResult { Success = false, ErrorMessage = e.Message };
+            return new JoinResult { Success = false, ErrorMessage = e.Message, Exception = e.ToString() };
         }
     }
 }

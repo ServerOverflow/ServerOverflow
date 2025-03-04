@@ -369,6 +369,11 @@ public class JoinResult {
     /// Error message if failed
     /// </summary>
     public string? ErrorMessage { get; set; }
+    
+    /// <summary>
+    /// Full exception if failed
+    /// </summary>
+    public string? Exception { get; set; }
         
     /// <summary>
     /// Is online mode enabled

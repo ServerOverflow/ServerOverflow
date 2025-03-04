@@ -169,7 +169,12 @@ public class TinyClient : IDisposable {
     public async Task Encrypt(byte[] secretKey, byte[] publicKey, byte[] verifyKey) {
         if (_input == null || _output == null) throw new InvalidOperationException("Connect to the server first");
         using var rsa = RSA.Create();
-        rsa.ImportSubjectPublicKeyInfo(publicKey, out _);
+        try {
+            rsa.ImportSubjectPublicKeyInfo(publicKey, out _);
+        } catch (Exception e) {
+            throw new ArgumentException("Failed to decode public key sent by the server", e);
+        }
+        
         var encSecret = rsa.Encrypt(secretKey, RSAEncryptionPadding.Pkcs1);
         var encVerify = rsa.Encrypt(verifyKey, RSAEncryptionPadding.Pkcs1);
         
