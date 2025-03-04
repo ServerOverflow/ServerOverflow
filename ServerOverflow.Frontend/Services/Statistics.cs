@@ -39,22 +39,15 @@ public class Statistics : BackgroundService {
     private static readonly Gauge _asns = Metrics.CreateGauge("so_geo_asns", "Server distribution per country", "as", "company");
     
     /// <summary>
-    /// Server distribution by country gauge
-    /// </summary>
-    private static readonly Gauge _countries = Metrics.CreateGauge("so_geo_countries", "Server distribution per country", "lookup");
-    
-    /// <summary>
     /// Server distribution by cities gauge
     /// </summary>
-    private static readonly Gauge _cities = Metrics.CreateGauge("so_geo_coordinates", "Server distribution by coordinates", "city", "longitude", "latitude");
+    private static readonly Gauge _cities = Metrics.CreateGauge("so_geo_cities", "Server distribution by cities", "country", "city");
     
     /// <summary>
     /// Runs the main service loop
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken token) {
-        if (!File.Exists("GeoLite2-ASN.mmdb")
-            || !File.Exists("GeoLite2-Country.mmdb")
-            || !File.Exists("GeoLite2-City.mmdb")) {
+        if (!File.Exists("GeoLite2-ASN.mmdb") || !File.Exists("GeoLite2-City.mmdb")) {
             Log.Fatal("Failed to find GeoLite2 database files within the working directory");
             Log.Fatal("Statistics processors WILL NOT RUN without them");
             return;
@@ -65,13 +58,11 @@ public class Statistics : BackgroundService {
             watch.Start();
             
             try {
-                using var country = new DatabaseReader("GeoLite2-Country.mmdb");
                 using var city = new DatabaseReader("GeoLite2-City.mmdb");
                 using var asn = new DatabaseReader("GeoLite2-ASN.mmdb");
-                var cities = new Dictionary<(string, string, string), int>();
+                var cities = new Dictionary<(string, string), int>();
                 var asns = new Dictionary<(string, string), int>();
                 var forgeMods = new Dictionary<string, int>();
-                var countries = new Dictionary<string, int>();
                 var software = new Dictionary<string, int>();
                 var versions = new Dictionary<string, int>();
                 var customSoftware = 0;
@@ -79,7 +70,7 @@ public class Statistics : BackgroundService {
                 
                 var filter = Builders<Server>.Filter.Empty;
                 using var cursor = await Database.Servers.FindAsync(filter,
-                    new FindOptions<Server> { BatchSize = 5000 }, token);
+                    new FindOptions<Server> { BatchSize = 1000 }, token);
                 while (await cursor.MoveNextAsync(token))
                     foreach (var server in cursor.Current) {
                         if (server.IsAntiDDoS()) {
@@ -98,8 +89,7 @@ public class Statistics : BackgroundService {
 
                         if (server.Ping.Version?.Protocol != null && 
                             Resources.Protocol.TryGetValue(server.Ping.Version.Protocol.Value, out var mapping)) {
-                            if (!versions.TryGetValue(mapping, out _))
-                                versions.Add(mapping, 1);
+                            if (!versions.TryGetValue(mapping, out _)) versions.Add(mapping, 1);
                             else versions[mapping] += 1;
                         }
                         
@@ -107,31 +97,13 @@ public class Statistics : BackgroundService {
                             foreach (var mod in server.Ping.ModernForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
                                 if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
-                                    if (!forgeMods.TryGetValue(mod.ModId, out _))
-                                        forgeMods.Add(mod.ModId, 1);
+                                    if (!forgeMods.TryGetValue(mod.ModId, out _)) forgeMods.Add(mod.ModId, 1);
                                     else forgeMods[mod.ModId] += 1;
                             }
                         
-                        if (server.Ping.LegacyForgeMods?.ModList != null)
-                            foreach (var mod in server.Ping.LegacyForgeMods.ModList) {
-                                if (mod.ModId == null) continue;
-                                if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
-                                    if (!forgeMods.TryGetValue(mod.ModId, out _))
-                                        forgeMods.Add(mod.ModId, 1);
-                                    else forgeMods[mod.ModId] += 1;
-                            }
-                        
-                        if (country.TryCountry(server.IP, out var result1) && result1?.Country.IsoCode != null)
-                            if (!countries.TryGetValue(result1.Country.IsoCode, out _))
-                                countries.Add(result1.Country.IsoCode, 1);
-                            else countries[result1.Country.IsoCode] += 1;
-
-                        if (city.TryCity(server.IP, out var result2) && result2?.City.Name != null && result2.Location.HasCoordinates) {
-                            var value = (result2.City.Name,
-                                Math.Round(result2.Location.Longitude!.Value, 2).ToString(), 
-                                Math.Round(result2.Location.Latitude!.Value, 2).ToString());
-                            if (!cities.TryGetValue(value, out _))
-                                cities.Add(value, 1);
+                        if (city.TryCity(server.IP, out var result2) && result2?.Country.IsoCode != null) {
+                            var value = (result2.Country.IsoCode, result2.City.Name ?? "Unknown");
+                            if (!cities.TryGetValue(value, out _)) cities.Add(value, 1);
                             else cities[value] += 1;
                         }
 
@@ -158,16 +130,22 @@ public class Statistics : BackgroundService {
                 foreach (var item in software) _software.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in versions) _versions.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in forgeMods) _forgeMods.WithLabels(item.Key).Set(item.Value);
-                foreach (var item in countries) _countries.WithLabels(item.Key).Set(item.Value);
-                foreach (var item in cities) _cities.WithLabels(item.Key.Item1, item.Key.Item2, item.Key.Item3).Set(item.Value);
+                foreach (var item in cities) _cities.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
                 foreach (var item in asns) _asns.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
             } catch (OperationCanceledException) {
                 break;
             } catch (Exception e) {
                 Log.Error("Statistics processor thread crashed: {0}", e);
             }
+
+            watch.Stop();
+            var period = TimeSpan.FromMinutes(1);
+            if (watch.Elapsed > period) {
+                Log.Warning("Statistics collection took too much time: {0}", watch.Elapsed);
+                continue;
+            }
             
-            await Task.Delay(Math.Min(1000, 600000 - (int)watch.ElapsedMilliseconds), token);
+            await Task.Delay(period - watch.Elapsed, token);
         }
     }
 }
