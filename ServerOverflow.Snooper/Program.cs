@@ -11,7 +11,7 @@ using static ServerOverflow.Snooper.Configuration;
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("ServerOverflow", LogEventLevel.Debug)
+    .MinimumLevel.Debug()
     .WriteTo.Console()
     .CreateLogger();
 
