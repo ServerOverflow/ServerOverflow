@@ -81,6 +81,8 @@ public abstract class AbstractWorker {
         while (true) {
             while (Tasks.Count < PoolSize) {
                 while (Tasks.Count == 0) await Task.Delay(10);
+                await Task.Delay(1000);
+                if (Tasks.Count >= PoolSize) break;
                 Log.Debug("[{0}] Not enough items in queue, awaiting entire queue of size {1}", GetType().Name, Tasks.Count);
                 var temp = new List<Task>();
                 while (Tasks.TryDequeue(out var task))
