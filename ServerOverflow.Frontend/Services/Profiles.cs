@@ -10,7 +10,7 @@ public class Profiles : BackgroundService {
     /// <summary>
     /// Runs the main service loop
     /// </summary>
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+    protected override async Task ExecuteAsync(CancellationToken token) {
         while (true) {
             try {
                 var profiles = await Profile.GetAll();
@@ -32,7 +32,7 @@ public class Profiles : BackgroundService {
                 Log.Error("Profile refresher thread crashed: {0}", e);
             }
             
-            await Task.Delay(3600000);
+            await Task.Delay(3600000, token);
         }
     }
 }
