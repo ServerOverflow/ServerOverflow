@@ -95,12 +95,13 @@ public abstract class AbstractWorker {
                 }
             }
 
-            for (var i = 0; i < PoolSize; i++)
+            for (var i = 0; i < _tasks.Length; i++)
                 _tasks[i] = Tasks.Dequeue();
 
             Log.Debug("[{0}] Pool of size {1} filled, awaiting efficiently", GetType().Name, _tasks.Length);
             while (true) {
                 var idx = Task.WaitAny(_tasks);
+                Log.Debug("[{0}] Task with index {1} finished", GetType().Name, idx);
                 if (Tasks.Count == 0) {
                     Log.Debug("[{0}] Queue was emptied, awaiting leftover tasks", GetType().Name);
                     await Task.WhenAll(_tasks);
