@@ -408,7 +408,7 @@ public class JoinResult {
     /// <summary>
     /// When was the result produced
     /// </summary>
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; }
         
     /// <summary>
     /// Encodes the description into HTML
