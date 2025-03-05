@@ -85,7 +85,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
             var requests = new List<WriteModel<Server>>();
             while (_requests.TryTake(out var request))
                 requests.Add(request);
-            if (requests.Count == 0)
+            if (requests.Count != 0)
                 await Database.Servers.BulkWriteAsync(requests);
             await Task.Delay(60000);
         }
