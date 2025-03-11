@@ -39,6 +39,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
     /// Creates a MongoDB cursor
     /// </summary>
     private void CreateCursor() {
+        Cleanup().GetAwaiter().GetResult();
         var builder = Builders<Server>.Filter;
         var filter = builder.Eq(x => x.JoinResult, null) 
             | builder.Lt(x => x.JoinResult!.Timestamp, 
@@ -107,6 +108,15 @@ public class OfflineWorker : AbstractWorker, IDisposable {
         return _cursor.Current
             .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
             .Select(Connect).ToList();
+    }
+
+    /// <summary>
+    /// Writes all changes to the database
+    /// </summary>
+    protected override async Task Cleanup() {
+        if (_requests.IsEmpty) return;
+        await Database.Servers.BulkWriteAsync(_requests);
+        _requests.Clear();
     }
 
     /// <summary>

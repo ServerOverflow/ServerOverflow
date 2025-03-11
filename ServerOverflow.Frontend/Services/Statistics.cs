@@ -44,6 +44,11 @@ public class Statistics : BackgroundService {
     private static readonly Gauge _cities = Metrics.CreateGauge("so_geo_cities", "Server distribution by cities", "country", "city");
     
     /// <summary>
+    /// Server join errors (dead, network, bug, remote)
+    /// </summary>
+    public static readonly Gauge _errors = Metrics.CreateGauge("so_bot_errors", "Servers per join error", "message", "type");
+    
+    /// <summary>
     /// Runs the main service loop
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken token) {

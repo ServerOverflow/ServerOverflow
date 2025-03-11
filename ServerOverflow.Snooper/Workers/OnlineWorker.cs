@@ -49,6 +49,7 @@ public class OnlineWorker : AbstractWorker, IDisposable {
     /// Creates a MongoDB cursor
     /// </summary>
     private void CreateCursor() {
+        Cleanup().GetAwaiter().GetResult();
         var builder = Builders<Server>.Filter;
         var filter = builder.Ne(x => x.JoinResult, null)
             & builder.Eq(x => x.JoinResult!.OnlineMode, true)
@@ -135,6 +136,15 @@ public class OnlineWorker : AbstractWorker, IDisposable {
             .ToList();
         _waitUntil = DateTime.UtcNow + TimeSpan.FromSeconds(20);
         return tasks;
+    }
+    
+    /// <summary>
+    /// Writes all changes to the database
+    /// </summary>
+    protected override async Task Cleanup() {
+        if (_requests.IsEmpty) return;
+        await Database.Servers.BulkWriteAsync(_requests);
+        _requests.Clear();
     }
 
     /// <summary>

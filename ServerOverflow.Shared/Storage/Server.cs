@@ -354,7 +354,7 @@ public class ServerListPing {
             return "<b>Failed to deserialize the chat component!</b>";
         }
     }
-}
+}   
 
 /// <summary>
 /// Join result

@@ -110,6 +110,11 @@ public abstract class AbstractWorker {
                 if (!Tasks.TryDequeue(out var task)) {
                     if (_freeSlots.Count + 1 == _tasks.Length) {
                         Log.Debug("[{0}] Every slot in pool was freed, waiting for tasks", GetType().Name);
+                        try {
+                            await Cleanup();
+                        } catch (Exception e) {
+                            Log.Error("Failed to clean up after finishing: {0}", e);
+                        }
                         while (Tasks.Count == 0) await Task.Delay(10);
                         _tasks[idx] = Task.CompletedTask;
                         continue;
