@@ -38,8 +38,16 @@ public class Invitation {
     /// </summary>
     /// <param name="code">Invitation code</param>
     /// <returns>Invitation, may be null</returns>
-    public static async Task<Invitation?> Get(string code)
+    public static async Task<Invitation?> GetByCode(string code)
         => await Database.Invitations.QueryFirst(x => x.Code == code);
+    
+    /// <summary>
+    /// Fetches an invitation by its identifier
+    /// </summary>
+    /// <param name="id">Object identifier</param>
+    /// <returns>Invitation, may be null</returns>
+    public static async Task<Invitation?> Get(string id)
+        => await Database.Invitations.QueryFirst(x => x.Id.ToString() == id);
 
     /// <summary>
     /// Fetches all invitations created
@@ -52,13 +60,17 @@ public class Invitation {
     /// Creates a new invitation code
     /// </summary>
     /// <param name="badge">Badge text</param>
+    /// <param name="code">Custom code</param>
     /// <param name="creator">Creator</param>
     /// <returns>Invitation</returns>
-    public static async Task<Invitation> Create(string badge, Account? creator = null) {
+    public static async Task<Invitation> Create(string badge, string? code = null, Account? creator = null) {
         var invitation = new Invitation {
             Creator = creator?.Id,
             BadgeText = badge
         };
+        
+        if (code != null)
+            invitation.Code = code;
 
         await Database.Invitations.InsertOneAsync(invitation);
         return invitation;

@@ -72,7 +72,7 @@ public class OnlineWorker : AbstractWorker, IDisposable {
         _profiles = Profile.GetAll().GetAwaiter().GetResult();
         _cursor = Database.Servers.FindSync(filter,
             new FindOptions<Server> {
-                Projection = projection, 
+                Projection = projection,
                 BatchSize = BatchSize
             });
     }

@@ -1,7 +1,9 @@
 using System.Net;
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using ServerOverflow.Shared.Converters;
 
 namespace ServerOverflow.Shared.Storage;
 
@@ -99,5 +101,26 @@ public class Exclusion {
         if (bitCount <= 0) return true;
         var mask = (byte)~(255 >> bitCount);
         return (addressBytes[byteCount] & mask) == (baseBytes[byteCount] & mask);
+    }
+    
+    /// <summary>
+    /// Counts the total number of IP addresses
+    /// </summary>
+    /// <returns>Total number of IPs</returns>
+    public long Count() {
+        long total = 0;
+
+        foreach (var range in Ranges) {
+            if (!range.Contains('/')) {
+                total += 1;
+            } else {
+                var parts = range.Split('/');
+                var subnet = int.Parse(parts[1]);
+                if (IPAddress.Parse(parts[0]).AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    total += 1L << (32 - subnet);
+            }
+        }
+
+        return total;
     }
 }

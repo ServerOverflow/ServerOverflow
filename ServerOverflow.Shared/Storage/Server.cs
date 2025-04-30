@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
 using MineProtocol;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using ServerOverflow.Shared.Converters;
 
 namespace ServerOverflow.Shared.Storage;
 
@@ -12,6 +14,7 @@ public class Server {
     /// <summary>
     /// Document's object identifier
     /// </summary>
+    [JsonConverter(typeof(ObjectIdJsonConverter))]
     [BsonId] public ObjectId Id { get; set; }
     
     /// <summary>

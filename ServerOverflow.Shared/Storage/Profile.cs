@@ -1,6 +1,8 @@
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using ServerOverflow.Shared.Converters;
 
 namespace ServerOverflow.Shared.Storage;
 
@@ -11,6 +13,7 @@ public class Profile {
     /// <summary>
     /// Document's object identifier
     /// </summary>
+    [JsonConverter(typeof(ObjectIdJsonConverter))]
     [BsonId] public ObjectId Id { get; set; }
 
     /// <summary>
@@ -22,6 +25,14 @@ public class Profile {
     /// Is the account still valid
     /// </summary>
     public bool Valid { get; set; }
+    
+    /// <summary>
+    /// Fetches a profile by its identifier
+    /// </summary>
+    /// <param name="id">Object identifier</param>
+    /// <returns>Profile, may be null</returns>
+    public static async Task<Profile?> Get(string id)
+        => await Database.Profiles.QueryFirst(x => x.Id.ToString() == id);
     
     /// <summary>
     /// Fetches all profiles

@@ -1,4 +1,6 @@
+using System.Net.Http.Json;
 using System.Text.Json;
+using MineProtocol.Schema;
 
 namespace MineProtocol.Authentication;
 
@@ -20,14 +22,15 @@ public static class OAuth2 {
     /// Requests device code for authentication
     /// </summary>
     /// <returns>Device code JSON as a string</returns>
-    public static async Task<string> DeviceCode() {
+    public static async Task<DeviceAuthResponse> DeviceCode() {
         var res = await _client.PostAsync(
             "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode",
             new FormUrlEncodedContent([
                 new KeyValuePair<string, string>("scope", "XboxLive.signin offline_access"),
                 new KeyValuePair<string, string>("client_id", _clientId)
             ]));
-        return await res.Content.ReadAsStringAsync();
+        var json = await res.Content.ReadFromJsonAsync<DeviceAuthResponse>();
+        return json!;
     }
     
     /// <summary>

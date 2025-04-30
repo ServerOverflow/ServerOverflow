@@ -39,11 +39,6 @@ public class Account {
     public List<Permission> Permissions { get; set; } = [];
     
     /// <summary>
-    /// User's unique API key
-    /// </summary>
-    public string ApiKey { get; set; } = Extensions.RandomString(32);
-    
-    /// <summary>
     /// Checks if the account has a permission
     /// </summary>
     /// <returns>True if user has permission</returns>
@@ -71,6 +66,14 @@ public class Account {
     /// </summary>
     /// <param name="id">Object identifier</param>
     /// <returns>Account, may be null</returns>
+    public static async Task<Account?> Get(ObjectId id)
+        => await Database.Accounts.QueryFirst(x => x.Id == id);
+    
+    /// <summary>
+    /// Fetches an account by its identifier
+    /// </summary>
+    /// <param name="id">Object identifier</param>
+    /// <returns>Account, may be null</returns>
     public static async Task<Account?> Get(string id)
         => await Database.Accounts.QueryFirst(x => x.Id.ToString() == id);
     
@@ -80,7 +83,7 @@ public class Account {
     /// <param name="username">Username</param>
     /// <returns>Account, may be null</returns>
     public static async Task<Account?> GetByName(string username)
-        => await Database.Accounts.QueryFirst(x => x.Username.ToLower() == username);
+        => await Database.Accounts.QueryFirst(x => x.Username.ToLower() == username.ToLower());
     
     /// <summary>
     /// Fetches an account by username and password

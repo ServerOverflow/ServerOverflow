@@ -10,11 +10,35 @@ namespace ServerOverflow.Shared.Storage;
 public static class Database {
     private static IMongoCollection<Invitation>? _invitations;
     private static IMongoCollection<Exclusion>? _exclusions;
+    private static IMongoCollection<LogEntry>? _auditLogs;
     private static IMongoCollection<Account>? _accounts;
     private static IMongoCollection<Profile>? _profiles;
+    private static IMongoCollection<ApiKey>? _apiKeys;
     private static IMongoCollection<Server>? _servers;
     private static IMongoCollection<Player>? _players;
     private static IMongoCollection<BadIP>? _badIPs;
+    
+    /// <summary>
+    /// API keys database collection
+    /// </summary>
+    public static IMongoCollection<LogEntry> AuditLog {
+        get {
+            if (_auditLogs == null)
+                throw new InvalidOperationException("Call Initialize first");
+            return _auditLogs;
+        }
+    }
+    
+    /// <summary>
+    /// API keys database collection
+    /// </summary>
+    public static IMongoCollection<ApiKey> ApiKeys {
+        get {
+            if (_apiKeys == null)
+                throw new InvalidOperationException("Call Initialize first");
+            return _apiKeys;
+        }
+    }
     
     /// <summary>
     /// Accounts database collection
@@ -108,10 +132,12 @@ public static class Database {
         var client = new MongoClient(uri);
         var database = client.GetDatabase("server-overflow");
         _invitations = database.GetCollection<Invitation>("invitations");
+        _exclusions = database.GetCollection<Exclusion>("exclusions");
+        _auditLogs = database.GetCollection<LogEntry>("audit_logs");
         _accounts = database.GetCollection<Account>("accounts");
         _profiles = database.GetCollection<Profile>("profiles");
+        _apiKeys = database.GetCollection<ApiKey>("api_keys");
         _players = database.GetCollection<Player>("players");
-        _exclusions = database.GetCollection<Exclusion>("exclusions");
         _servers = database.GetCollection<Server>("servers");
         _badIPs = database.GetCollection<BadIP>("bad_servers");
     }

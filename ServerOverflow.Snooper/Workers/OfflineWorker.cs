@@ -29,7 +29,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
 
     /// <summary>
     /// Starts the worker thread
-    /// </summary>
+    /// </summary> 
     public override void Start() {
         new Thread(async () => await WriteTask()).Start();
         base.Start();
