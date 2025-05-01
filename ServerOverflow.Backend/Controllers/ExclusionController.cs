@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using ServerOverflow.Backend.Models;
 using ServerOverflow.Shared;
@@ -188,17 +189,23 @@ public class ExclusionController : ControllerBase {
         if (model.CurrentPage < 1)
             model.CurrentPage = 1;
         
-        var doc = Query.Exclusions(model.Query!);
-        var find = Database.Exclusions.Find(doc);
-        model.TotalMatches = await find.CountAsync();
-        if (model.TotalMatches == 0) return NoContent();
+        try {
+            var doc = Query.Exclusion(model.Query!);
+            var find = Database.Exclusions.Find(doc);
+            model.TotalMatches = await find.CountAsync();
+            if (model.TotalMatches == 0) return NoContent();
             
-        model.TotalPages = (int)Math.Ceiling(model.TotalMatches / 50f);
-        if (model.CurrentPage > model.TotalPages)
-            model.CurrentPage = model.TotalPages;
+            model.TotalPages = (int)Math.Ceiling(model.TotalMatches / 50f);
+            if (model.CurrentPage > model.TotalPages)
+                model.CurrentPage = model.TotalPages;
         
-        using var cursor = await find.Skip(50 * (model.CurrentPage-1)).Limit(50).ToCursorAsync();
-        model.Items = []; model.Items.AddRange(cursor.ToList().Select(x => new ExclusionModel(x)));
-        return Ok(model);
+            using var cursor = await find.Skip(50 * (model.CurrentPage-1)).Limit(50).ToCursorAsync();
+            model.Items = []; model.Items.AddRange(cursor.ToList().Select(x => new ExclusionModel(x)));
+            return Ok(model);
+        } catch (Exception e) {
+            return ValidationProblem(
+                title: e.GetType().Name, 
+                detail: e.Message);
+        }
     }
 }

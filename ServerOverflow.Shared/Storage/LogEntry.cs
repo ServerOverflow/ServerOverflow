@@ -26,6 +26,11 @@ public class LogEntry {
     /// Additional data
     /// </summary>
     public Dictionary<string, string> Data { get; set; } = [];
+
+    /// <summary>
+    /// Short log entry description
+    /// </summary>
+    public string Description { get; set; } = "";
     
     /// <summary>
     /// Fetches an account by its identifier
@@ -47,6 +52,7 @@ public class LogEntry {
             Timestamp = DateTime.UtcNow
         };
 
+        logEntry.Description = logEntry.ToString();
         await Database.AuditLog.InsertOneAsync(logEntry);
         return logEntry;
     }
