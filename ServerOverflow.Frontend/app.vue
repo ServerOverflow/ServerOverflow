@@ -1,10 +1,12 @@
 <template>
-  <div>
-    Hello Nuxt Fonts!
-  </div>
+  <UApp>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </UApp>
 </template>
 
-<style scoped>
+<style>
 div {
   font-family: Comfortaa, sans-serif;
 }
