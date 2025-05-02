@@ -7,6 +7,9 @@ using ServerOverflow.Shared.Storage;
 
 namespace ServerOverflow.Backend.Controllers;
 
+/// <summary>
+/// Audit logs
+/// </summary>
 [ApiController]
 [Route("/api/audit")]
 public class AuditController : ControllerBase {
@@ -16,6 +19,7 @@ public class AuditController : ControllerBase {
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="404">Log entry with specified ID does not exist</response>
     /// <response code="200">Successfully retrieved log entry</response>
+    /// <param name="id">Log entry ID</param>
     [HttpGet] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 404)]
@@ -37,16 +41,19 @@ public class AuditController : ControllerBase {
         
         return Ok(target);
     }
-    
+
     /// <summary>
     /// Searches for audit log entries
     /// </summary>
     /// <response code="401">Invalid API key or cookie</response>
-    /// <response code="202">Zero results for specified query</response>
+    /// <response code="204">Zero results for specified query</response>
     /// <response code="200">Successfully retrieved log entries</response>
+    /// <param name="query">Query with operators</param>
+    /// <param name="page">Page number from 1</param>
+    /// <param name="startId">Log entry ID to start pagination from</param>
     [HttpPost] [Route("search")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
-    [ProducesResponseType(202)]
+    [ProducesResponseType(204)]
     [ProducesResponseType(typeof(PaginationModel<LogEntry>), 200)]
     public async Task<IActionResult> Search([FromQuery] string query = "", [FromQuery] int page = 1, [FromQuery] string? startId = null) {
         var account = await HttpContext.GetAccount();
@@ -66,8 +73,9 @@ public class AuditController : ControllerBase {
         try {
             var doc = Query.LogEntry(model.Query!);
             if (startId != null)
-                doc &= Builders<LogEntry>.Filter.Gt(x => x.Id, new ObjectId(startId));
-            var find = Database.AuditLog.Find(doc);
+                doc &= Builders<LogEntry>.Filter.Lte(x => x.Id, new ObjectId(startId));
+            var sort = Builders<LogEntry>.Sort.Descending(x => x.Id); 
+            var find = Database.AuditLog.Find(doc).Sort(sort);
             model.TotalMatches = await find.CountAsync();
             if (model.TotalMatches == 0) return NoContent();
             

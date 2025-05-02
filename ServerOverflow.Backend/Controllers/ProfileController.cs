@@ -9,6 +9,9 @@ using Profile = ServerOverflow.Shared.Storage.Profile;
 
 namespace ServerOverflow.Backend.Controllers;
 
+/// <summary>
+/// Minecraft profiles
+/// </summary>
 [ApiController]
 [Route("/api/profile")]
 public class ProfileController : ControllerBase {
@@ -19,18 +22,11 @@ public class ProfileController : ControllerBase {
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="404">Profile with specified ID does not exist</response>
     /// <response code="200">Successfully retrieved minecraft profile</response>
+    /// <param name="id">Profile ID</param>
     [HttpGet] [Route("{id}")]
-    [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 404)]
-    [ProducesResponseType(typeof(Profile), 200)]
+    [ProducesResponseType(typeof(ProfileModel), 200)]
     public async Task<IActionResult> Get(string id) {
-        var account = await HttpContext.GetAccount();
-        if (account == null)
-            return ValidationProblem(
-                title: "Invalid API key or cookie",
-                detail: "Failed to retrieve API key or account",
-                statusCode: 401);
-
         var target = await Profile.Get(id);
         if (target == null)
             return ValidationProblem(
@@ -49,6 +45,7 @@ public class ProfileController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Profile with specified ID does not exist</response>
     /// <response code="200">Successfully deleted minecraft profile</response>
+    /// <param name="id">Profile ID</param>
     [HttpDelete] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -95,7 +92,7 @@ public class ProfileController : ControllerBase {
     /// <response code="400">Account does not own minecraft</response>
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="404">Device code has expired or is not valid</response>
-    /// <response code="202">Polling is still in progress</response>
+    /// <response code="204">Polling is still in progress</response>
     /// <response code="200">Successfully added minecraft profile</response>
     [HttpGet] [Route("poll/{code}")]
     [ProducesResponseType(typeof(ValidationProblem), 400)]
@@ -144,21 +141,10 @@ public class ProfileController : ControllerBase {
     /// <summary>
     /// Lists all minecraft profiles
     /// </summary>
-    /// <response code="401">Invalid API key or cookie</response>
     /// <response code="200">Successfully retrieved all profiles</response>
     [HttpGet] [Route("list")]
-    [ProducesResponseType(typeof(ValidationProblem), 401)]
-    [ProducesResponseType(typeof(ValidationProblem), 403)]
     [ProducesResponseType(typeof(List<ProfileModel>), 200)]
     public async Task<IActionResult> List() {
-        var account = await HttpContext.GetAccount();
-        if (account == null)
-            return ValidationProblem(
-                title: "Invalid API key or cookie",
-                detail: "Failed to retrieve API key or account",
-                statusCode: 401);
-        
-        // TODO: maybe add pagination later on?
         var accounts = await Database.Profiles.QueryAll(x => true);
         return Ok(accounts.Select(x => new ProfileModel(x)).ToList());
     }

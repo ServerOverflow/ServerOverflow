@@ -1,3 +1,24 @@
 @import "tailwindcss";
+@import "@nuxt/ui";
 @plugin "@tailwindcss/typography";
 @plugin "daisyui";
+
+@layer base {
+    body {
+        @apply bg-base-100;
+    }
+}
+
+@layer components {
+    .prose {
+        @apply !max-w-none;
+    }
+
+    .prose a {
+        @apply !no-underline;
+    }
+
+    .prose a:not(h1 a):not(h2 a):not(h3 a):not(h4 a):not(h5 a):not(h6 a) {
+        @apply !link !link-primary !link-hover
+    }
+}

@@ -1,5 +1,5 @@
 <template>
-  <article class="prose prose-a:no-underline max-w-none">
+  <article class="prose">
     <ContentRenderer v-if="page" :value="page" />
     <div v-else>Failed to load FAQ page</div>
   </article>

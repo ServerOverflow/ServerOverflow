@@ -37,9 +37,9 @@ public static class AuthExtensions {
             var headerValue = auth.ToString();
             if (headerValue.StartsWith("Bearer ")) {
                 var value = headerValue[7..].Trim();
-                var key = await ApiKey.GetByValue(value);
+                var key = await ApiKey.GetByKey(value);
                 if (key != null) {
-                    var account = await Account.Get(key.Id);
+                    var account = await Account.Get(key.Owner);
                     if (account != null) {
                         // HACK: we just replace the account's permissions
                         account.Permissions = key.Permissions.Where(account.Permissions.Contains).ToList();

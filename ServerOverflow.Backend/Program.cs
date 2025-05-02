@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi.Models;
@@ -30,6 +31,14 @@ if (accounts == 0 && invites == 0) {
     Log.Warning("Use this code: {0}", invite.Code);
 }
 
+builder.Services.AddCors(options => {
+    options.AddPolicy("DevFrontendPolicy", policy => {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options => {
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
@@ -53,18 +62,38 @@ builder.Services.AddSwaggerGen(c => {
         new OpenApiSecurityScheme {
             Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "bearerAuth" }
         }, [] }});
+    c.CustomSchemaIds(type => {
+        if (type.IsGenericType) {
+            var name = type.GetGenericTypeDefinition().Name;
+            name = name[..name.IndexOf('`')];
+            var args = string.Join("", type.GetGenericArguments().Select(t => t.Name));
+            return $"{name}_{args}";
+        }
+
+        if (type == typeof(MineProtocol.Authentication.Profile))
+            return "MicrosoftProfile";
+        
+        if (type == typeof(ServerListPing.LegacyModInfo.ModClass))
+            return "LegacyMod";
+        
+        if (type == typeof(ServerListPing.ModernModInfo.ModClass))
+            return "ModernMod";
+
+        return type.Name;
+    });
+    c.IncludeXmlComments("ServerOverflow.Backend.xml");
 });
 
 var app = builder.Build();
-if (!app.Environment.IsDevelopment()) {
-    app.UseExceptionHandler("/error");
-    app.UseHsts();
-}
-
+#if DEBUG
+app.UseCors("DevFrontendPolicy");
+#endif
+app.UseExceptionHandler("/");
+app.UseHsts();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllers();
 app.MapMetrics();
 app.UseSwagger();
 app.UseSwaggerUI(c => {

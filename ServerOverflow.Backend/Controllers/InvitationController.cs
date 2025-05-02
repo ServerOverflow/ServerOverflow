@@ -6,6 +6,9 @@ using ServerOverflow.Shared.Storage;
 
 namespace ServerOverflow.Backend.Controllers;
 
+/// <summary>
+/// Invitation codes
+/// </summary>
 [ApiController]
 [Route("/api/invitation")]
 public class InvitationController : ControllerBase {
@@ -17,6 +20,7 @@ public class InvitationController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Invitation code with specified ID does not exist</response>
     /// <response code="200">Successfully retrieved invitation code</response>
+    /// <param name="id">Invitation ID</param>
     [HttpGet] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -30,7 +34,7 @@ public class InvitationController : ControllerBase {
                 detail: "Failed to retrieve API key or account",
                 statusCode: 401);
         
-        if (!account.HasPermission(Permission.SearchAccounts))
+        if (!account.HasPermission(Permission.Administrator))
             return ValidationProblem(
                 title: "Required permission was not granted", 
                 detail: "Retrieving invitation codes requires Administrator permission",
@@ -45,9 +49,9 @@ public class InvitationController : ControllerBase {
         
         return Ok(new InvitationModel(target));
     }
-    
+
     /// <summary>
-    /// Modifies an invitation codes
+    /// Modifies an invitation code
     /// </summary>
     /// <remarks>Administrator permission is required</remarks>
     /// <response code="400">Invitation code has already been taken</response>
@@ -55,6 +59,8 @@ public class InvitationController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Invitation code with specified ID does not exist</response>
     /// <response code="200">Successfully modified invitation code</response>
+    /// <param name="id">Invitation ID</param>
+    /// <param name="model">You can modify BadgeText, Used, Code</param>
     [HttpPost] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 400)]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
@@ -111,6 +117,7 @@ public class InvitationController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Invitation code with specified ID does not exist</response>
     /// <response code="200">Successfully deleted invitation code</response>
+    /// <param name="id">Invitation ID</param>
     [HttpDelete] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -149,6 +156,7 @@ public class InvitationController : ControllerBase {
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="403">User does not have required permission</response>
     /// <response code="200">Successfully created an invitation code</response>
+    /// <param name="model">You must specify BadgeText. Code is optional.</param>
     [HttpPost] [Route("create")]
     [ProducesResponseType(typeof(ValidationProblem), 400)]
     [ProducesResponseType(typeof(ValidationProblem), 401)]

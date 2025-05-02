@@ -8,6 +8,9 @@ using ServerOverflow.Shared.Storage;
 
 namespace ServerOverflow.Backend.Controllers;
 
+/// <summary>
+/// IP range exclusions
+/// </summary>
 [ApiController]
 [Route("/api/exclusion")]
 public class ExclusionController : ControllerBase {
@@ -18,6 +21,7 @@ public class ExclusionController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Exclusion with specified ID does not exist</response>
     /// <response code="200">Successfully retrieved exclusion</response>
+    /// <param name="id">Exclusion ID</param>
     [HttpGet] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -40,7 +44,7 @@ public class ExclusionController : ControllerBase {
         
         return Ok(new ExclusionModel(target));
     }
-    
+
     /// <summary>
     /// Modifies an exclusion
     /// </summary>
@@ -50,6 +54,8 @@ public class ExclusionController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Exclusion with specified ID does not exist</response>
     /// <response code="200">Successfully modified exclusion</response>
+    /// <param name="id">Exclusion ID</param>
+    /// <param name="model">You can modify Comment, Ranges</param>
     [HttpPost] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 400)]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
@@ -96,6 +102,7 @@ public class ExclusionController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Exclusion with specified ID does not exist</response>
     /// <response code="200">Successfully deleted exclusion</response>
+    /// <param name="id">Exclusion ID</param>
     [HttpDelete] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -126,7 +133,7 @@ public class ExclusionController : ControllerBase {
         await Database.Exclusions.Delete(x => x.Id.ToString() == id);
         return Ok();
     }
-    
+
     /// <summary>
     /// Creates a new exclusion
     /// </summary>
@@ -135,6 +142,7 @@ public class ExclusionController : ControllerBase {
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="403">User does not have required permission</response>
     /// <response code="200">Successfully created a new exclusion</response>
+    /// <param name="model">You must specify Comment, Ranges</param>
     [HttpPost] [Route("create")]
     [ProducesResponseType(typeof(ValidationProblem), 400)]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
@@ -168,11 +176,13 @@ public class ExclusionController : ControllerBase {
     /// Searches for an exclusion using query language
     /// </summary>
     /// <response code="401">Invalid API key or cookie</response>
-    /// <response code="202">Zero results for specified query</response>
+    /// <response code="204">Zero results for specified query</response>
     /// <response code="200">Successfully retrieved exclusions</response>
+    /// <param name="query">Query with operators</param>
+    /// <param name="page">Page number from 1</param>
     [HttpPost] [Route("search")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
-    [ProducesResponseType(202)]
+    [ProducesResponseType(204)]
     [ProducesResponseType(typeof(PaginationModel<ExclusionModel>), 200)]
     public async Task<IActionResult> Search([FromQuery] string query = "", [FromQuery] int page = 1) {
         var account = await HttpContext.GetAccount();

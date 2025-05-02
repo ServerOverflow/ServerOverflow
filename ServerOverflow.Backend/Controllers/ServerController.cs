@@ -9,6 +9,9 @@ using ServerOverflow.Shared.Storage;
 
 namespace ServerOverflow.Backend.Controllers;
 
+/// <summary>
+/// Minecraft servers
+/// </summary>
 [ApiController]
 [Route("/api/server")]
 public class ServerController : ControllerBase {
@@ -20,6 +23,7 @@ public class ServerController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Server with specified ID does not exist</response>
     /// <response code="200">Successfully retrieved server</response>
+    /// <param name="id">Server ID</param>
     [HttpGet] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -48,19 +52,34 @@ public class ServerController : ControllerBase {
         
         return Ok(target);
     }
-    
+
+    /// <summary>
+    /// Retrieves basic server statistics
+    /// </summary>
+    /// <response code="200">Successfully retrieved statistics</response>
+    [HttpGet] [Route("stats")]
+    [ProducesResponseType(typeof(StatisticsModel), 200)]
+    public IActionResult Statistics()
+        => Ok(new StatisticsModel {
+            NotConfiguredServers = (int)Services.Statistics.Servers.WithLabels("not_configured").Value,
+            OnlineServers = (int)Services.Statistics.Servers.WithLabels("online").Value,
+            TotalServers = (int)Services.Statistics.Servers.WithLabels("total").Value
+        });
+
     /// <summary>
     /// Searches for a server using query language
     /// </summary>
     /// <remarks>Search Servers permission is required</remarks>
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="403">User does not have required permission</response>
-    /// <response code="202">Zero results for specified query</response>
+    /// <response code="204">Zero results for specified query</response>
     /// <response code="200">Successfully retrieved servers</response>
+    /// <param name="query">Query with operators</param>
+    /// <param name="page">Page number from 1</param>
     [HttpPost] [Route("search")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
-    [ProducesResponseType(202)]
+    [ProducesResponseType(204)]
     [ProducesResponseType(typeof(PaginationModel<Server>), 200)]
     public async Task<IActionResult> Search([FromQuery] string query = "", [FromQuery] int page = 1) {
         var account = await HttpContext.GetAccount();

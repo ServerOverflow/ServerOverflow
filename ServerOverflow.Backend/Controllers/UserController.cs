@@ -9,17 +9,21 @@ using ServerOverflow.Shared.Storage;
 
 namespace ServerOverflow.Backend.Controllers;
 
+/// <summary>
+/// Users accounts
+/// </summary>
 [ApiController]
 [Route("/api/user")]
 public class UserController : ControllerBase {
     /// <summary>
-    /// Retrieves a users account info
+    /// Retrieves a users account
     /// </summary>
     /// <remarks>Search Accounts permission is required to retrieve info about other accounts</remarks>
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Account with specified ID does not exist</response>
     /// <response code="200">Successfully retrieved users account</response>
+    /// <param name="id">User ID</param>
     [HttpGet] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -59,6 +63,8 @@ public class UserController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Account with specified ID does not exist</response>
     /// <response code="200">Successfully modified users account</response>
+    /// <param name="id">User ID</param>
+    /// <param name="model">Supply either of Permissions, NewPassword, Username</param>
     [HttpPost] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 400)]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
@@ -122,6 +128,7 @@ public class UserController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Account with specified ID does not exist</response>
     /// <response code="200">Successfully deleted users account</response>
+    /// <param name="id">User ID</param>
     [HttpDelete] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]

@@ -50,7 +50,7 @@ public class ApiKey {
     /// </summary>
     /// <param name="key">API key</param>
     /// <returns>API key, may be null</returns>
-    public static async Task<ApiKey?> GetByValue(string key)
+    public static async Task<ApiKey?> GetByKey(string key)
         => await Database.ApiKeys.QueryFirst(x => x.Key == key);
     
     /// <summary>

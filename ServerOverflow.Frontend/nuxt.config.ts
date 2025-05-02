@@ -11,7 +11,6 @@ export default defineNuxtConfig({
     '@nuxt/content',
     '@nuxtjs/seo',
     '@nuxt/image',
-    '@pinia/nuxt',
     '@nuxt/fonts',
     '@nuxt/icon',
     '@nuxt/ui'
@@ -30,6 +29,11 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
       ]
+    }
+  },
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.API_BASE_URL || 'http://localhost:5000/api/'
     }
   }
 })

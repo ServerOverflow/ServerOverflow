@@ -1,5 +1,7 @@
+using System.Text.Json.Serialization;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using ServerOverflow.Shared.Converters;
 
 namespace ServerOverflow.Shared.Storage;
 
@@ -10,6 +12,7 @@ public class LogEntry {
     /// <summary>
     /// Log entry identifier
     /// </summary>
+    [JsonConverter(typeof(ObjectIdJsonConverter))]
     [BsonId] public ObjectId Id { get; set; }
     
     /// <summary>
@@ -63,9 +66,9 @@ public class LogEntry {
     /// <returns>Humanized log entry</returns>
     public override string ToString()
         => Action switch {
-            UserAction.CreatedApiKey => $"{Data["perpetrator_name"]} created an API key with permissions {Data["target_permissions"]}",
-            UserAction.UpdatedApiKey => $"{Data["perpetrator_name"]} updated an API key with permissions {Data["target_permissions"]}",
-            UserAction.DeletedApiKey => $"{Data["perpetrator_name"]} deleted an API key with permissions {Data["target_permissions"]}",
+            UserAction.CreatedApiKey => $"{Data["perpetrator_name"]} created an API key {(string.IsNullOrWhiteSpace(Data["target_permissions"]) ? "" : $"with permissions {Data["target_permissions"]} ")}",
+            UserAction.UpdatedApiKey => $"{Data["perpetrator_name"]} updated an API key {(string.IsNullOrWhiteSpace(Data["target_permissions"]) ? "" : $"with permissions {Data["target_permissions"]} ")}",
+            UserAction.DeletedApiKey => $"{Data["perpetrator_name"]} deleted an API key {(string.IsNullOrWhiteSpace(Data["target_permissions"]) ? "" : $"with permissions {Data["target_permissions"]} ")}",
             UserAction.CreatedInvitation => $"{Data["perpetrator_name"]} created an invitation code with badge name {Data["target_badge"]}",
             UserAction.UpdatedInvitation => $"{Data["perpetrator_name"]} updated an invitation code with badge name {Data["target_badge"]}",
             UserAction.DeletedInvitation => $"{Data["perpetrator_name"]} deleted an invitation code with badge name {Data["target_badge"]}",
@@ -78,7 +81,7 @@ public class LogEntry {
             UserAction.UpdatedAccount => $"{Data["perpetrator_name"]} updated account {Data["target_name"]} with {Data["target_badge"]} badge",
             UserAction.Registered => $"{Data["perpetrator_name"]} created a new account on ServerOverflow with {Data["perpetrator_badge"]} badge",
             UserAction.LoggedIn => $"{Data["perpetrator_name"]} with {Data["perpetrator_badge"]} badge logged into their ServerOverflow account",
-            UserAction.SearchedServers => $"{Data["perpetrator_name"]} searched for servers with query {Data["target_query"]} and got {Data["target_results"]} results",
+            UserAction.SearchedServers => $"{Data["perpetrator_name"]} searched for servers {(string.IsNullOrWhiteSpace(Data["target_query"]) ? "" : $"with query {Data["target_query"]} ")}and got {Data["target_results"]} results",
             _ => "Unknown user action? 🤔"
         };
 }

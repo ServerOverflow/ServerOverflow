@@ -6,6 +6,9 @@ using ServerOverflow.Shared.Storage;
 
 namespace ServerOverflow.Backend.Controllers;
 
+/// <summary>
+/// API keys
+/// </summary>
 [ApiController]
 [Route("/api/key")]
 public class ApiKeyController : ControllerBase {
@@ -17,6 +20,7 @@ public class ApiKeyController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">API key with specified ID does not exist</response>
     /// <response code="200">Successfully retrieved API key</response>
+    /// <param name="id">API key ID</param>
     [HttpGet] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -45,7 +49,7 @@ public class ApiKeyController : ControllerBase {
         
         return Ok(new ApiKeyModel(target));
     }
-    
+
     /// <summary>
     /// Modifies an API key
     /// </summary>
@@ -55,6 +59,8 @@ public class ApiKeyController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">API key with specified ID does not exist</response>
     /// <response code="200">Successfully modified API key</response>
+    /// <param name="id">API key ID</param>
+    /// <param name="model">You can modify Name, Permissions, ExpireAt</param>
     [HttpPost] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 400)]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
@@ -117,6 +123,7 @@ public class ApiKeyController : ControllerBase {
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">API key with specified ID does not exist</response>
     /// <response code="200">Successfully deleted API key</response>
+    /// <param name="id">API key ID</param>
     [HttpDelete] [Route("{id}")]
     [ProducesResponseType(typeof(ValidationProblem), 401)]
     [ProducesResponseType(typeof(ValidationProblem), 403)]
@@ -147,7 +154,7 @@ public class ApiKeyController : ControllerBase {
         await Database.ApiKeys.Delete(x => x.Id.ToString() == id);
         return Ok();
     }
-    
+
     /// <summary>
     /// Creates a new API key
     /// </summary>
@@ -156,6 +163,7 @@ public class ApiKeyController : ControllerBase {
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="403">User does not have required permission</response>
     /// <response code="200">Successfully created a new API key</response>
+    /// <param name="model">You must specify Name, Permissions, ExpireAt</param>
     [HttpPost] [Route("create")]
     [ProducesResponseType(typeof(ValidationProblem), 400)]
     [ProducesResponseType(typeof(ValidationProblem), 401)]

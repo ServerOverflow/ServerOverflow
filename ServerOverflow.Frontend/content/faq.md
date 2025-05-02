@@ -37,7 +37,7 @@ I can't guarantee how often you would get pinged. \
 Though, a bot should only join your server once.
 
 ## What bot accounts does ServerOverflow use?
-TODO: fill this in
+
 
 ## How do I contact you?
 You can DM me on discord, telegram, or email me over at `theairblow@gmail.com`

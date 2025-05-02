@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 using MaxMind.GeoIP2;
 using MineProtocol;
 using MongoDB.Driver;
@@ -14,49 +15,49 @@ namespace ServerOverflow.Backend.Services;
 /// </summary>
 public class Statistics : BackgroundService {
     /// <summary>
-    /// Servers gauge (total, chat_reporting, online_mode, whitelist, forge, custom, anti_ddos)
+    /// Servers gauge (total, online, not_configured, chat_reporting, online_mode, whitelist, forge, custom, anti_ddos)
     /// </summary>
-    private static readonly Gauge _servers = Metrics.CreateGauge("so_servers", "Servers found by the scanner", "type");
-    
+    public static readonly Gauge Servers = Metrics.CreateGauge("so_servers", "Servers found by the scanner", "type");
+
     /// <summary>
     /// Server software gauge
     /// </summary>
-    private static readonly Gauge _software = Metrics.CreateGauge("so_software", "Software brand popularity", "brand");
+    public static readonly Gauge Software = Metrics.CreateGauge("so_software", "Software brand popularity", "brand");
     
     /// <summary>
     /// Minecraft version gauge
     /// </summary>
-    private static readonly Gauge _versions = Metrics.CreateGauge("so_versions", "Minecraft versions popularity", "name");
+    public static readonly Gauge Versions = Metrics.CreateGauge("so_versions", "Minecraft versions popularity", "name");
     
     /// <summary>
     /// Forge mods gauge
     /// </summary>
-    private static readonly Gauge _forgeMods = Metrics.CreateGauge("so_forge_mods", "Forge mods popularity", "id");
+    public static readonly Gauge ForgeMods = Metrics.CreateGauge("so_forge_mods", "Forge mods popularity", "id");
     
     /// <summary>
     /// Server distribution by ASN gauge
     /// </summary>
-    private static readonly Gauge _asns = Metrics.CreateGauge("so_geo_asns", "Server distribution per country", "as", "company");
+    public static readonly Gauge ASNs = Metrics.CreateGauge("so_geo_asns", "Server distribution per country", "as", "company");
     
     /// <summary>
     /// Server distribution by cities gauge
     /// </summary>
-    private static readonly Gauge _cities = Metrics.CreateGauge("so_geo_cities", "Server distribution by cities", "country", "city");
+    public static readonly Gauge Cities = Metrics.CreateGauge("so_geo_cities", "Server distribution by cities", "country", "city");
     
     /// <summary>
     /// Server join errors (dead, network, bug, remote)
     /// </summary>
-    public static readonly Gauge _errors = Metrics.CreateGauge("so_bot_errors", "Servers per join error", "message", "type");
+    public static readonly Gauge Errors = Metrics.CreateGauge("so_bot_errors", "Servers per join error", "message", "type");
     
     /// <summary>
     /// Runs the main service loop
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken token) {
-        if (!File.Exists("GeoLite2-ASN.mmdb") || !File.Exists("GeoLite2-City.mmdb")) {
-            Log.Fatal("Failed to find GeoLite2 database files within the working directory");
-            Log.Fatal("Statistics processors WILL NOT RUN without them");
-            return;
-        }
+        var ass = Assembly.GetExecutingAssembly();
+        await using var cityStream = ass.GetManifestResourceStream("GeoLite2-City.mmdb");
+        await using var asnStream = ass.GetManifestResourceStream("GeoLite2-ASN.mmdb");
+        using var city = new DatabaseReader(cityStream!);
+        using var asn = new DatabaseReader(asnStream!);
         
         while (true) {
             var watch = new Stopwatch();
@@ -64,19 +65,26 @@ public class Statistics : BackgroundService {
             
             try {
                 var builder = Builders<Server>.Filter;
-                _servers.WithLabels("total").Set(
+                Servers.WithLabels("total").Set(
                     await Database.Servers.CountDocumentsAsync(builder.Empty, cancellationToken: token));
-                _servers.WithLabels("chat_reporting").Set(
+                Servers.WithLabels("online").Set(
+                    await Database.Servers.CountDocumentsAsync(
+                        builder.Gt(x => x.JoinResult!.LastSeen, DateTime.UtcNow - TimeSpan.FromDays(1)), 
+                        cancellationToken: token));
+                Servers.WithLabels("not_configured").Set(
+                    await Database.Servers.CountDocumentsAsync(
+                        builder.Eq(x => x.Ping.CleanDescription, "A Minecraft Server")
+                        & builder.Eq(x => x.Ping.Players!.Max, 20), 
+                        cancellationToken: token));
+                Servers.WithLabels("chat_reporting").Set(
                     await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.Ping.ChatReporting, true), cancellationToken: token));
-                _servers.WithLabels("online_mode").Set(
+                Servers.WithLabels("online_mode").Set(
                     await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.JoinResult!.OnlineMode, true), cancellationToken: token));
-                _servers.WithLabels("whitelist").Set(
+                Servers.WithLabels("whitelist").Set(
                     await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.JoinResult!.Whitelist, true), cancellationToken: token));
-                _servers.WithLabels("forge").Set(
+                Servers.WithLabels("forge").Set(
                     await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.Ping.IsForge, true), cancellationToken: token));
                 
-                using var city = new DatabaseReader("GeoLite2-City.mmdb");
-                using var asn = new DatabaseReader("GeoLite2-ASN.mmdb");
                 var cities = new Dictionary<(string, string), int>();
                 var asns = new Dictionary<(string, string), int>();
                 var forgeMods = new Dictionary<string, int>();
@@ -151,13 +159,13 @@ public class Statistics : BackgroundService {
                         }
                     }
                 
-                _servers.WithLabels("custom").Set(customSoftware);
-                _servers.WithLabels("anti_ddos").Set(antiDDoS);
-                foreach (var item in software) _software.WithLabels(item.Key).Set(item.Value);
-                foreach (var item in versions) _versions.WithLabels(item.Key).Set(item.Value);
-                foreach (var item in forgeMods) _forgeMods.WithLabels(item.Key).Set(item.Value);
-                foreach (var item in cities) _cities.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
-                foreach (var item in asns) _asns.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
+                Servers.WithLabels("custom").Set(customSoftware);
+                Servers.WithLabels("anti_ddos").Set(antiDDoS);
+                foreach (var item in software) Software.WithLabels(item.Key).Set(item.Value);
+                foreach (var item in versions) Versions.WithLabels(item.Key).Set(item.Value);
+                foreach (var item in forgeMods) ForgeMods.WithLabels(item.Key).Set(item.Value);
+                foreach (var item in cities) Cities.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
+                foreach (var item in asns) ASNs.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
             } catch (OperationCanceledException) {
                 break;
             } catch (Exception e) {
