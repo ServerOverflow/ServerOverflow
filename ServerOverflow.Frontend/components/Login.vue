@@ -1,5 +1,5 @@
 <template>
-  <dialog id="login" class="modal modal-bottom sm:modal-middle">
+  <dialog ref="dialog" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box">
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-5 top-5">
@@ -25,31 +25,34 @@
   </dialog>
 </template>
 
-<script>
-export default {
-  computed: {
-    user() {
-      return useState('user', () => null)
-    },
-    toast() {
-      return useToast()
-    }
-  },
-  methods: {
-    async submit(data, node) {
-      try {
-        const res = await this.$axios.post('/user/login', data);
-        this.user.value = res.data;
-        this.toast.add({
-          title: `Successfully logged in as ${res.data.username}`,
-          color: 'success'
-        });
-        login.close();
-      } catch (error) {
-        const res = error.response;
-        node.setErrors(res.data.detail)
-      }
-    }
+<script setup>
+const user = useState('user', () => null);
+const { $axios } = useNuxtApp();
+const toast = useToast();
+
+const dialog = useTemplateRef('dialog');
+
+async function submit(data, node) {
+  try {
+    const res = await $axios.post('/user/login', data);
+    user.value = res.data;
+    toast.add({
+      title: `Successfully logged in as ${res.data.username}`,
+      color: 'success'
+    });
+    close();
+  } catch (error) {
+    handleAxiosError(error, node);
   }
 }
+
+function close() {
+  if (dialog.value) dialog.value.close();
+}
+
+function open() {
+  if (dialog.value) dialog.value.showModal();
+}
+
+defineExpose({ open, close });
 </script>

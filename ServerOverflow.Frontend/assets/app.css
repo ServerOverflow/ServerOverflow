@@ -9,6 +9,30 @@
     }
 }
 
+@layer utilities {
+    @media (max-width: 64rem) {
+        .responsive-breaks br {
+            display: none;
+        }
+    }
+
+    .menu-active {
+        @apply !bg-base-300 !shadow-lg;
+    }
+
+    .icon-sm {
+        @apply !w-4 !h-4;
+    }
+
+    .icon-md {
+        @apply !w-5 !h-5;
+    }
+
+    .icon-xl {
+        @apply !w-10 !h-10;
+    }
+}
+
 @layer components {
     .prose {
         @apply !max-w-none;

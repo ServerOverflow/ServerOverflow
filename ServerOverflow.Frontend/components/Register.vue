@@ -1,5 +1,5 @@
 <template>
-  <dialog id="register" class="modal modal-bottom sm:modal-middle">
+  <dialog ref="dialog" class="modal modal-bottom sm:modal-middle">
     <div class="modal-box">
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-5 top-5">
@@ -28,35 +28,34 @@
   </dialog>
 </template>
 
-<script>
-export default {
-  computed: {
-    user() {
-      return useState('user', () => null)
-    },
-    toast() {
-      return useToast()
-    }
-  },
-  methods: {
-    async submit(data, node) {
-      try {
-        const res = await this.$axios.post('/user/register', data);
-        this.user.value = res.data;
-        this.toast.add({
-          title: `Successfully logged in as ${res.data.username}`,
-          color: 'success'
-        });
-        register.close();
-      } catch (error) {
-        const res = error.response;
-        if (res.data.title === 'Invalid invitation code')
-          node.setErrors({ inviteCode: res.data.detail })
-        else if (res.data.title === 'Invalid username specified')
-          node.setErrors({ username: res.data.detail })
-        else node.setErrors(res.data.detail)
-      }
-    }
+<script setup>
+const user = useState('user', () => null);
+const { $axios } = useNuxtApp();
+const toast = useToast();
+
+const dialog = useTemplateRef('dialog');
+
+async function submit(data, node) {
+  try {
+    const res = await $axios.post('/user/register', data);
+    user.value = res.data;
+    toast.add({
+      title: `Successfully logged in as ${res.data.username}`,
+      color: 'success'
+    });
+    close();
+  } catch (error) {
+    handleAxiosError(error, node);
   }
 }
+
+function close() {
+  if (dialog.value) dialog.value.close();
+}
+
+function open() {
+  if (dialog.value) dialog.value.showModal();
+}
+
+defineExpose({ open, close });
 </script>

@@ -1,43 +1,91 @@
-## What is ServerOverflow?
-This is a server scanner that collects various statistics, which are public to anyone visiting this website. \
-However, accessing our player, server and honeypot logs are only accessible by a small circle of close friends. \
-We don't grief innocent servers. We aren't like the fifth column. This is purely a passion project.
+::QuestionBox
+What is ServerOverflow?
 
-## How did you find my server?
-There is a limited amount of IPv4 addresses, and it's small enough to be scanned. \
+#content
+**It is a Minecraft server scanner that collects various statistics, which are public to anyone visiting this website.** \
+However, to prevent malicious people from abusing the collected data, only a few people have access to it. \
+We don't grief innocent servers. We aren't like the fifth column. This was made just for fun.
+::
+
+::QuestionBox
+How did you find my server?
+
+#content
+There is a limited amount of IPv4 addresses, and it's *small enough* to be scanned in a reasonable amount of time. \
 This allows us to ping and join almost every Minecraft server that exists on the Internet.
+::
 
-## How do I secure my server?
-I would suggest you to enable whitelist on your server, and in case you have online mode disabled:
-- First of all, I really hope you aren't here because you pirated Minecraft
-- If you have the ability to, enable online mode. Really obvious, but here we are xD
-- If you have the ability to install plugins, install [LoginSecurity](https://www.spigotmc.org/resources/loginsecurity.19362/)
-- If you're hosting a Forge server, install [Simple Login](https://www.curseforge.com/minecraft/mc-mods/simple-login/)
+::QuestionBox
+How do I protect my server from scanners?
 
-## Can I trust you?
-Maybe. If you want to trust me, sure. I can't really do much to change your opinion. \
+#content
+1. **Make sure you have online mode enabled.** This is a must for any public facing server. \
+If you really, really need it disabled, 
+use [LoginSecurity](https://www.spigotmc.org/resources/loginsecurity.19362/) or [Simple Login](https://www.curseforge.com/minecraft/mc-mods/simple-login/).
+2. **Disable query and RCON if you don't need it.** This will save you from a headache.
+3. **Optionally disable status**, if you don't mind your server looking offline in the server list.
+4. **Make sure that whitelist is enabled and is enforced** if you're hosting a private SMP.
+5. **Don't include any information that could identify you or your private SMP.** \
+This includes, but is not limited to Discord invites, links to your website, etc.
+::
+
+::QuestionBox
+Can you prove that you are trustworthy?
+
+#content
+**I simply can't.** If you want to trust me, sure. I can't really do much to change your opinion. \
 Through, for transparency, the entirety of ServerOverflow's infrastructure is open-source, which consists of:
 - [ServerOverflow](https://github.com/TheAirBlow/ServerOverflow): The website you're reading this off of right now
 - [matscan](https://github.com/TheAirBlow/matscan): Minecraft server scanner, originally written by [mat-1](https://matdoes.dev/)
 - [warnbot](https://github.com/TheAirBlow/warnbot): Bot that joins servers and warns about whitelist **(doesn't exist yet)**
+::
 
-## I don't want my server to be scanned!
-Contact me and give me a list of IP addresses to exclude.
+::QuestionBox
+How do I exclude my server from being scanned?
 
-## Why does registration require an invitation code?
-As I have mentioned before, I only let my close friends access player, server and honeypot logs. \
-Such a system was implemented to make sure random griefers can't abuse ServerOverflow.
+#content
+You can always contact me by sending me a DM at [Discord](https://discordlookup.com/user/777865084013510696), [Telegram](https://t.me/theairblow), or [emailing me](mailto:theairblow@gmail.com) at `theairblow@gmail.com` \
+Make sure to list out all IP addresses or ranges you want to be excluded.
+::
 
-## One of your bots griefed my server!
-That means you have offline mode enabled, which lets anyone impersonate us. \
-If someone griefs your server "using" one of our bot accounts, that's NOT us!
+::QuestionBox
+Why does registration require an invitation code?
 
-## How often should I expect pings and bots?
-I can't guarantee how often you would get pinged. \
-Though, a bot should only join your server once.
+#content
+I don't want ServerOverflow be a tool for malicious players to grief innocent servers. \
+Access is only given to some of my friends who I trust enough to give access to. \
+**No exceptions will ever be made, this is not up to debate.**
+::
 
-## What bot accounts does ServerOverflow use?
+::QuestionBox
+What if a player on one of your accounts griefed my server?
 
+#content
+You have most definitely fallen victim to disabled online mode. \
+In such a case, a malicious player can impersonate any of our bots. \
+Make sure it is enabled, and that a whitelist is put in place.
+::
 
-## How do I contact you?
-You can DM me on discord, telegram, or email me over at `theairblow@gmail.com`
+::QuestionBox
+How often should I expect pings and bots joining?
+
+#content
+Both pings and bot joining are performed daily. It is what it is, at least for now. \
+Though, you can always hit me up and have a discussion about it.
+::
+
+::QuestionBox
+What bot accounts does ServerOverflow use?
+
+#content
+Here's a list of all Minecraft accounts we're using:
+::ProfileList
+::
+::
+
+::QuestionBox
+How can I contact you?
+
+#content
+You can always contact me by sending me a DM at [Discord](https://discordlookup.com/user/777865084013510696), [Telegram](https://t.me/theairblow), or [emailing me](mailto:theairblow@gmail.com) at `theairblow@gmail.com`
+::
