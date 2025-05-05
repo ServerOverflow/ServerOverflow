@@ -46,3 +46,7 @@
         @apply !link !link-primary !link-hover
     }
 }
+
+obf {
+    font-family: monospace;
+}

@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col lg:flex-row max-w-420 lg:w-max gap-y-8 gap-x-16 lg:px-16">
-    <div class="w-full lg:w-auto bg-base-200 lg:bg-inherit overflow-x-auto">
-      <ul class="menu menu-lg menu-horizontal lg:menu-vertical gap-y-2 gap-x-1 flex w-max lg:w-80 lg:py-16">
+  <div class="flex flex-col xl:flex-row max-w-420 w-full mx-auto gap-y-8 gap-x-16 xl:px-16">
+    <div class="w-full xl:w-auto bg-base-300/50 backdrop-blur-md xl:bg-inherit overflow-x-auto sticky top-16 xl:h-full">
+      <ul class="menu lg:menu-lg menu-horizontal xl:menu-vertical gap-y-2 gap-x-1 flex w-max xl:w-80 xl:py-16">
         <li>
           <NuxtLink class="font-semibold gap-3" :class="{ 'menu-active': tab === 'accounts' }" to="/manage/accounts">
             <Icon name="fa6-solid:user" class="icon-md" />
@@ -28,7 +28,7 @@
         </li>
       </ul>
     </div>
-    <div class="flex-1 overflow-auto w-max pt-0 px-8 lg:px-0 lg:py-16">
+    <div class="flex-1 overflow-auto w-full pt-0 px-8 xl:px-0 xl:py-16">
       <ManageInvitations v-if="tab === 'invitations'" />
       <ManageExclusions v-if="tab === 'exclusions'" />
       <ManageAccounts v-if="tab === 'accounts'" />

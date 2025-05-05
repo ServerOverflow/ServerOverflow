@@ -1,167 +1,62 @@
 <template>
   <h2 class="text-2xl font-bold">Accounts</h2>
-  <p class="text">Listing of all users accounts on ServerOverflow</p>
-  <div class="divider"></div>
-  <div class="overflow-x-auto">
+  <p class="text mt-1">User accounts on ServerOverflow</p>
+  <div class="divider my-2"></div>
+  <div v-if="!accounts">
+    <div role="alert" class="alert alert-error alert-soft">
+      <span>Failed to fetch accounts from the backend!</span>
+    </div>
+  </div>
+  <div v-else>
     <table class="table">
-      <!-- head -->
       <thead>
       <tr>
-        <th>
-          <label>
-            <input type="checkbox" class="checkbox" />
-          </label>
-        </th>
-        <th>Name</th>
-        <th>Job</th>
-        <th>Favorite Color</th>
+        <th></th>
+        <th>Username</th>
+        <th class="hidden md:table-cell">Permissions</th>
+        <th>Invited by</th>
         <th></th>
       </tr>
       </thead>
       <tbody>
-      <!-- row 1 -->
-      <tr>
-        <th>
-          <label>
-            <input type="checkbox" class="checkbox" />
-          </label>
-        </th>
+      <tr class="whitespace-nowrap" v-for="account in accounts">
         <td>
-          <div class="flex items-center gap-3">
-            <div class="avatar">
-              <div class="mask mask-squircle h-12 w-12">
-                <img
-                    src="https://img.daisyui.com/images/profile/demo/2@94.webp"
-                    alt="Avatar Tailwind CSS Component" />
-              </div>
-            </div>
-            <div>
-              <div class="font-bold">Hart Hagerty</div>
-              <div class="text-sm opacity-50">United States</div>
+          <div class="avatar">
+            <div class="mask mask-squircle h-12 w-12">
+              <NuxtImg src="/img/user.png"/>
             </div>
           </div>
         </td>
         <td>
-          Zemlak, Daniel and Leannon
-          <br />
-          <span class="badge badge-ghost badge-sm">Desktop Support Technician</span>
-        </td>
-        <td>Purple</td>
-        <th>
-          <button class="btn btn-ghost btn-xs">details</button>
-        </th>
-      </tr>
-      <!-- row 2 -->
-      <tr>
-        <th>
-          <label>
-            <input type="checkbox" class="checkbox" />
-          </label>
-        </th>
-        <td>
           <div class="flex items-center gap-3">
-            <div class="avatar">
-              <div class="mask mask-squircle h-12 w-12">
-                <img
-                    src="https://img.daisyui.com/images/profile/demo/3@94.webp"
-                    alt="Avatar Tailwind CSS Component" />
-              </div>
-            </div>
             <div>
-              <div class="font-bold">Brice Swyre</div>
-              <div class="text-sm opacity-50">China</div>
+              <div class="font-bold">{{ account.username }}</div>
+              <div class="badge badge-primary badge-xs">{{ account.badgeText }}</div>
             </div>
           </div>
         </td>
-        <td>
-          Carroll Group
-          <br />
-          <span class="badge badge-ghost badge-sm">Tax Accountant</span>
+        <td class="hidden md:table-cell truncate">
+          {{ replace(account.permissions.join(", "), 'None') }}
         </td>
-        <td>Red</td>
-        <th>
-          <button class="btn btn-ghost btn-xs">details</button>
-        </th>
-      </tr>
-      <!-- row 3 -->
-      <tr>
-        <th>
-          <label>
-            <input type="checkbox" class="checkbox" />
-          </label>
-        </th>
-        <td>
-          <div class="flex items-center gap-3">
-            <div class="avatar">
-              <div class="mask mask-squircle h-12 w-12">
-                <img
-                    src="https://img.daisyui.com/images/profile/demo/4@94.webp"
-                    alt="Avatar Tailwind CSS Component" />
-              </div>
-            </div>
-            <div>
-              <div class="font-bold">Marjy Ferencz</div>
-              <div class="text-sm opacity-50">Russia</div>
-            </div>
-          </div>
+        <td class="truncate">
+          <a class="link link-hover link-primary" @click="notImplemented">
+            <obf v-if="account.inviteeUsername === null">God himself</obf>
+            <span v-else>{{ account.inviteeUsername }}</span>
+          </a>
         </td>
-        <td>
-          Rowe-Schoen
-          <br />
-          <span class="badge badge-ghost badge-sm">Office Assistant I</span>
-        </td>
-        <td>Crimson</td>
-        <th>
-          <button class="btn btn-ghost btn-xs">details</button>
-        </th>
-      </tr>
-      <!-- row 4 -->
-      <tr>
-        <th>
-          <label>
-            <input type="checkbox" class="checkbox" />
-          </label>
-        </th>
-        <td>
-          <div class="flex items-center gap-3">
-            <div class="avatar">
-              <div class="mask mask-squircle h-12 w-12">
-                <img
-                    src="https://img.daisyui.com/images/profile/demo/5@94.webp"
-                    alt="Avatar Tailwind CSS Component" />
-              </div>
-            </div>
-            <div>
-              <div class="font-bold">Yancy Tear</div>
-              <div class="text-sm opacity-50">Brazil</div>
-            </div>
-          </div>
-        </td>
-        <td>
-          Wyman-Ledner
-          <br />
-          <span class="badge badge-ghost badge-sm">Community Outreach Specialist</span>
-        </td>
-        <td>Indigo</td>
-        <th>
-          <button class="btn btn-ghost btn-xs">details</button>
+        <th class="w-full text-right">
+          <button class="btn btn-sm btn-primary btn-outline" @click="notImplemented">Edit</button>
+          <button class="btn btn-sm btn-error btn-outline ml-2 hidden sm:inline-block" @click="notImplemented">Delete</button>
         </th>
       </tr>
       </tbody>
-      <!-- foot -->
-      <tfoot>
-      <tr>
-        <th></th>
-        <th>Name</th>
-        <th>Job</th>
-        <th>Favorite Color</th>
-        <th></th>
-      </tr>
-      </tfoot>
     </table>
   </div>
 </template>
 
 <script setup>
+const headers = useRequestHeaders(['cookie'])
+const config = useRuntimeConfig()
 
+const { data: accounts } = await useFetch(`${config.public.apiBase}user/list`, { headers, credentials: 'include' })
 </script>

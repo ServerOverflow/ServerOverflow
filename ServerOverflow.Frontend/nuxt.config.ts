@@ -35,5 +35,10 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.API_BASE_URL || 'http://localhost:5000/api/'
     }
+  },
+  vue: {
+    compilerOptions: {
+      isCustomElement: tag => ['obf'].includes(tag)
+    }
   }
 })
