@@ -20,6 +20,10 @@
         @apply !bg-base-300 !shadow-lg;
     }
 
+    .icon-xs {
+        @apply !w-3 !h-3;
+    }
+
     .icon-sm {
         @apply !w-4 !h-4;
     }
@@ -45,8 +49,4 @@
     .prose a:not(h1 a):not(h2 a):not(h3 a):not(h4 a):not(h5 a):not(h6 a) {
         @apply !link !link-primary !link-hover
     }
-}
-
-obf {
-    font-family: monospace;
 }

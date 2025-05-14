@@ -6,18 +6,11 @@
           <Icon name="fa6-solid:xmark" size="2em"></Icon>
         </button>
       </form>
-      <h3 class="text-lg font-bold">Log into your account</h3>
+      <h3 class="text-lg font-bold">Edit an invitation</h3>
       <div class="divider divider-start m-0 mb-2"/>
-
-      <FormKit type="form" submit-label="Login" :actions="false" @submit="submit">
-        <FormKit type="text" name="username" label="Username" validation="required">
-          <template #prefixIcon><Icon name="fa6-solid:user" class="mr-2"/></template>
-        </FormKit>
-        <FormKit type="password" name="password" label="Password" validation="required">
-          <template #prefixIcon><Icon name="fa6-solid:key" class="mr-2"/></template>
-        </FormKit>
-        <FormKit type="submit" label="Login" class="w-full" />
-      </FormKit>
+      <div class="overflow-y-auto flex-1 pr-4 -mr-4">
+        <InvitationForm :submit="submit" submit-label="Save changes" :invitation="invitation"/>
+      </div>
     </div>
     <form method="dialog" class="modal-backdrop">
       <button>close</button>
@@ -26,21 +19,27 @@
 </template>
 
 <script setup>
-const user = useState('user', () => null);
+const props = defineProps({
+  update: Function
+});
+
 const { $axios } = useNuxtApp();
 const toast = useToast();
 
 const dialog = useTemplateRef('dialog');
+const invitation = ref({});
 
 async function submit(data, node) {
   try {
-    const res = await $axios.post('/user/login', data);
-    user.value = res.data;
+    await $axios.post(`/invitation/${invitation.value.id}`, data);
     toast.add({
-      title: `Successfully logged in as ${res.data.username}`,
+      title: `Successfully modified an invitation`,
       color: 'success'
     });
     close();
+    const result = props.update();
+    if (result instanceof Promise)
+      await result;
   } catch (error) {
     handleAxiosError(error, node);
   }
@@ -50,8 +49,9 @@ function close() {
   if (dialog.value) dialog.value.close();
 }
 
-function open() {
+function open(value) {
   if (dialog.value) dialog.value.showModal();
+  invitation.value = Object.assign({}, value);
 }
 
 defineExpose({ open, close });

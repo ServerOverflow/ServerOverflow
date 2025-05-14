@@ -1,6 +1,6 @@
 <template>
   <dialog ref="dialog" class="modal modal-bottom sm:modal-middle">
-    <div class="modal-box">
+    <div class="modal-box flex flex-col">
       <form method="dialog">
         <button class="btn btn-sm btn-circle btn-ghost absolute right-5 top-5">
           <Icon name="fa6-solid:xmark" size="2em"></Icon>

@@ -7,6 +7,11 @@ namespace ServerOverflow.Backend.Models;
 /// </summary>
 public class ProfileModel {
     /// <summary>
+    /// Profile identifier
+    /// </summary>
+    public string? Id { get; set; }
+    
+    /// <summary>
     /// Username of the account
     /// </summary>
     public string? Username { get; set; }
@@ -33,6 +38,7 @@ public class ProfileModel {
     public ProfileModel(Profile profile) {
         Username = profile.Instance.Username;
         UUID = profile.Instance.UUID;
+        Id = profile.Id.ToString();
         Valid = profile.Valid;
     }
 }

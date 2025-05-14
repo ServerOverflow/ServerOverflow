@@ -15,7 +15,7 @@ export default function (error, instance) {
     const res = error.response;
     if (res) {
         if (res.data.title === 'Invalid invitation code')
-            showNotification(instance, res.data.detail, "inviteCode");
+            showNotification(instance, res.data.detail, "code");
         else if (res.data.title === 'Invalid username specified')
             showNotification(instance, res.data.detail, "username");
         else showNotification(instance, res.data.detail, null);

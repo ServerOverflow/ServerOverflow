@@ -1,9 +1,9 @@
 <template>
   <nav class="navbar bg-base-300/50 backdrop-blur-md sticky z-100 top-0 p-0 px-5">
     <div class="flex-1">
-      <a class="inline-block text-xl align-middle mr-2">
-        <NuxtImg src="/img/title.webp" class="max-h-7" :modifiers="{ animated: true }" />
-      </a>
+      <NuxtLink to="/" class="inline-block text-xl align-middle mr-2">
+        <NuxtImg src="/img/title.webp" class="max-h-7" :modifiers="{ animated: true }" width="260" height="28"/>
+      </NuxtLink>
       <ul class="menu menu-horizontal items-center px-1 space-x-1 hidden lg:inline-flex">
         <li>
           <NuxtLink to="/" :class="{ 'menu-active': route.path === '/' } ">Home</NuxtLink>
@@ -17,8 +17,8 @@
         <li v-if="user">
           <NuxtLink to="/manage" :class="{ 'menu-active': route.path === '/manage' } ">Manage</NuxtLink>
         </li>
-        <li v-if="user">
-          <NuxtLink to="/wip" :class="{ 'menu-active': route.path === '/servers' } ">Servers</NuxtLink>
+        <li v-if="user && hasPermission('SearchServers')">
+          <NuxtLink to="/servers" :class="{ 'menu-active': route.path === '/servers' } ">Servers</NuxtLink>
         </li>
       </ul>
     </div>
@@ -68,8 +68,8 @@
               Manage <Icon name="fa6-solid:screwdriver-wrench" class="ml-auto icon-sm"/>
             </NuxtLink>
           </li>
-          <li v-if="user">
-            <NuxtLink to="/wip">
+          <li v-if="user && hasPermission('SearchServers')">
+            <NuxtLink to="/servers">
               Servers <Icon name="fa6-solid:server" class="ml-auto icon-sm"/>
             </NuxtLink>
           </li>
@@ -77,12 +77,12 @@
             <div class="divider divider-start m-0"></div>
           </li>
           <li v-if="!user">
-            <button @click="register.open()">
+            <button @click="register.open">
               Register <Icon name="fa6-solid:plus" class="ml-auto icon-sm"/>
             </button>
           </li>
           <li v-if="!user">
-            <button @click="login.open()">
+            <button @click="login.open">
               Login <Icon name="fa6-solid:arrow-right-to-bracket" class="ml-auto icon-sm"/>
             </button>
           </li>

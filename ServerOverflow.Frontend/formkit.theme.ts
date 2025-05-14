@@ -67,8 +67,6 @@ const classes: Record<string, Record<string, boolean>> = {
     "items-center": true,
     "mb-1.5": true,
     "text-sm": true,
-    "ring-offset-2": true,
-    "ring-blue-500": true,
     "focus-visible:ring-2": true,
     "group-data-[disabled]:!cursor-not-allowed": true,
     "shadow": true,

@@ -57,7 +57,10 @@ public class UserController : ControllerBase {
     /// <summary>
     /// Modifies a users account
     /// </summary>
-    /// <remarks>Administrator permission is required to modify other users or to modify granted permissions</remarks>
+    /// <remarks>
+    /// Modify accounts permission is required to modify other users.<br/>
+    /// Administrator permission is required to modify administrators.
+    /// </remarks>
     /// <response code="400">Username has already been taken</response>
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="403">User does not have required permission</response>
@@ -80,10 +83,10 @@ public class UserController : ControllerBase {
                 statusCode: 401);
         
         if (id == "me") id = account.Id.ToString();
-        if (id != account.Id.ToString() && !account.HasPermission(Permission.Administrator))
+        if (id != account.Id.ToString() && !account.HasPermission(Permission.ModifyAccounts))
             return ValidationProblem(
                 title: "Required permission was not granted", 
-                detail: "Modifying other users accounts requires Administrator permission",
+                detail: "Modifying other users accounts requires Modify Accounts permission",
                 statusCode: 403);
         
         var target = await Account.Get(id);
@@ -93,21 +96,33 @@ public class UserController : ControllerBase {
                 detail: "Account with specified ID does not exist",
                 statusCode: 404);
 
+        if (id != account.Id.ToString()
+            && target.HasPermission(Permission.Administrator) 
+            && !account.HasPermission(Permission.Administrator))
+            return ValidationProblem(
+                title: "Required permission was not granted", 
+                detail: "Modifying administrators requires Administrator permission",
+                statusCode: 403);
+        
+        if (model.BadgeText != null)
+            target.BadgeText = model.BadgeText;
+        
         if (model.NewPassword != null)
             target.Password = model.NewPassword.GetHash();
 
         if (model.Permissions != null) {
-            if (!account.HasPermission(Permission.Administrator))
+            if (!model.Permissions.All(account.HasPermission) && !account.HasPermission(Permission.Administrator))
                 return ValidationProblem(
                     title: "Required permission was not granted", 
-                    detail: "Modifying granted permissions requires Administrator permission",
+                    detail: "You can only grant less or equal permissions than yourself",
                     statusCode: 403);
             
             target.Permissions = model.Permissions;
         }
         
         if (model.Username != null) {
-            if (await Account.GetByName(model.Username) != null)
+            var conflict = await Account.GetByName(model.Username);
+            if (conflict != null && conflict.Id != target.Id)
                 return ValidationProblem(
                     title: "Invalid username specified",
                     detail: "This username has already been taken");
@@ -123,7 +138,10 @@ public class UserController : ControllerBase {
     /// <summary>
     /// Deletes a users account
     /// </summary>
-    /// <remarks>Administrator permission is required</remarks>
+    /// <remarks>
+    /// Modify accounts permission is required to delete other users.<br/>
+    /// Administrator permission is required to delete administrators.
+    /// </remarks>
     /// <response code="401">Invalid API key or cookie</response>
     /// <response code="403">User does not have required permission</response>
     /// <response code="404">Account with specified ID does not exist</response>
@@ -142,10 +160,10 @@ public class UserController : ControllerBase {
                 detail: "Failed to retrieve API key or account",
                 statusCode: 401);
         
-        if (!account.HasPermission(Permission.Administrator))
+        if (id != account.Id.ToString() && !account.HasPermission(Permission.ModifyAccounts))
             return ValidationProblem(
                 title: "Required permission was not granted", 
-                detail: "Deleting users account requires Administrator permission",
+                detail: "Deleting users account requires Modify Accounts permission",
                 statusCode: 403);
 
         var target = await Account.Get(id);
@@ -154,6 +172,14 @@ public class UserController : ControllerBase {
                 title: "Failed to retrieve user account", 
                 detail: "Account with specified ID does not exist",
                 statusCode: 404);
+        
+        if (id != account.Id.ToString()
+            && target.HasPermission(Permission.Administrator) 
+            && !account.HasPermission(Permission.Administrator))
+            return ValidationProblem(
+                title: "Required permission was not granted", 
+                detail: "Deleting administrators requires Administrator permission",
+                statusCode: 403);
 
         await Database.Accounts.Delete(x => x.Id.ToString() == id);
         await Audit.DeletedAccount(account, target);

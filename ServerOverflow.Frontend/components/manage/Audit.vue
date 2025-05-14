@@ -1,7 +1,7 @@
 <template>
   <span ref="scrollTarget"></span>
-  <h2 class="text-2xl font-bold">Exclusions</h2>
-  <p class="text mt-1">IP range and individual address exclusions</p>
+  <h2 class="text-2xl font-bold">Audit logs</h2>
+  <p class="text mt-1">Logs of every action performed on ServerOverflow</p>
   <div class="divider my-2"></div>
   <div class="join w-full">
     <label class="join-item input !outline-none mb-2 w-full">
@@ -14,70 +14,68 @@
     </button>
   </div>
   <div class="mb-2 flex flex-row text-xs">
-    <span>
-      Found {{ exclusions?.totalMatches || 0 }} exclusions ({{ formattedLatency }})
-    </span>
+      <span>
+        Found {{ logs?.totalMatches || 0 }} log entries ({{ formattedLatency }})
+      </span>
     <button class="flex-1 justify-end flex flex-row select-none items-center link link-hover" @click="queryDocs.open()">
       <Icon name="fa6-solid:circle-question" class="icon-xs" />
       <span class="opacity-80 ml-1">How do I use operators?</span>
     </button>
   </div>
-  <div v-if="!exclusions">
+  <div v-if="!logs">
     <div v-if="error" class="alert alert-error alert-soft">
-      <span>Failed to fetch exclusions from the backend</span>
+      <span>Failed to fetch log entries from the backend</span>
     </div>
     <div v-if="!error" class="alert alert-error alert-soft">
       <span>No results were found for your query</span>
     </div>
-    <button v-if="!error" class="btn btn-accent btn-outline mt-2" @click="createDialog.open">
-      Create new exclusion
-      <Icon name="fa6-solid:plus"/>
-    </button>
   </div>
   <div v-else>
-    <Pagination :data="exclusions" :open-page="openPage"/>
-    <table class="table">
-      <thead>
-      <tr>
-        <th>#</th>
-        <th>Ranges</th>
-        <th class="hidden sm:table-cell">Comment</th>
-        <th class="w-full text-right">
-          <button class="btn btn-sm btn-accent btn-outline w-19" @click="createDialog.open">
-            New <Icon name="fa6-solid:plus"/>
-          </button>
-        </th>
-      </tr>
-      </thead>
+    <Pagination :data="logs" :open-page="openPage"/>
+    <div v-for="entry in logs.items" class="border-b [&:nth-last-child(2)]:border-b-0 border-[color-mix(in_oklch,var(--color-base-content)_5%,#0000)]">
+      <div tabindex="0" class="collapse collapse-arrow">
+        <div class="collapse-title font-semibold flex flex-row flex-stretch items-center gap-2 p-0">
+          <Icon :name="iconMap[entry.action]" class="icon-md"/>
+          <div class="flex-1">
+            {{ entry.description }}
+          </div>
+        </div>
+        <div class="collapse-content text-sm">
+          <ul class="prose">
+            <li class="!my-0">
+              <code>action: {{ entry.action }}</code>
+            </li>
+            <li class="!my-0">
+              <code>timestamp: {{ entry.timestamp }}</code>
+            </li>
+            <li v-for="(value, key) in entry.data" class="!my-0">
+              <code>{{ key }}: {{ value }}</code>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <!--<table class="table">
       <tbody>
-      <tr class="whitespace-nowrap" v-for="(exclusion, index) in exclusions.items">
-        <td>
-          {{ (exclusions.currentPage - 1) * 50 + index + 1 }}
+      <tr v-for="entry in logs.items">
+        <td class="w-1">
+          <Icon :name="iconMap[entry.action]" class="icon-md"/>
         </td>
-        <td>
-          {{ exclusion.ranges.length }} total
+        <td class="w-max">
+          {{ entry.description }}
         </td>
-        <td class="hidden sm:table-cell max-w-70 md:max-w-100 xl:max-w-110 overflow-x-clip whitespace-nowrap text-ellipsis">
-          {{ truncate(exclusion.comment) }}
-        </td>
-        <th class="w-full text-right">
+        <th class="text-right">
           <div class="join">
-            <button class="join-item btn btn-sm btn-primary btn-outline" @click="editDialog.open(exclusion)">
-              <Icon name="fa6-solid:pencil" class="icon-xs"/>
-            </button>
-            <button class="join-item btn btn-sm btn-error btn-outline" @click="deleteDialog.open(exclusion)">
-              <Icon name="fa6-solid:trash" class="icon-xs"/>
+            <button class="join-item btn btn-sm btn-primary btn-outline" @click="notImplemented">
+              <Icon name="fa6-solid:list" class="icon-xs"/>
             </button>
           </div>
         </th>
       </tr>
       </tbody>
-    </table>
-    <Pagination :data="exclusions" :open-page="openPage" :scroll-to="scrollTarget"/>
+    </table>-->
+    <Pagination :data="logs" :open-page="openPage" :scroll-to="scrollTarget" class="mt-2"/>
   </div>
-  <ExclusionCreate ref="createDialog" :update="update"/>
-  <ExclusionDelete ref="deleteDialog" :update="update"/>
-  <ExclusionEdit ref="editDialog" :update="update"/>
   <QueryDocs ref="queryDocs"/>
 </template>
 
@@ -88,19 +86,18 @@ const route = useRoute();
 const toast = useToast();
 
 const scrollTarget = useTemplateRef('scrollTarget');
-const createDialog = useTemplateRef('createDialog');
-const deleteDialog = useTemplateRef('deleteDialog');
-const editDialog = useTemplateRef('editDialog');
 const queryDocs = useTemplateRef('queryDocs');
+const startId = ref(route.query.start);
 const lastQuery = ref(route.query.query);
 const query = ref(route.query.query);
 const fetching = ref(false);
 
 const start = performance.now();
-const { data: exclusions, error: error } = await useAuthFetch(`/exclusion/search`, {
+const { data: logs, error: error } = await useAuthFetch(`/audit/search`, {
   method: 'POST',
   query: {
     page: route.query.page || '1',
+    startId: startId.value,
     query: query.value
   }
 })
@@ -119,12 +116,32 @@ const formattedLatency = computed(() => {
   }
 })
 
+const iconMap = {
+  'CreatedApiKey': 'fa6-solid:key',
+  'UpdatedApiKey': 'fa6-solid:key',
+  'DeletedApiKey': 'fa6-solid:trash-can',
+  'CreatedInvitation': 'fa6-solid:ticket',
+  'UpdatedInvitation': 'fa6-solid:ticket',
+  'DeletedInvitation': 'fa6-solid:trash-can',
+  'CreatedExclusion': 'fa6-solid:list',
+  'UpdatedExclusion': 'fa6-solid:list',
+  'DeletedExclusion': 'fa6-solid:trash-can',
+  'CreatedProfile': 'fa6-solid:robot',
+  'DeletedProfile': 'fa6-solid:trash-can',
+  'DeletedAccount': 'fa6-solid:trash-can',
+  'UpdatedAccount': 'fa6-solid:user',
+  'Registered': 'fa6-solid:plus',
+  'LoggedIn': 'fa6-solid:right-to-bracket',
+  'SearchedServers': 'fa6-solid:magnifying-glass'
+};
+
 async function updateRoute(page) {
   await router.push({
     path: route.path,
     query: {
       page: page || route.query.page,
-      query: query.value === '' ? null : query.value
+      query: query.value === '' ? null : query.value,
+      startId: startId.value
     }
   });
 }
@@ -135,19 +152,23 @@ async function update() {
     let page = route.query.page || '1';
     if (lastQuery.value !== query.value) {
       lastQuery.value = query.value;
+      startId.value = null;
       page = '1';
     }
 
     const start = performance.now();
-    const response = await $axios.post('/exclusion/search', null, {
+    const response = await $axios.post('/audit/search', null, {
       params: {
         page: page,
+        startId: startId.value,
         query: query.value
       }
     });
 
     latency.value = performance.now() - start;
-    exclusions.value = response.data;
+    if (!startId.value)
+      startId.value = response.data.items[0].id;
+    logs.value = response.data;
     fetching.value = false;
     error.value = null;
     await updateRoute(response.data.currentPage);
@@ -161,9 +182,5 @@ async function update() {
 async function openPage(page) {
   await updateRoute(page);
   await update();
-}
-
-function truncate(str) {
-  return str.split("\n")[0];
 }
 </script>

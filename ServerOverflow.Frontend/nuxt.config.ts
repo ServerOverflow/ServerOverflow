@@ -40,5 +40,11 @@ export default defineNuxtConfig({
     compilerOptions: {
       isCustomElement: tag => ['obf'].includes(tag)
     }
+  },
+  nitro: {
+    routeRules: {
+      "/img/**": { headers: { 'cache-control': `public,max-age=3600` } },
+      "/_nuxt/**": { headers: { 'cache-control': `public,max-age=3600` } },
+    }
   }
 })

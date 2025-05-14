@@ -21,10 +21,13 @@ public static class Query {
         => Generate<LogEntry>(query, (op, reversed, content) => {
             switch (op) {
                 case "action": {
-                    if (!int.TryParse(content, out var value))
-                        if (!Enum.TryParse(content, out value))
+                    if (!int.TryParse(content, out var value)) {
+                        if (!Enum.TryParse<UserAction>(content, out var actionVal))
                             throw new SyntaxErrorException(
                                 "Operator value must be an integer or UserAction enum string");
+                        value = (int)actionVal;
+                    }
+                    
                     var action = (UserAction)value;
                     return reversed
                         ? Builders<LogEntry>.Filter.Ne(x => x.Action, action)

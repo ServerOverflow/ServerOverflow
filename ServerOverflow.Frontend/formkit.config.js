@@ -1,8 +1,16 @@
-import { defineFormKitConfig } from '@formkit/vue'
+import { defaultConfig } from '@formkit/vue'
+import { createThemePlugin } from '@formkit/themes'
 import { rootClasses } from './formkit.theme.ts'
+import { genesisIcons } from '@formkit/icons'
 
-export default defineFormKitConfig({
+export default defaultConfig({
     config: {
         rootClasses
+    },
+    plugins: [
+        createThemePlugin()
+    ],
+    icons: {
+        ...genesisIcons
     }
 })

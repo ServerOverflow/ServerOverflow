@@ -27,6 +27,11 @@ public class InvitationModel {
     public string? Creator { get; set; }
     
     /// <summary>
+    /// Creator username
+    /// </summary>
+    public string? CreatorUsername { get; set; }
+    
+    /// <summary>
     /// Was the invitation code used
     /// </summary>
     public bool? Used { get; set; }
@@ -46,5 +51,7 @@ public class InvitationModel {
         BadgeText = invite.BadgeText;
         Creator = invite.Creator.ToString();
         Used = invite.Used;
+        if (invite.Creator != null)
+            CreatorUsername = Account.Get(invite.Creator.Value).GetAwaiter().GetResult()?.Username ?? "[Deleted Account]";
     }
 }

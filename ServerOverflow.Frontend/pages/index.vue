@@ -64,8 +64,7 @@
 </template>
 
 <script setup>
-const config = useRuntimeConfig()
-const { data } = await useFetch(`${config.public.apiBase}server/stats`)
+const { data } = await useAuthFetch(`/server/stats`)
 const stats = data.value || {};
 
 function formatNumber(number) {

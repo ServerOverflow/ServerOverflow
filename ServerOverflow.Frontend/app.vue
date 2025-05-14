@@ -6,19 +6,11 @@
   </UApp>
 </template>
 
-<style>
-div {
-  font-family: Comfortaa, sans-serif;
-}
-</style>
-
 <script setup>
-const headers = useRequestHeaders(['cookie'])
 const user = useState('user', () => null)
-const config = useRuntimeConfig()
 
 if (import.meta.server) {
-  const { data } = await useFetch(`${config.public.apiBase}user/me`, { headers, credentials: 'include' });
+  const { data } = await useAuthFetch(`/user/me`);
   user.value = data.value
 }
 
@@ -39,3 +31,13 @@ onMounted(() => {
   }, 50);
 })
 </script>
+
+<style>
+div {
+  font-family: Comfortaa, sans-serif;
+}
+
+obf {
+  font-family: monospace;
+}
+</style>

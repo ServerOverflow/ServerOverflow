@@ -205,11 +205,11 @@ public class ExclusionController : ControllerBase {
             model.TotalMatches = await find.CountAsync();
             if (model.TotalMatches == 0) return NoContent();
             
-            model.TotalPages = (int)Math.Ceiling(model.TotalMatches / 50f);
+            model.TotalPages = (int)Math.Ceiling(model.TotalMatches / 25f);
             if (model.CurrentPage > model.TotalPages)
                 model.CurrentPage = model.TotalPages;
         
-            using var cursor = await find.Skip(50 * (model.CurrentPage-1)).Limit(50).ToCursorAsync();
+            using var cursor = await find.Skip(25 * (model.CurrentPage-1)).Limit(25).ToCursorAsync();
             model.Items = []; model.Items.AddRange(cursor.ToList().Select(x => new ExclusionModel(x)));
             return Ok(model);
         } catch (Exception e) {

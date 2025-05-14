@@ -5,6 +5,7 @@
       "name": "nuxt-app",
       "dependencies": {
         "@formkit/i18n": "^1.6.9",
+        "@formkit/icons": "^1.6.9",
         "@formkit/nuxt": "^1.6.9",
         "@formkit/themes": "^1.6.9",
         "@formkit/vue": "^1.6.9",
@@ -18,6 +19,7 @@
         "@nuxtjs/seo": "^3.0.3",
         "@tailwindcss/vite": "^4.1.5",
         "axios": "^1.9.0",
+        "defu": "^6.1.4",
         "nuxt": "^3.17.1",
         "tailwindcss": "^4.1.5",
         "vue": "^3.5.13",
@@ -174,6 +176,8 @@
     "@formkit/dev": ["@formkit/dev@1.6.9", "", { "dependencies": { "@formkit/core": "1.6.9", "@formkit/utils": "1.6.9" } }, "sha512-4ueBpZAOiKr8/LZnq3mNePCX4ZB1j1JuJscBEwugWMnDeDwCNo5XWBrng1ER/LlitTRQ3mtEBNy2Qpm0yAHlwA=="],
 
     "@formkit/i18n": ["@formkit/i18n@1.6.9", "", { "dependencies": { "@formkit/core": "1.6.9", "@formkit/utils": "1.6.9", "@formkit/validation": "1.6.9" } }, "sha512-8NA5bALlspCBEwInuZVgBqgQr0lDfproZdmbs2LciQpGi2B15u74JCjAkEwaKlMs+qgf/ds3QcIgUv2ztyyVEA=="],
+
+    "@formkit/icons": ["@formkit/icons@1.6.9", "", { "dependencies": { "@formkit/core": "1.6.9" } }, "sha512-Fg54j0ArCGNdE1EbwarEhOBj04WlFdF9wafRiwOueqDM9/aUy4j8T2W/4eu8Wk8sNZ1nmrcQ5qUNFIb6MT27aQ=="],
 
     "@formkit/inputs": ["@formkit/inputs@1.6.9", "", { "dependencies": { "@formkit/core": "1.6.9", "@formkit/utils": "1.6.9" } }, "sha512-k9gjV1e5F87NxSnu13JtKb30XYt6ndx2KGHZG8Xz0etoP75yJlMaeROHHPvlxdy2gZM6qH7Ex4it51W74Wh2Eg=="],
 

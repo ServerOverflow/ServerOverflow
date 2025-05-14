@@ -30,6 +30,11 @@ public class UserModel {
     public string? Invitee { get; set; }
 
     /// <summary>
+    /// Invitee username
+    /// </summary>
+    public string? InviteeUsername { get; set; }
+    
+    /// <summary>
     /// A list of user permissions
     /// </summary>
     public List<Permission>? Permissions { get; set; }
@@ -49,5 +54,7 @@ public class UserModel {
         Username = account.Username;
         Invitee = account.Invitee.ToString();
         Id = account.Id.ToString();
+        if (account.Invitee != null)
+            InviteeUsername = Account.Get(account.Invitee.Value).GetAwaiter().GetResult()?.Username ?? "[Deleted Account]";
     }
 }

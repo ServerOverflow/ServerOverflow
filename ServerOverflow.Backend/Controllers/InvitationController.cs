@@ -95,7 +95,8 @@ public class InvitationController : ControllerBase {
             target.Used = model.Used.Value;
         
         if (model.Code != null) {
-            if (await Invitation.GetByCode(model.Code) != null)
+            var conflict = await Invitation.GetByCode(model.Code);
+            if (conflict != null && conflict.Id != target.Id)
                 return ValidationProblem(
                     title: "Invalid invitation code", 
                     detail: "This invitation code has already been taken",

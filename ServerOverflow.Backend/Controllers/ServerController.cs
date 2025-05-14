@@ -52,7 +52,37 @@ public class ServerController : ControllerBase {
         
         return Ok(target);
     }
+    
+    /// <summary>
+    /// Retrieves a server's favicon
+    /// </summary>
+    /// <response code="200">Successfully retrieved the favicon</response>
+    /// <response code="302">Failed to decode favicon or unknown server</response>
+    /// <param name="id">Server ID</param>
+    [HttpGet] [Route("{id}.png")]
+    public async Task<IActionResult> Favicon(string id) {
+        var server = await Server.Get(id);
+        if (server == null)
+            return Redirect("/img/default.png");
+        var enc = server.Ping.Favicon;
+        if (enc == null || string.IsNullOrWhiteSpace(enc) || !enc.StartsWith("data:image"))
+            return Redirect("/img/default.png");
+        
+        var parts = enc.Split(',');
+        if (parts.Length != 2) 
+            return Redirect("/img/default.png");
 
+        var type = parts[0].Split(':')[1].Split(';')[0];
+        var base64 = parts[1];
+
+        try {
+            var imageBytes = Convert.FromBase64String(base64);
+            return File(imageBytes, type);
+        } catch (FormatException) {
+            return Redirect("/img/default.png");
+        }
+    }
+    
     /// <summary>
     /// Retrieves basic server statistics
     /// </summary>
@@ -126,4 +156,6 @@ public class ServerController : ControllerBase {
                 detail: e.Message);
         }
     }
+    
+    
 }
