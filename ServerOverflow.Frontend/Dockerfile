@@ -13,5 +13,6 @@ WORKDIR /app
 COPY --from=build /src/.output/ /app/
 ENV NITRO_PORT 3000
 ENV NITRO_HOST 0.0.0.0
+ENV API_BASE_URL /api/
 EXPOSE 3000
 CMD ["bun", "/app/server/index.mjs"]
