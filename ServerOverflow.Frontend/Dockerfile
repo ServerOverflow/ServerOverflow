@@ -4,8 +4,9 @@ RUN apk --no-cache add openssh g++ make python3 git
 
 FROM base AS build
 WORKDIR /src
-COPY . .
+COPY package.json bun.lock ./
 RUN bun install
+COPY . .
 RUN bun run build
 
 FROM base AS runner
