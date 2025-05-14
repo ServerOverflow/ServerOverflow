@@ -21,7 +21,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHostedService<Profiles>();
 builder.Services.AddHostedService<Statistics>();
 builder.Configuration.AddEnvironmentVariables();
-Console.WriteLine(builder.Configuration["MONGO_URI"]);
 Database.Initialize(
     builder.Configuration["MONGO_URI"]
     ?? "mongodb://127.0.0.1:27017?maxPoolSize=5000");
