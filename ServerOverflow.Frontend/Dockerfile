@@ -1,10 +1,14 @@
-FROM oven/bun:1 AS build
+FROM --platform=linux/amd64 oven/bun:1-alpine AS base
+WORKDIR /usr/src/app
+RUN apk --no-cache add openssh g++ make python3 git
+
+FROM base AS build
 WORKDIR /src
 COPY . .
 RUN bun install
 RUN bun run build
 
-FROM oven/bun:1 AS runner
+FROM base AS runner
 WORKDIR /app
 COPY --from=build /src/.output/ /app/
 ENV NITRO_PORT 3000
