@@ -20,8 +20,11 @@ Metrics.SuppressDefaultMetrics();
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHostedService<Profiles>();
 builder.Services.AddHostedService<Statistics>();
-builder.Configuration.AddJsonFile("config.json", optional: true);
-Database.Initialize(builder.Configuration["mongo-uri"] ?? "mongodb://127.0.0.1:27017?maxPoolSize=5000");
+builder.Configuration.AddEnvironmentVariables();
+Console.WriteLine(builder.Configuration["MONGO_URI"]);
+Database.Initialize(
+    builder.Configuration["MONGO_URI"]
+    ?? "mongodb://127.0.0.1:27017?maxPoolSize=5000");
 
 var accounts = await Database.Accounts.EstimatedCount();
 var invites = await Database.Invitations.EstimatedCount();

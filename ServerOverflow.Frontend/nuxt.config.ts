@@ -42,9 +42,11 @@ export default defineNuxtConfig({
     }
   },
   nitro: {
+    preset: 'bun',
+    serveStatic: true,
     routeRules: {
       "/img/**": { headers: { 'cache-control': `public,max-age=3600` } },
       "/_nuxt/**": { headers: { 'cache-control': `public,max-age=3600` } },
-    }
+    },
   }
 })

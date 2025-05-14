@@ -1,0 +1,35 @@
+services:
+  backend:
+    profiles:
+      - main
+    restart: unless-stopped
+    build:
+      dockerfile: ./ServerOverflow.Backend/Dockerfile
+    environment:
+      MONGO_URI: ${MONGO_URI:-mongodb://172.17.0.1:27017?maxPoolSize=5000}
+    volumes:
+      - "./vol/stats.json:/app/stats.json:rw"
+  frontend:
+    profiles:
+      - main
+    restart: unless-stopped
+    build:
+      context: ./ServerOverflow.Frontend/
+      dockerfile: Dockerfile
+  nginx:
+    profiles:
+      - main
+    restart: unless-stopped
+    build:
+      context: ./nginx/
+      dockerfile: Dockerfile
+    ports:
+      - "9000:80"
+  snooper:
+    profiles:
+      - snooper
+    restart: unless-stopped
+    build:
+      dockerfile: ./ServerOverflow.Snooper/Dockerfile
+    environment:
+      MONGO_URI: ${MONGO_URI:-mongodb://172.17.0.1:27017?maxPoolSize=5000}
