@@ -32,8 +32,9 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
+    apiBase: process.env.API_BASE || 'http://localhost:5000/api/',
     public: {
-      apiBase: process.env.API_BASE_URL || 'http://localhost:5000/api/'
+      apiBase: process.env.BROWSER_API_BASE || 'http://localhost:5000/api/'
     }
   },
   vue: {
