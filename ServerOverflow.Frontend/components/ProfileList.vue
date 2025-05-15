@@ -1,12 +1,14 @@
 <template>
   <ul>
-    <li v-for="profile in profiles">
+    <li v-if="profiles" v-for="profile in profiles">
       <a :href="'https://namemc.com/profile/'+profile.uuid">{{ profile.username }}</a>
+    </li>
+    <li v-else>
+      Failed to load the list of profiles, please bug TheAirBlow
     </li>
   </ul>
 </template>
 
 <script setup>
-const { data } = await useAuthFetch(`/profile/list`)
-const profiles = data.value || [];
+const { data: profiles } = await useAuthFetch(`/profile/list`, { server: true })
 </script>
