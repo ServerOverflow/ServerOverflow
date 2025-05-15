@@ -49,5 +49,13 @@ export default defineNuxtConfig({
       "/img/**": { headers: { 'cache-control': `public,max-age=3600` } },
       "/_nuxt/**": { headers: { 'cache-control': `public,max-age=3600` } },
     },
-  }
+  },
+  icon: {
+    clientBundle: {
+      scan: {
+        globInclude: ['components/**/*.vue', 'pages/**/*.vue', 'layouts/**/*.vue'],
+        globExclude: ['node_modules', '.nuxt', '.output'],
+      },
+    },
+  },
 })

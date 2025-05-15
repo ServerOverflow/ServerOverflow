@@ -64,8 +64,7 @@
 </template>
 
 <script setup>
-const { data } = await useAuthFetch(`/server/stats`)
-const stats = data.value || {};
+const { data: stats } = await useAuthFetch(`/server/stats`);
 
 function formatNumber(number) {
   if (number === undefined) return '[error]';
