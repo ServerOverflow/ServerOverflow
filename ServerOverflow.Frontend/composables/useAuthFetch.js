@@ -6,6 +6,7 @@ export default function (url, options = {}) {
   const baseURL = import.meta.server ? config.apiBase : config.public.apiBase;
   return useFetch(url, defu(options, {
     credentials: 'include',
-    headers, baseURL
+    headers, baseURL,
+    key: url
   }))
 }
