@@ -64,14 +64,10 @@
 </template>
 
 <script setup>
-const { data: stats, error } = await useAuthFetch(`/server/stats`);
+const { data: stats } = await useAuthFetch(`/server/stats`, { server: true });
 
 function formatNumber(number) {
-  if (number === undefined) {
-    console.log(stats, error);
-    return '[error]';
-  }
-
+  if (number === undefined) return '[error]';
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 </script>
