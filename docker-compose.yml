@@ -6,7 +6,7 @@ services:
     build:
       dockerfile: ./ServerOverflow.Backend/Dockerfile
     environment:
-      MONGO_URI: ${MONGO_URI:-mongodb://172.17.0.1:27017?maxPoolSize=5000}
+      MONGO_URI: ${MONGO_URI}
     volumes:
       - "./vol/stats.json:/app/stats.json:rw"
   frontend:
@@ -32,4 +32,7 @@ services:
     build:
       dockerfile: ./ServerOverflow.Snooper/Dockerfile
     environment:
-      MONGO_URI: ${MONGO_URI:-mongodb://172.17.0.1:27017?maxPoolSize=5000}
+      MONGO_URI: ${MONGO_URI}
+      PROXY_URL: ${PROXY_URL}
+      PROXY_USERNAME: ${PROXY_USERNAME}
+      PROXY_PASSWORD: ${PROXY_PASSWORD}

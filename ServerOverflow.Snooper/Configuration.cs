@@ -1,6 +1,3 @@
-using System.Text.Json;
-using Serilog;
-
 namespace ServerOverflow.Snooper; 
 
 /// <summary>
@@ -8,64 +5,22 @@ namespace ServerOverflow.Snooper;
 /// </summary>
 public class Configuration {
     /// <summary>
-    /// JSON serializer options
-    /// </summary>
-    public static readonly JsonSerializerOptions Options = new() {
-        WriteIndented = true, IncludeFields = true
-    };
-    
-    /// <summary>
-    /// Static object instance
-    /// </summary>
-    public static readonly Configuration Config;
-
-    /// <summary>
-    /// Load the configuration
-    /// </summary>
-    static Configuration() {
-        if (File.Exists("config.json")) {
-            Log.Information("Loading configuration file...");
-            var content = File.ReadAllText("config.json");
-            try {
-                Config = JsonSerializer.Deserialize<Configuration>(content, Options)!;
-            } catch (Exception e) {
-                Log.Fatal("Failed to load config: {0}", e);
-                Environment.Exit(-1);
-            }
-            
-            Config.Save();
-            return;
-        }
-
-        Config = new Configuration(); Config.Save();
-        Log.Fatal("Configuration file doesn't exist, created a new one!");
-        Log.Fatal("Please fill it with all the necessary information.");
-        Environment.Exit(-1);
-    }
-    
-    /// <summary>
     /// MongoDB connection URI
     /// </summary>
-    public string MongoUri { get; set; } = "mongodb://127.0.0.1:27017?maxPoolSize=5000";
+    public static string MongoUri { get; set; } = Environment.GetEnvironmentVariable("MONGO_URI") ?? "mongodb://127.0.0.1:27017?maxPoolSize=5000";
     
     /// <summary>
     /// Residential proxy URL
     /// </summary>
-    public string ProxyUrl { get; set; } = "edit_me";
+    public static string ProxyUrl { get; set; } = Environment.GetEnvironmentVariable("PROXY_URL") ?? "edit_me";
     
     /// <summary>
     /// Residential proxy username
     /// </summary>
-    public string ProxyUsername { get; set; } = "edit_me";
+    public static string ProxyUsername { get; set; } = Environment.GetEnvironmentVariable("PROXY_USERNAME") ?? "edit_me";
         
     /// <summary>
     /// Residential proxy password
     /// </summary>
-    public string ProxyPassword { get; set; } = "edit_me";
-
-    /// <summary>
-    /// Save configuration changes
-    /// </summary>
-    public void Save() => File.WriteAllText("config.json", 
-        JsonSerializer.Serialize(Config, Options));
+    public static string ProxyPassword { get; set; } = Environment.GetEnvironmentVariable("PROXY_PASSWORD") ?? "edit_me";
 }

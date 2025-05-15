@@ -6,4 +6,5 @@ RUN dotnet publish "ServerOverflow.Snooper/ServerOverflow.Snooper.csproj" -c Rel
 FROM mcr.microsoft.com/dotnet/runtime:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /app /app
+EXPOSE 8008
 CMD ["dotnet", "ServerOverflow.Snooper.dll"]

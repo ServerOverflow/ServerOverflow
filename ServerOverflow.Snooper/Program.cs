@@ -5,8 +5,8 @@ using Serilog;
 using Serilog.Events;
 using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
+using ServerOverflow.Snooper;
 using ServerOverflow.Snooper.Workers;
-using static ServerOverflow.Snooper.Configuration;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
@@ -17,9 +17,9 @@ Log.Logger = new LoggerConfiguration()
 
 Log.Information("Starting ServerOverflow Snooper");
 Metrics.SuppressDefaultMetrics();
-Database.Initialize(Config.MongoUri);
-MinecraftBot.JoinProxy = new WebProxy(Config.ProxyUrl)
-    { Credentials = new NetworkCredential(Config.ProxyUsername, Config.ProxyPassword) };
+Database.Initialize(Configuration.MongoUri);
+MinecraftBot.JoinProxy = new WebProxy(Configuration.ProxyUrl)
+    { Credentials = new NetworkCredential(Configuration.ProxyUsername, Configuration.ProxyPassword) };
 
 Log.Information("Starting background services");
 new OfflineWorker().Start();
