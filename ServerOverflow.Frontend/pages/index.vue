@@ -21,7 +21,7 @@
                 <Icon name="fa6-solid:server" class="icon-xl"/>
               </div>
               <div class="stat-title">Total servers</div>
-              <div class="stat-value text-primary">{{ formatNumber(stats.totalServers) }}</div>
+              <div class="stat-value text-primary">{{ formatNumber(stats?.totalServers) }}</div>
               <div class="stat-desc">Seen at least once</div>
             </div>
 
@@ -30,7 +30,7 @@
                 <Icon name="fa6-solid:power-off" class="icon-xl"/>
               </div>
               <div class="stat-title">Online servers</div>
-              <div class="stat-value text-secondary">{{ formatNumber(stats.onlineServers) }}</div>
+              <div class="stat-value text-secondary">{{ formatNumber(stats?.onlineServers) }}</div>
               <div class="stat-desc">Last seen in 24 hours</div>
             </div>
 
@@ -39,7 +39,7 @@
                 <Icon name="fa6-solid:wrench" class="icon-xl"/>
               </div>
               <div class="stat-title">Unconfigured servers</div>
-              <div class="stat-value text-accent">{{ formatNumber(stats.notConfiguredServers) }}</div>
+              <div class="stat-value text-accent">{{ formatNumber(stats?.notConfiguredServers) }}</div>
               <div class="stat-desc">With default configuration</div>
             </div>
           </div>
@@ -64,10 +64,14 @@
 </template>
 
 <script setup>
-const { data: stats } = await useAuthFetch(`/server/stats`);
+const { data: stats, error } = await useAuthFetch(`/server/stats`);
 
 function formatNumber(number) {
-  if (number === undefined) return '[error]';
+  if (number === undefined) {
+    console.log(stats, error);
+    return '[error]';
+  }
+
   return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 </script>
