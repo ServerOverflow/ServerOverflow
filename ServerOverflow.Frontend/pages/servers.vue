@@ -44,6 +44,7 @@
                       class="w-full h-full object-contain"
                       :src="`${config.public.apiBase}server/${server.id}.png`"
                       placeholder="/img/default.png"
+                      provider="none"
                       alt="Favicon"
                   />
                 </div>
