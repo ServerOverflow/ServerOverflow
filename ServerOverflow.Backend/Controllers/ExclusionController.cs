@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -200,6 +201,7 @@ public class ExclusionController : ControllerBase {
             model.CurrentPage = 1;
         
         try {
+            var watch = new Stopwatch(); watch.Start();
             var doc = Query.Exclusion(model.Query!);
             var find = Database.Exclusions.Find(doc);
             model.TotalMatches = await find.CountAsync();
@@ -211,6 +213,7 @@ public class ExclusionController : ControllerBase {
         
             using var cursor = await find.Skip(25 * (model.CurrentPage-1)).Limit(25).ToCursorAsync();
             model.Items = []; model.Items.AddRange(cursor.ToList().Select(x => new ExclusionModel(x)));
+            watch.Stop(); model.Milliseconds = watch.ElapsedMilliseconds;
             return Ok(model);
         } catch (Exception e) {
             return ValidationProblem(

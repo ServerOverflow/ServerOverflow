@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -133,6 +134,7 @@ public class ServerController : ControllerBase {
             model.CurrentPage = 1;
 
         try {
+            var watch = new Stopwatch(); watch.Start();
             var doc = Query.Server(model.Query!);
             var find = Database.Servers.Find(doc);
             model.TotalMatches = await find.CountAsync();
@@ -147,6 +149,7 @@ public class ServerController : ControllerBase {
         
             using var cursor = await find.Skip(50 * (model.CurrentPage-1)).Limit(50).ToCursorAsync();
             model.Items = []; model.Items.AddRange(cursor.ToList());
+            watch.Stop(); model.Milliseconds = watch.ElapsedMilliseconds;
         
             await Audit.SearchedServers(account, model.Query, model.CurrentPage, model.TotalPages, model.TotalMatches);
             return Ok(model);

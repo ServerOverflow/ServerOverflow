@@ -7,7 +7,7 @@
       </video>
       <div class="flex flex-col max-w-screen pr-5 mt-5 xl:mt-0">
         <div class="flex-1 flex-wrap text-wrap">
-          <h1 class="font-bold text-3xl sm:text-4xl md:text-5xl">Welcome to ServerOverflow</h1>
+          <h1 class="font-bold text-2xl sm:text-4xl md:text-5xl">Welcome to ServerOverflow</h1>
           <p class="py-6 text-md md:text-xl">
             This is a <b>Minecraft server scanner</b>, which was created for data hoarding and collecting statistics.
             Check out the FAQ if you would like to opt out, or simply know more about how it all works.<br><br>
@@ -44,10 +44,10 @@
             </div>
           </div>
         </div>
-        <div class="mt-auto space-x-2 pt-5">
+        <div class="mt-auto flex flex-row flex-wrap gap-2 pt-5">
           <NuxtLink to="/faq">
             <button class="btn btn-lg btn-outline">
-              <span class="pr-1">Tell me more what the hell is this</span>
+              <span class="pr-1">Frequently Asked Questions</span>
               <Icon name="fa6-solid:angle-right"/>
             </button>
           </NuxtLink>

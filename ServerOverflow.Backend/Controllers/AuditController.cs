@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -71,6 +72,7 @@ public class AuditController : ControllerBase {
             model.CurrentPage = 1;
 
         try {
+            var watch = new Stopwatch(); watch.Start();
             var doc = Query.LogEntry(model.Query!);
             if (startId != null)
                 doc &= Builders<LogEntry>.Filter.Lte(x => x.Id, new ObjectId(startId));
@@ -85,6 +87,7 @@ public class AuditController : ControllerBase {
         
             using var cursor = await find.Skip(50 * (model.CurrentPage-1)).Limit(50).ToCursorAsync();
             model.Items = []; model.Items.AddRange(cursor.ToList());
+            watch.Stop(); model.Milliseconds = watch.ElapsedMilliseconds;
             return Ok(model);
         } catch (Exception e) {
             return ValidationProblem(

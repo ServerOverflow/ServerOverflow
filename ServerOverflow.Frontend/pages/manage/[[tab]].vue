@@ -42,7 +42,6 @@
       <ManageAudit v-if="tab === 'audit'" />
     </div>
   </div>
-  <AuthWatcher/>
 </template>
 
 <script setup>

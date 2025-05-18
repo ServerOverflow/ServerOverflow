@@ -92,7 +92,6 @@ const lastQuery = ref(route.query.query);
 const query = ref(route.query.query);
 const fetching = ref(false);
 
-const start = performance.now();
 const { data: logs, error: error } = await useAuthFetch(`/audit/search`, {
   method: 'POST',
   query: {
@@ -100,11 +99,13 @@ const { data: logs, error: error } = await useAuthFetch(`/audit/search`, {
     startId: startId.value,
     query: query.value
   }
-})
+});
 
-const latency = ref(performance.now() - start);
+if (!startId.value && logs.value)
+  startId.value = logs.value.items[0].id;
+
 const formattedLatency = computed(() => {
-  const ms = latency.value;
+  const ms = logs.value?.milliseconds || 0;
   if (ms < 1000) {
     return `${ms.toFixed(0)} ms`;
   } else if (ms < 60_000) {
@@ -156,7 +157,6 @@ async function update() {
       page = '1';
     }
 
-    const start = performance.now();
     const response = await $axios.post('/audit/search', null, {
       params: {
         page: page,
@@ -165,7 +165,6 @@ async function update() {
       }
     });
 
-    latency.value = performance.now() - start;
     if (!startId.value)
       startId.value = response.data.items[0].id;
     logs.value = response.data;

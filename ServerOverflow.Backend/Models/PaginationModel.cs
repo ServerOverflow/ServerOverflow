@@ -28,4 +28,9 @@ public class PaginationModel<T> {
     /// Total number of query matches
     /// </summary>
     public long TotalMatches { get; set; }
+    
+    /// <summary>
+    /// How many milliseconds it took to make the database request
+    /// </summary>
+    public long Milliseconds { get; set; }
 }
