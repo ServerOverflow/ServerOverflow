@@ -3,7 +3,7 @@
     <Navbar />
     <div class="flex-grow flex justify-center items-center relative">
       <iframe
-          src="https://stats.airblo.ws/public-dashboards/724a7bc0ae0a444faf6cc1fa21443547"
+          src="https://stats.airblo.ws/public-dashboards/b190b03991a041d48a80e326fcc7d6c2"
           class="w-full h-full border-0"
       ></iframe>
     </div>
