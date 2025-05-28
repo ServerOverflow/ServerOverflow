@@ -69,9 +69,15 @@ public abstract class AbstractWorker {
                     await Task.Delay(RestartDelay);
                     continue;
                 }
-                
-                foreach (var task in batch)
-                    Tasks.Enqueue(task);
+
+                foreach (var task in batch) {
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+                    if (task == null) {
+                        Log.Warning("[{0}] Detected null value in generated batch", GetType().Name);
+                        continue;
+                    }
+                    lock (Tasks) Tasks.Enqueue(task);
+                }
             } catch (Exception e) {
                 Log.Error("Failed to fetch next batch: {0}", e);
                 await Task.Delay(60000);
@@ -90,7 +96,7 @@ public abstract class AbstractWorker {
                 if (Tasks.Count >= PoolSize) break;
                 Log.Debug("[{0}] Not enough items in queue, awaiting entire queue of size {1}", GetType().Name, Tasks.Count);
                 var temp = new List<Task>();
-                while (Tasks.TryDequeue(out var task))
+                lock (Tasks) while (Tasks.TryDequeue(out var task))
                     temp.Add(task);
                 await Task.WhenAll(temp);
                 try {
@@ -100,14 +106,17 @@ public abstract class AbstractWorker {
                 }
             }
 
-            for (var i = 0; i < _tasks.Length; i++)
+            lock (Tasks) for (var i = 0; i < _tasks.Length; i++)
                 _tasks[i] = Tasks.Dequeue();
 
             Log.Debug("[{0}] Pool of size {1} filled, awaiting efficiently", GetType().Name, _tasks.Length);
             while (true) {
                 var idx = Task.WaitAny(_tasks);
+
+                bool result; Task? task;
+                lock (Tasks) result = !Tasks.TryDequeue(out task);
                 
-                if (!Tasks.TryDequeue(out var task)) {
+                if (!result) {
                     if (_freeSlots.Count + 1 == _tasks.Length) {
                         Log.Debug("[{0}] Every slot in pool was freed, waiting for tasks", GetType().Name);
                         try {
@@ -127,7 +136,7 @@ public abstract class AbstractWorker {
 
                     var before = _freeSlots.Count;
                     while (_freeSlots.TryPeek(out idx)) {
-                        if (!Tasks.TryDequeue(out task)) break;
+                        lock (Tasks) if (!Tasks.TryDequeue(out task)) break;
                         _tasks[idx] = task;
                         _freeSlots.Dequeue();
                     }
