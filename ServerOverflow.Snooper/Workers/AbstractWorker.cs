@@ -125,7 +125,7 @@ public abstract class AbstractWorker {
                             Log.Error("Failed to clean up after finishing: {0}", e);
                         }
                         while (Tasks.Count == 0) await Task.Delay(10);
-                        _tasks[idx] = Task.CompletedTask;
+                        _tasks[idx] = Task.Delay(-1);
                         continue;
                     }
                     
