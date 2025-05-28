@@ -125,13 +125,19 @@ public abstract class AbstractWorker {
                             Log.Error("Failed to clean up after finishing: {0}", e);
                         }
                         while (Tasks.Count == 0) await Task.Delay(10);
-                        _tasks[idx] = Task.Delay(-1);
-                        continue;
+                        _tasks[idx] = Task.CompletedTask;
+                        break;
                     }
                     
                     _tasks[idx] = Task.Delay(-1);
                     _freeSlots.Enqueue(idx);
                 } else {
+                    if (task == null) {
+                        Log.Warning("[{0}] Detected null value from successful dequeue", GetType().Name);
+                        _tasks[idx] = Task.CompletedTask;
+                        continue;
+                    }
+                    
                     _tasks[idx] = task;
 
                     var before = _freeSlots.Count;
