@@ -22,9 +22,9 @@ public class OfflineWorker : AbstractWorker, IDisposable {
     /// <summary>
     /// Creates a new offline mode bot join worker
     /// </summary>
-    public OfflineWorker() : base(100) {
-        CreateCursor();
+    public OfflineWorker() : base(5000) {
         BatchSize = 5000;
+        CreateCursor();
     }
 
     /// <summary>

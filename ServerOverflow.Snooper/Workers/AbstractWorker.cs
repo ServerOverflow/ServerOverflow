@@ -112,9 +112,11 @@ public abstract class AbstractWorker {
             Log.Debug("[{0}] Pool of size {1} filled, awaiting efficiently", GetType().Name, _tasks.Length);
             while (true) {
                 var idx = Task.WaitAny(_tasks);
+                if (_tasks[idx].IsFaulted)
+                    Log.Error("[{0}] Worker task threw an exception: {1}", GetType().Name, _tasks[idx].Exception);
 
                 bool result; Task? task;
-                lock (Tasks) result = !Tasks.TryDequeue(out task);
+                lock (Tasks) result = Tasks.TryDequeue(out task);
                 
                 if (!result) {
                     if (_freeSlots.Count + 1 == _tasks.Length) {
