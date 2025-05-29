@@ -23,7 +23,7 @@ MinecraftBot.JoinProxy = new WebProxy(Configuration.ProxyUrl)
 
 Log.Information("Starting background services");
 new OfflineWorker().Start();
-//new OnlineWorker().Start();
+new OnlineWorker().Start();
 var server = new MetricServer(8008);
 Trace.Listeners.Clear();
 try {
