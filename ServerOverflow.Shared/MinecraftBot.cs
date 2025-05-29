@@ -31,7 +31,7 @@ public static class MinecraftBot {
     /// <returns>Result</returns>
     public static async Task<JoinResult> Join(Server server, Profile? profile = null)
         => await Join(server, profile, null, 0);
-    
+
     /// <summary>
     /// Joins a server and returns the result
     /// </summary>
@@ -39,8 +39,9 @@ public static class MinecraftBot {
     /// <param name="profile">Profile</param>
     /// <param name="protocol">Protocol</param>
     /// <param name="depth">Depth</param>
+    /// <param name="retries">Retries</param>
     /// <returns>Result</returns>
-    private static async Task<JoinResult> Join(Server server, Profile? profile, int? protocol, int depth) {
+    private static async Task<JoinResult> Join(Server server, Profile? profile, int? protocol, int depth, int retries = 3) {
         profile ??= _offline;
         try {
             if (depth > 3)
@@ -96,10 +97,12 @@ public static class MinecraftBot {
             }
         } catch (DisconnectedException e) {
             if (e.Message.Contains("1.13 and above"))
-                return await Join(server, profile, 393, depth + 1);
+                return await Join(server, profile, 393, depth + 1, retries);
             var match = Regex.Match(e.Message, @"Outdated client! Please use (\d\.\d+\.\d+)");
             if (match.Success && Resources.Version.TryGetValue(match.Groups[1].Value, out var newProto))
-                return await Join(server, profile, newProto, depth + 1);
+                return await Join(server, profile, newProto, depth + 1, retries);
+            if (retries > 0)
+                return await Join(server, profile, protocol, 0, retries - 1);
             return new JoinResult {
                 RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47,
                 Success = true, OnlineMode = profile.Minecraft != null,
