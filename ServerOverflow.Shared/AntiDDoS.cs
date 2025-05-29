@@ -21,10 +21,10 @@ public static class AntiDDoS {
     private static readonly string[] _descriptions = [ 
         "Blad pobierania statusu. Polacz sie bezposrednio!", 
         "Start the server at FalixNodes.net/start", 
-        "Serwer jest aktualnie wy", 
-        "Hosted in GreatHost.es",
-        "Server not found.",
-        "\u00a8 |  "
+        "Server not found for the given address",
+        "Serwer jest aktualnie wy", "Hosted in GreatHost.es",
+        "Pay for the server on", "Server not found.", 
+        "Ochrona DDoS", "AntyBot", "\u00a8 |  "
     ];
 
     /// <summary>
