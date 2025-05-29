@@ -37,8 +37,14 @@ public static class MojangAPI {
             Method = HttpMethod.Post
         };
         var res = await client.SendAsync(req);
-        if (!res.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Attempting to login as {profile.Username} resulted in error code {res.StatusCode}");
+        if (!res.IsSuccessStatusCode) {
+            string? msg = null;
+            try {
+                var json = await res.Content.ReadFromJsonAsync<ErrorResponse>();
+                msg = json?.ErrorMessage ?? json?.Error;
+            } catch { /* Ignore */ }
+            throw new InvalidOperationException($"Joining as {profile.Username} resulted in {msg ?? "UnknownError"}, status code {res.StatusCode}");
+        }
     }
 
     /// <summary>
