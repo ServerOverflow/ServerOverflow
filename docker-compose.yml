@@ -36,3 +36,7 @@ services:
       PROXY_URL: ${PROXY_URL}
       PROXY_USERNAME: ${PROXY_USERNAME}
       PROXY_PASSWORD: ${PROXY_PASSWORD}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
