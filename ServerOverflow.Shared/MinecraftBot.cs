@@ -102,7 +102,7 @@ public static class MinecraftBot {
             if (match.Success && Resources.Version.TryGetValue(match.Groups[1].Value, out var newProto))
                 return await Join(server, profile, newProto, depth + 1, retries);
             if (retries > 0)
-                return await Join(server, profile, protocol, 0, retries - 1);
+                return await Join(server, profile, protocol, depth, retries - 1);
             return new JoinResult {
                 RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47,
                 Success = true, OnlineMode = profile.Minecraft != null,
