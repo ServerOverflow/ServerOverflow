@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using MineProtocol;
 using MineProtocol.Exceptions;
 using MineProtocol.Protocol;
+using Serilog;
 using ServerOverflow.Shared.Storage;
 using Profile = MineProtocol.Authentication.Profile;
 
@@ -31,7 +32,7 @@ public static class MinecraftBot {
     /// <returns>Result</returns>
     public static async Task<JoinResult> Join(Server server, Profile? profile = null)
         => await Join(server, profile, null, 0);
-
+    
     /// <summary>
     /// Joins a server and returns the result
     /// </summary>
@@ -42,6 +43,9 @@ public static class MinecraftBot {
     /// <param name="retries">Retries</param>
     /// <returns>Result</returns>
     private static async Task<JoinResult> Join(Server server, Profile? profile, int? protocol, int depth, int retries = 3) {
+        #if DEBUG
+        Log.Information("{0}:{1}, {2} proto, {3} depth, {4} retries", server.IP, server.Port, protocol, depth, retries);
+        #endif
         profile ??= _offline;
         try {
             if (depth > 3)
@@ -101,8 +105,6 @@ public static class MinecraftBot {
             var match = Regex.Match(e.Message, @"Outdated client! Please use (\d\.\d+\.\d+)");
             if (match.Success && Resources.Version.TryGetValue(match.Groups[1].Value, out var newProto))
                 return await Join(server, profile, newProto, depth + 1, retries);
-            if (retries > 0)
-                return await Join(server, profile, protocol, depth, retries - 1);
             return new JoinResult {
                 RealProtocol = protocol ?? server.Ping.Version?.Protocol ?? 47,
                 Success = true, OnlineMode = profile.Minecraft != null,
@@ -110,6 +112,11 @@ public static class MinecraftBot {
                 LastSeen = DateTime.UtcNow, Timestamp = DateTime.UtcNow
             };
         } catch (Exception e) {
+            #if DEBUG
+            Log.Warning("Exception thrown: {0}", e.Message);
+            #endif
+            if (retries > 0)
+                return await Join(server, profile, protocol, depth, retries - 1);
             return new JoinResult {
                 Success = false, Timestamp = DateTime.UtcNow,
                 ErrorMessage = e.Message, Exception = e.ToString()
