@@ -23,15 +23,16 @@ public static class MinecraftBot {
     /// Web proxy to use for join requests to the API
     /// </summary>
     public static WebProxy? JoinProxy { get; set; }
-    
+
     /// <summary>
     /// Joins a server and returns the result
     /// </summary>
     /// <param name="server">Server</param>
     /// <param name="profile">Profile</param>
+    /// <param name="retries">Retries</param>
     /// <returns>Result</returns>
-    public static async Task<JoinResult> Join(Server server, Profile? profile = null)
-        => await Join(server, profile, null, 0);
+    public static async Task<JoinResult> Join(Server server, Profile? profile = null, int retries = 3)
+        => await Join(server, profile, null, 0, retries);
     
     /// <summary>
     /// Joins a server and returns the result
