@@ -116,11 +116,13 @@ public static class MinecraftBot {
             #if DEBUG
             Log.Warning("Exception thrown: {0}", e.Message);
             #endif
-            if (retries > 0 
-                && !e.Message.Contains("Connection refused") 
+            if (retries > 0
+                && !e.Message.Contains("Connection refused")
                 && !e.Message.Contains("No route to host")
-                && !e.Message.Contains("The operation has timed out"))
+                && !e.Message.Contains("The operation has timed out")) {
+                await Task.Delay(1000);
                 return await Join(server, profile, protocol, depth, retries - 1);
+            }
             return new JoinResult {
                 Success = false, Timestamp = DateTime.UtcNow,
                 ErrorMessage = e.Message, Exception = e.ToString()

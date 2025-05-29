@@ -26,16 +26,14 @@ public static class Statistics {
         if (result.ErrorMessage!.Contains("Connection refused"))
             return "Connection refused";
         if (result.ErrorMessage!.Contains("Connection reset by peer") 
-            || result.ErrorMessage!.Contains("end of the stream") 
-            || result.ErrorMessage!.Contains("decode public key") 
-            || result.ErrorMessage!.Contains("compression method"))
-            return "Protocol bug";
+            || result.ErrorMessage!.Contains("end of the stream"))
+            return "Network error";
         if (result.ErrorMessage!.Contains("Failed to authenticate with Mojang"))
             if (result.Exception!.Contains("TooManyRequests"))
                 return "Ratelimited";
             else if (result.Exception!.Contains("Forbidden"))
                 return "Forbidden";
             else return "Unknown";
-        return "Other";
+        return "Protocol bug";
     }
 }
