@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using MongoDB.Driver;
+using Serilog;
 using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
 
@@ -22,7 +23,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
     /// <summary>
     /// Creates a new offline mode bot join worker
     /// </summary>
-    public OfflineWorker() : base(5000) {
+    public OfflineWorker() : base(100) {
         BatchSize = 5000;
         CreateCursor();
     }
@@ -60,6 +61,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
             });
     }
     
+    
     /// <summary>
     /// Connects to a Minecraft server
     /// </summary>
@@ -96,7 +98,7 @@ public class OfflineWorker : AbstractWorker, IDisposable {
     /// Fetches tasks of batch size and puts them into the queue
     /// </summary>
     /// <returns>List of tasks</returns>
-    protected override async Task<List<Task>> FetchTasks() {
+    protected override async Task<List<Func<Task>>> FetchTasks() {
         if (_cursor == null) CreateCursor();
         if (!await _cursor!.MoveNextAsync()) {
             _cursor.Dispose();
@@ -107,7 +109,8 @@ public class OfflineWorker : AbstractWorker, IDisposable {
         var exclusions = await Exclusion.GetAll();
         return _cursor.Current
             .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
-            .Select(Connect).ToList();
+            .Select(x => (Func<Task>)(() => Connect(x)))
+            .ToList();
     }
 
     /// <summary>

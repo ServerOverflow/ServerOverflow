@@ -9,7 +9,7 @@ public abstract class AbstractWorker {
     /// <summary>
     /// Task queue
     /// </summary>
-    public Queue<Task> Tasks { get; } = [];
+    public Queue<Func<Task>> Tasks { get; } = [];
 
     /// <summary>
     /// Task pool size
@@ -97,7 +97,7 @@ public abstract class AbstractWorker {
                 Log.Debug("[{0}] Not enough items in queue, awaiting entire queue of size {1}", GetType().Name, Tasks.Count);
                 var temp = new List<Task>();
                 lock (Tasks) while (Tasks.TryDequeue(out var task))
-                    temp.Add(task);
+                    temp.Add(task.Invoke());
                 await Task.WhenAll(temp);
                 try {
                     await Cleanup();
@@ -107,7 +107,7 @@ public abstract class AbstractWorker {
             }
 
             lock (Tasks) for (var i = 0; i < _tasks.Length; i++)
-                _tasks[i] = Tasks.Dequeue();
+                _tasks[i] = Tasks.Dequeue().Invoke();
 
             Log.Debug("[{0}] Pool of size {1} filled, awaiting efficiently", GetType().Name, _tasks.Length);
             while (true) {
@@ -115,10 +115,10 @@ public abstract class AbstractWorker {
                 if (_tasks[idx].IsFaulted)
                     Log.Error("[{0}] Worker task threw an exception: {1}", GetType().Name, _tasks[idx].Exception);
 
-                bool result; Task? task;
-                lock (Tasks) result = Tasks.TryDequeue(out task);
+                bool hasTask; Func<Task>? task;
+                lock (Tasks) hasTask = Tasks.TryDequeue(out task);
                 
-                if (!result) {
+                if (!hasTask) {
                     if (_freeSlots.Count + 1 == _tasks.Length) {
                         Log.Debug("[{0}] Every slot in pool was freed, waiting for tasks", GetType().Name);
                         try {
@@ -135,17 +135,17 @@ public abstract class AbstractWorker {
                     _freeSlots.Enqueue(idx);
                 } else {
                     if (task == null) {
-                        Log.Warning("[{0}] Detected null value from successful dequeue", GetType().Name);
+                        Log.Error("[{0}] Detected null value from successful dequeue", GetType().Name);
                         _tasks[idx] = Task.CompletedTask;
                         continue;
                     }
                     
-                    _tasks[idx] = task;
+                    _tasks[idx] = task.Invoke();
 
                     var before = _freeSlots.Count;
                     while (_freeSlots.TryPeek(out idx)) {
                         lock (Tasks) if (!Tasks.TryDequeue(out task)) break;
-                        _tasks[idx] = task;
+                        _tasks[idx] = task.Invoke();
                         _freeSlots.Dequeue();
                     }
                     
@@ -159,7 +159,7 @@ public abstract class AbstractWorker {
     /// Fetches tasks of batch size and puts them into the queue
     /// </summary>
     /// <returns>List of tasks</returns>
-    protected virtual Task<List<Task>> FetchTasks() => throw new NotImplementedException();
+    protected virtual Task<List<Func<Task>>> FetchTasks() => throw new NotImplementedException();
 
     /// <summary>
     /// Performs cleanup after all tasks finish

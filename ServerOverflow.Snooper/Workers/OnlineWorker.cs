@@ -114,7 +114,7 @@ public class OnlineWorker : AbstractWorker, IDisposable {
     /// Fetches tasks of batch size and puts them into the queue
     /// </summary>
     /// <returns>List of tasks</returns>
-    protected override async Task<List<Task>> FetchTasks() {
+    protected override async Task<List<Func<Task>>> FetchTasks() {
         var now = DateTime.UtcNow;
         if (_waitUntil > now) {
             await Task.Delay(_waitUntil.Value - now);
@@ -132,7 +132,8 @@ public class OnlineWorker : AbstractWorker, IDisposable {
         var tasks = _cursor.Current
             .Where(x => exclusions.All(y => !y.IsExcluded(x.IP)))
             .Where(x => !x.IsAntiDDoS())
-            .Zip(_profiles.SelectMany(x => (Profile[])[x, x, x]), Connect)
+            .Zip(_profiles.SelectMany(x => (Profile[])[x, x, x]),
+                (x, y) => (Func<Task>)(() => Connect(x, y)))
             .ToList();
         _waitUntil = DateTime.UtcNow + TimeSpan.FromSeconds(20);
         return tasks;
