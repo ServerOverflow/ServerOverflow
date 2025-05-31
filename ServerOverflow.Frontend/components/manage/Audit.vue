@@ -5,7 +5,7 @@
   <div class="divider my-2"></div>
   <div class="join w-full">
     <label class="join-item input !outline-none mb-2 w-full">
-      <Icon name="ci:search-magnifying-glass" size="1.5em" class="opacity-50"/>
+      <Icon name="fa6-solid:magnifying-glass" size="1.5em" class="opacity-50"/>
       <input type="search" class="grow" placeholder="Enter custom query" v-model="query" />
     </label>
     <button class="join-item btn btn-primary" :class="{ 'btn-disabled': status === 'pending' }" @click="update">

@@ -159,6 +159,4 @@ public class ServerController : ControllerBase {
                 detail: e.Message);
         }
     }
-    
-    
 }

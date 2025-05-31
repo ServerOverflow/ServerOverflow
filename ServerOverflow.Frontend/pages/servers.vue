@@ -3,7 +3,7 @@
     <span ref="scrollTarget"></span>
     <div class="join w-full mb-2">
       <label class="join-item input !outline-none w-full">
-        <Icon name="ci:search-magnifying-glass" size="1.5em" class="opacity-50"/>
+        <Icon name="fa6-solid:magnifying-glass" size="1.5em" class="opacity-50"/>
         <input type="search" class="grow" placeholder="Enter custom query" v-model="query" />
       </label>
       <button class="join-item btn btn-primary" :class="{ 'btn-disabled': status === 'pending' }" @click="update">
