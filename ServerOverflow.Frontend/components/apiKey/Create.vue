@@ -31,9 +31,9 @@ const dialog = useTemplateRef('dialog');
 async function submit(data, node) {
   data.expireAt = new Date(Date.now() + parseInt(data.expireIn)).toISOString();
   try {
-    await $axios.post('/key/create', data);
+    const res = await $axios.post('/key/create', data);
     toast.add({
-      title: `Successfully created an API key`,
+      title: `Successfully created an API key: ${res.data.key}`,
       color: 'success'
     });
     close();
