@@ -36,7 +36,7 @@ const { data, openPage, scrollTo } = defineProps({
 })
 
 async function open(page) {
-  if (page < 0) page = 0;
+  if (page < 1) page = 1;
   if (page > data.totalPages)
     page = data.totalPages;
   const result = openPage(page);
@@ -51,6 +51,4 @@ async function open(page) {
 async function openRel(off) {
   await open(data.currentPage + off);
 }
-
-
 </script>

@@ -8,21 +8,21 @@
       <Icon name="ci:search-magnifying-glass" size="1.5em" class="opacity-50"/>
       <input type="search" class="grow" placeholder="Enter custom query" v-model="query" />
     </label>
-    <button class="join-item btn btn-primary" :class="{ 'btn-disabled': fetching }" @click="update">
+    <button class="join-item btn btn-primary" :class="{ 'btn-disabled': status === 'pending' }" @click="update">
       Search
-      <span v-if="fetching" class="loading loading-spinner loading-sm"></span>
+      <span v-if="status === 'pending'" class="loading loading-spinner loading-sm"></span>
     </button>
   </div>
   <div class="mb-2 flex flex-row text-xs">
-      <span>
-        Found {{ logs?.totalMatches || 0 }} log entries ({{ formattedLatency }})
-      </span>
+    <span>
+      Found {{ logs?.totalMatches || 0 }} log entries ({{ formattedLatency }})
+    </span>
     <button class="flex-1 justify-end flex flex-row select-none items-center link link-hover" @click="queryDocs.open()">
       <Icon name="fa6-solid:circle-question" class="icon-xs" />
       <span class="opacity-80 ml-1">How do I use operators?</span>
     </button>
   </div>
-  <div v-if="!logs">
+  <div v-if="!logs && status !== 'pending'">
     <div v-if="error" class="alert alert-error alert-soft">
       <span>Failed to fetch log entries from the backend</span>
     </div>
@@ -31,8 +31,24 @@
     </div>
   </div>
   <div v-else>
-    <Pagination :data="logs" :open-page="openPage"/>
-    <div v-for="entry in logs.items" class="border-b [&:nth-last-child(2)]:border-b-0 border-[color-mix(in_oklch,var(--color-base-content)_5%,#0000)]">
+    <Pagination :data="paginationData" :open-page="openPage"/>
+    <div
+        v-if="!logs && status === 'pending'"
+        v-for="index in 50"
+        class="border-b [&:nth-last-child(2)]:border-b-0 border-[color-mix(in_oklch,var(--color-base-content)_5%,#0000)]"
+    >
+      <div tabindex="0" class="collapse collapse-arrow">
+        <div class="collapse-title font-semibold flex flex-row flex-stretch items-center gap-2 p-0">
+          <div class="skeleton h-6 w-6"></div>
+          <div class="skeleton h-4 w-80"></div>
+        </div>
+      </div>
+    </div>
+    <div
+        v-else
+        v-for="entry in logs.items"
+        class="border-b [&:nth-last-child(2)]:border-b-0 border-[color-mix(in_oklch,var(--color-base-content)_5%,#0000)]"
+    >
       <div tabindex="0" class="collapse collapse-arrow">
         <div class="collapse-title font-semibold flex flex-row flex-stretch items-center gap-2 p-0">
           <Icon :name="iconMap[entry.action]" class="icon-md"/>
@@ -55,54 +71,32 @@
         </div>
       </div>
     </div>
-    <!--<table class="table">
-      <tbody>
-      <tr v-for="entry in logs.items">
-        <td class="w-1">
-          <Icon :name="iconMap[entry.action]" class="icon-md"/>
-        </td>
-        <td class="w-max">
-          {{ entry.description }}
-        </td>
-        <th class="text-right">
-          <div class="join">
-            <button class="join-item btn btn-sm btn-primary btn-outline" @click="notImplemented">
-              <Icon name="fa6-solid:list" class="icon-xs"/>
-            </button>
-          </div>
-        </th>
-      </tr>
-      </tbody>
-    </table>-->
-    <Pagination :data="logs" :open-page="openPage" :scroll-to="scrollTarget" class="mt-2"/>
+    <Pagination :data="paginationData" :open-page="openPage" :scroll-to="scrollTarget" class="mt-2"/>
   </div>
   <QueryDocs ref="queryDocs"/>
 </template>
 
 <script setup>
-const { $axios } = useNuxtApp();
 const router = useRouter();
 const route = useRoute();
-const toast = useToast();
 
 const scrollTarget = useTemplateRef('scrollTarget');
 const queryDocs = useTemplateRef('queryDocs');
-const startId = ref(route.query.start);
-const lastQuery = ref(route.query.query);
 const query = ref(route.query.query);
-const fetching = ref(false);
+const startId = ref(route.query.startId);
+const params = computed(() => ({
+  page: route.query.page || '1',
+  query: route.query.query,
+  startId: startId.value
+}))
 
-const { data: logs, error: error } = await useAuthFetch(`/audit/search`, {
-  method: 'POST',
-  query: {
-    page: route.query.page || '1',
-    startId: startId.value,
-    query: query.value
-  }
-});
+const { data: logs, error, status } = await useAuthFetch(`/audit/search`, {
+  method: 'POST', query: params, watch: [params], lazy: true
+})
 
-if (!startId.value && logs.value)
-  startId.value = logs.value.items[0].id;
+const paginationData = computed(() =>
+    logs.value || { currentPage: 1, totalPages: 20 }
+);
 
 const formattedLatency = computed(() => {
   const ms = logs.value?.milliseconds || 0;
@@ -136,50 +130,30 @@ const iconMap = {
   'SearchedServers': 'fa6-solid:magnifying-glass'
 };
 
-async function updateRoute(page) {
+async function update() {
+  if (status === 'pending') return;
   await router.push({
     path: route.path,
     query: {
-      page: page || route.query.page,
-      query: query.value === '' ? null : query.value,
+      query: query.value === '' ? undefined : query.value
+    }
+  });
+}
+
+async function openPage(page) {
+  if (status === 'pending') return;
+  await router.push({
+    path: route.path,
+    query: {
+      query: route.query.query,
+      page: page === 1 ? undefined : page,
       startId: startId.value
     }
   });
 }
 
-async function update() {
-  try {
-    fetching.value = true;
-    let page = route.query.page || '1';
-    if (lastQuery.value !== query.value) {
-      lastQuery.value = query.value;
-      startId.value = null;
-      page = '1';
-    }
-
-    const response = await $axios.post('/audit/search', null, {
-      params: {
-        page: page,
-        startId: startId.value,
-        query: query.value
-      }
-    });
-
-    if (!startId.value)
-      startId.value = response.data.items[0].id;
-    logs.value = response.data;
-    fetching.value = false;
-    error.value = null;
-    await updateRoute(response.data.currentPage);
-  } catch (err) {
-    fetching.value = false;
-    if (err.response) error.value = err;
-    handleAxiosError(err, toast);
-  }
-}
-
-async function openPage(page) {
-  await updateRoute(page);
-  await update();
-}
+watch(() => logs.value, () => {
+  if (!startId.value && logs.value)
+    startId.value = logs.value.items[0].id;
+})
 </script>

@@ -8,9 +8,9 @@
       <Icon name="ci:search-magnifying-glass" size="1.5em" class="opacity-50"/>
       <input type="search" class="grow" placeholder="Enter custom query" v-model="query" />
     </label>
-    <button class="join-item btn btn-primary" :class="{ 'btn-disabled': fetching }" @click="update">
+    <button class="join-item btn btn-primary" :class="{ 'btn-disabled': status === 'pending' }" @click="update">
       Search
-      <span v-if="fetching" class="loading loading-spinner loading-sm"></span>
+      <span v-if="status === 'pending'" class="loading loading-spinner loading-sm"></span>
     </button>
   </div>
   <div class="mb-2 flex flex-row text-xs">
@@ -22,7 +22,7 @@
       <span class="opacity-80 ml-1">How do I use operators?</span>
     </button>
   </div>
-  <div v-if="!exclusions">
+  <div v-if="!exclusions && status !== 'pending'">
     <div v-if="error" class="alert alert-error alert-soft">
       <span>Failed to fetch exclusions from the backend</span>
     </div>
@@ -35,7 +35,7 @@
     </button>
   </div>
   <div v-else>
-    <Pagination :data="exclusions" :open-page="openPage"/>
+    <Pagination :data="paginationData" :open-page="openPage"/>
     <table class="table">
       <thead>
       <tr>
@@ -50,9 +50,23 @@
       </tr>
       </thead>
       <tbody>
-      <tr class="whitespace-nowrap" v-for="(exclusion, index) in exclusions.items">
+      <tr v-if="!exclusions && status === 'pending'" v-for="index in 10">
         <td>
-          {{ (exclusions.currentPage - 1) * 50 + index + 1 }}
+          {{ index }}
+        </td>
+        <td>
+          <div class="skeleton h-4 w-18"></div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <div class="skeleton h-4 w-60"></div>
+        </td>
+        <th class="w-full">
+          <div class="skeleton h-8 w-20 ml-auto"></div>
+        </th>
+      </tr>
+      <tr v-else class="whitespace-nowrap" v-for="(exclusion, index) in exclusions.items">
+        <td>
+          {{ (exclusions.currentPage - 1) * 25 + index + 1 }}
         </td>
         <td>
           {{ exclusion.ranges.length }} total
@@ -73,7 +87,7 @@
       </tr>
       </tbody>
     </table>
-    <Pagination :data="exclusions" :open-page="openPage" :scroll-to="scrollTarget"/>
+    <Pagination :data="paginationData" :open-page="openPage" :scroll-to="scrollTarget"/>
   </div>
   <ExclusionCreate ref="createDialog" :update="update"/>
   <ExclusionDelete ref="deleteDialog" :update="update"/>
@@ -92,17 +106,19 @@ const createDialog = useTemplateRef('createDialog');
 const deleteDialog = useTemplateRef('deleteDialog');
 const editDialog = useTemplateRef('editDialog');
 const queryDocs = useTemplateRef('queryDocs');
-const lastQuery = ref(route.query.query);
 const query = ref(route.query.query);
-const fetching = ref(false);
+const params = computed(() => ({
+  page: route.query.page || '1',
+  query: route.query.query
+}))
 
-const { data: exclusions, error: error } = await useAuthFetch(`/exclusion/search`, {
-  method: 'POST',
-  query: {
-    page: route.query.page || '1',
-    query: query.value
-  }
+const { data: exclusions, error, status } = await useAuthFetch(`/exclusion/search`, {
+  method: 'POST', query: params, watch: [params], lazy: true
 })
+
+const paginationData = computed(() =>
+    exclusions.value || { currentPage: 1, totalPages: 10 }
+);
 
 const formattedLatency = computed(() => {
   const ms = exclusions.value?.milliseconds || 0;
@@ -117,46 +133,25 @@ const formattedLatency = computed(() => {
   }
 })
 
-async function updateRoute(page) {
+async function update() {
+  if (status === 'pending') return;
   await router.push({
     path: route.path,
     query: {
-      page: page || route.query.page,
-      query: query.value === '' ? null : query.value
+      query: query.value === '' ? undefined : query.value
     }
   });
 }
 
-async function update() {
-  try {
-    fetching.value = true;
-    let page = route.query.page || '1';
-    if (lastQuery.value !== query.value) {
-      lastQuery.value = query.value;
-      page = '1';
-    }
-
-    const response = await $axios.post('/exclusion/search', null, {
-      params: {
-        page: page,
-        query: query.value
-      }
-    });
-
-    exclusions.value = response.data;
-    fetching.value = false;
-    error.value = null;
-    await updateRoute(response.data.currentPage);
-  } catch (err) {
-    fetching.value = false;
-    if (err.response) error.value = err;
-    handleAxiosError(err, toast);
-  }
-}
-
 async function openPage(page) {
-  await updateRoute(page);
-  await update();
+  if (status === 'pending') return;
+  await router.push({
+    path: route.path,
+    query: {
+      query: route.query.query,
+      page: page === 1 ? undefined : page
+    }
+  });
 }
 
 function truncate(str) {

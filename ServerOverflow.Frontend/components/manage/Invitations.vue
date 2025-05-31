@@ -2,7 +2,7 @@
   <h2 class="text-2xl font-bold">Invitations</h2>
   <p class="text mt-1">Codes generated for registration gating</p>
   <div class="divider my-2"></div>
-  <div v-if="!invitations">
+  <div v-if="!invitations && status !== 'pending'">
     <div v-if="error" class="alert alert-error alert-soft">
       <span>Failed to fetch exclusions from the backend</span>
     </div>
@@ -31,7 +31,27 @@
       </tr>
       </thead>
       <tbody>
-      <tr class="whitespace-nowrap" v-for="(invitation, index) in invitations">
+      <tr v-if="!invitations && status === 'pending'" v-for="index in 10">
+        <td>
+          {{ index }}
+        </td>
+        <td>
+          <div class="skeleton mask mask-squircle h-6 w-6"></div>
+        </td>
+        <td>
+          <div class="skeleton h-6 w-20"></div>
+        </td>
+        <td class="hidden md:table-cell">
+          <div class="skeleton h-6 w-20"></div>
+        </td>
+        <td class="hidden md:table-cell">
+          <div class="skeleton h-4 w-25"></div>
+        </td>
+        <th class="w-full">
+          <div class="skeleton h-8 w-20 ml-auto"></div>
+        </th>
+      </tr>
+      <tr v-else class="whitespace-nowrap" v-for="(invitation, index) in invitations">
         <td>
           {{ index + 1 }}
         </td>
@@ -72,8 +92,7 @@
 </template>
 
 <script setup>
-const { data: invitations, error, refresh } = await useAuthFetch(`/invitation/list`)
-
+const { data: invitations, error, refresh, status } = await useAuthFetch(`/invitation/list`, { lazy: true })
 const createDialog = useTemplateRef('createDialog');
 const deleteDialog = useTemplateRef('deleteDialog');
 const editDialog = useTemplateRef('editDialog');

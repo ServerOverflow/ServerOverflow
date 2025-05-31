@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <ServerGarbageCollection>true</ServerGarbageCollection>
         <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
-        <NoWarn>1591</NoWarn>
+        <NoWarn>1591,618</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

@@ -15,10 +15,15 @@ namespace ServerOverflow.Backend.Services;
 /// </summary>
 public class Statistics : BackgroundService {
     /// <summary>
-    /// Servers gauge (total, online, not_configured, chat_reporting, online_mode, whitelist, forge, custom, anti_ddos)
+    /// Servers gauge (total, online, joinable, not_configured, chat_reporting, online_mode, whitelist, forge, custom, anti_ddos)
     /// </summary>
     public static readonly Gauge Servers = Metrics.CreateGauge("so_servers", "Servers found by the scanner", "type");
-
+    
+    /// <summary>
+    /// Server fingerprints gauge
+    /// </summary>
+    public static readonly Gauge Fingerprints = Metrics.CreateGauge("so_fingerprints", "Software fingerprints", "type");
+    
     /// <summary>
     /// Server software gauge
     /// </summary>
@@ -66,27 +71,32 @@ public class Statistics : BackgroundService {
             try {
                 var builder = Builders<Server>.Filter;
                 Servers.WithLabels("total").Set(
-                    await Database.Servers.CountDocumentsAsync(builder.Empty, cancellationToken: token));
+                    await Database.Servers.CountAsync(builder.Empty, cancellationToken: token));
                 Servers.WithLabels("online").Set(
-                    await Database.Servers.CountDocumentsAsync(
+                    await Database.Servers.CountAsync(
+                        builder.Gt(x => x.LastSeen, DateTime.UtcNow - TimeSpan.FromDays(1)), 
+                        cancellationToken: token));
+                Servers.WithLabels("joinable").Set(
+                    await Database.Servers.CountAsync(
                         builder.Gt(x => x.JoinResult!.LastSeen, DateTime.UtcNow - TimeSpan.FromDays(1)), 
                         cancellationToken: token));
                 Servers.WithLabels("not_configured").Set(
-                    await Database.Servers.CountDocumentsAsync(
+                    await Database.Servers.CountAsync(
                         builder.Eq(x => x.Ping.CleanDescription, "A Minecraft Server")
                         & builder.Eq(x => x.Ping.Players!.Max, 20), 
                         cancellationToken: token));
                 Servers.WithLabels("chat_reporting").Set(
-                    await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.Ping.ChatReporting, true), cancellationToken: token));
+                    await Database.Servers.CountAsync(builder.Eq(x => x.Ping.ChatReporting, true), cancellationToken: token));
                 Servers.WithLabels("online_mode").Set(
-                    await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.JoinResult!.OnlineMode, true), cancellationToken: token));
+                    await Database.Servers.CountAsync(builder.Eq(x => x.JoinResult!.OnlineMode, true), cancellationToken: token));
                 Servers.WithLabels("whitelist").Set(
-                    await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.JoinResult!.Whitelist, true), cancellationToken: token));
+                    await Database.Servers.CountAsync(builder.Eq(x => x.JoinResult!.Whitelist, true), cancellationToken: token));
                 Servers.WithLabels("forge").Set(
-                    await Database.Servers.CountDocumentsAsync(builder.Eq(x => x.Ping.IsForge, true), cancellationToken: token));
+                    await Database.Servers.CountAsync(builder.Eq(x => x.Ping.IsForge, true), cancellationToken: token));
                 
                 var cities = new Dictionary<(string, string), int>();
                 var asns = new Dictionary<(string, string), int>();
+                var fingerprints = new Dictionary<string, int>();
                 var forgeMods = new Dictionary<string, int>();
                 var software = new Dictionary<string, int>();
                 var versions = new Dictionary<string, int>();
@@ -119,43 +129,41 @@ public class Statistics : BackgroundService {
                             var split = server.Ping.Version.Name.Split(" ");
                             var version = split.Length > 1 ? split[0] : "Vanilla";
                             if (version != "Vanilla") customSoftware++;
-                            if (!software.TryGetValue(version, out _))
-                                software.Add(version, 1);
-                            else software[version] += 1;
+                            software[version] = software.GetValueOrDefault(version) + 1;
+                        }
+
+                        if (server.Fingerprint?.Active?.Software != null) {
+                            var type = server.Fingerprint?.Active?.Software!;
+                            fingerprints[type] = fingerprints.GetValueOrDefault(type) + 10;
                         }
 
                         if (server.Ping.Version?.Protocol != null && 
                             Resources.Protocol.TryGetValue(server.Ping.Version.Protocol.Value, out var mapping)) {
-                            if (!versions.TryGetValue(mapping, out _)) versions.Add(mapping, 1);
-                            else versions[mapping] += 1;
+                            versions[mapping] = versions.GetValueOrDefault(mapping) + 1;
                         }
                         
                         if (server.Ping.ModernForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.ModernForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
                                 if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
-                                    if (!forgeMods.TryGetValue(mod.ModId, out _)) forgeMods.Add(mod.ModId, 1);
-                                    else forgeMods[mod.ModId] += 1;
+                                    forgeMods[mod.ModId] = forgeMods.GetValueOrDefault(mod.ModId) + 1;
                             }
                         
                         if (server.Ping.LegacyForgeMods?.ModList != null)
                             foreach (var mod in server.Ping.LegacyForgeMods.ModList) {
                                 if (mod.ModId == null) continue;
                                 if (mod.ModId is not "minecraft" and not "mcp" and not "forge" and not "FML")
-                                    if (!forgeMods.TryGetValue(mod.ModId, out _)) forgeMods.Add(mod.ModId, 1);
-                                    else forgeMods[mod.ModId] += 1;
+                                    forgeMods[mod.ModId] = forgeMods.GetValueOrDefault(mod.ModId) + 1;
                             }
                         
                         if (city.TryCity(server.IP, out var result2) && result2?.Country.IsoCode != null) {
                             var value = (result2.Country.IsoCode, result2.City.Name ?? "Unknown");
-                            if (!cities.TryGetValue(value, out _)) cities.Add(value, 1);
-                            else cities[value] += 1;
+                            cities[value] = cities.GetValueOrDefault(value) + 1;
                         }
 
                         if (asn.TryAsn(server.IP, out var result3) && result3?.AutonomousSystemOrganization != null) {
                             var value = ($"AS{result3.AutonomousSystemNumber}", result3.AutonomousSystemOrganization);
-                            if (!asns.TryGetValue(value, out _)) asns.Add(value, 1);
-                            else asns[value] += 1;
+                            asns[value] = asns.GetValueOrDefault(value) + 1;
                         }
                     }
                 
@@ -164,6 +172,7 @@ public class Statistics : BackgroundService {
                 foreach (var item in software) Software.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in versions) Versions.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in forgeMods) ForgeMods.WithLabels(item.Key).Set(item.Value);
+                foreach (var item in fingerprints) Fingerprints.WithLabels(item.Key).Set(item.Value);
                 foreach (var item in cities) Cities.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
                 foreach (var item in asns) ASNs.WithLabels(item.Key.Item1, item.Key.Item2).Set(item.Value);
             } catch (OperationCanceledException) {

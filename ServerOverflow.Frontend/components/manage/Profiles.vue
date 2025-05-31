@@ -2,7 +2,7 @@
   <h2 class="text-2xl font-bold">Bot Profiles</h2>
   <p class="text mt-1">Minecraft accounts used for bot joining</p>
   <div class="divider my-2"></div>
-  <div v-if="!profiles">
+  <div v-if="!profiles && status !== 'pending'">
     <div v-if="error" class="alert alert-error alert-soft">
       <span>Failed to fetch profiles from the backend</span>
     </div>
@@ -52,7 +52,21 @@
       </tr>
       </thead>
       <tbody>
-      <tr class="whitespace-nowrap" v-for="profile in profiles">
+      <tr v-if="status === 'pending'" v-for="index in 10">
+        <td>
+          <div class="skeleton mask mask-squircle h-12 w-12"></div>
+        </td>
+        <td>
+          <div class="skeleton h-4 w-32"></div>
+        </td>
+        <td class="hidden sm:table-cell">
+          <div class="skeleton mask mask-squircle h-6 w-6"></div>
+        </td>
+        <th class="w-full">
+          <div class="skeleton h-8 w-20 ml-auto"></div>
+        </th>
+      </tr>
+      <tr v-else class="whitespace-nowrap" v-for="profile in profiles">
         <td>
           <div class="avatar">
             <a class="mask mask-squircle h-12 w-12" :href="'https://namemc.com/profile/'+profile.uuid">
@@ -86,11 +100,10 @@
 </template>
 
 <script setup>
-const { data, error, refresh } = await useAuthFetch(`/profile/list`)
+const { data: profiles, error, refresh, status } = await useAuthFetch(`/profile/list`, { lazy: true })
 const { $axios } = useNuxtApp();
 const toast = useToast();
 
-const profiles = ref(data);
 const loginUrl = ref(null);
 const polling = ref(false);
 const interval = ref(null);
@@ -161,8 +174,7 @@ async function poll(expiresAt, deviceCode) {
       color: 'success'
     });
 
-    const { data2 } = await useAuthFetch(`/profile/list`)
-    profiles.value = data2;
+    await refresh();
   } catch (error) {
     polling.value = false;
     handleAxiosError(error, toast);

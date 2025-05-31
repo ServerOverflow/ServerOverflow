@@ -6,9 +6,9 @@
         <Icon name="ci:search-magnifying-glass" size="1.5em" class="opacity-50"/>
         <input type="search" class="grow" placeholder="Enter custom query" v-model="query" />
       </label>
-      <button class="join-item btn btn-primary" :class="{ 'btn-disabled': fetching }" @click="update">
+      <button class="join-item btn btn-primary" :class="{ 'btn-disabled': status === 'pending' }" @click="update">
         Search
-        <span v-if="fetching" class="loading loading-spinner loading-sm"></span>
+        <span v-if="status === 'pending'" class="loading loading-spinner loading-sm"></span>
       </button>
     </div>
     <div class="mb-2 flex flex-row text-xs">
@@ -20,7 +20,7 @@
         <span class="opacity-80 ml-1">How do I use operators?</span>
       </button>
     </div>
-    <div v-if="!servers">
+    <div v-if="!servers && status !== 'pending'">
       <div v-if="error" class="alert alert-error alert-soft">
         <span>Failed to fetch servers from the backend</span>
       </div>
@@ -29,9 +29,17 @@
       </div>
     </div>
     <div v-else>
-      <Pagination :data="servers" :open-page="openPage"/>
+      <Pagination :data="paginationData" :open-page="openPage"/>
       <div class="grid grid-cols-1 2xl:grid-cols-2 gap-x-2 gap-y-4 my-4">
         <div
+            v-if="!servers && status === 'pending'"
+            v-for="index in 50"
+            class="card bg-base-300/40 shadow-xl"
+        >
+          <div class="skeleton h-40 w-full"></div>
+        </div>
+        <div
+            v-else
             v-for="server in servers.items"
             :key="server.id"
             class="card bg-base-300/40 shadow-xl"
@@ -89,7 +97,7 @@
           </div>
         </div>
       </div>
-      <Pagination :data="servers" :open-page="openPage" :scroll-to="scrollTarget"/>
+      <Pagination :data="paginationData" :open-page="openPage" :scroll-to="scrollTarget"/>
     </div>
   </div>
   <QueryDocs ref="queryDocs"/>
@@ -97,24 +105,24 @@
 
 <script setup>
 const config = useRuntimeConfig();
-const { $axios } = useNuxtApp();
 const router = useRouter();
 const route = useRoute();
-const toast = useToast();
 
 const scrollTarget = useTemplateRef('scrollTarget');
 const queryDocs = useTemplateRef('queryDocs');
-const lastQuery = ref(route.query.query);
 const query = ref(route.query.query);
-const fetching = ref(false);
+const params = computed(() => ({
+  page: route.query.page || '1',
+  query: route.query.query
+}))
 
-const { data: servers, error: error } = await useAuthFetch(`/server/search`, {
-  method: 'POST',
-  query: {
-    page: route.query.page || '1',
-    query: query.value
-  }
+const { data: servers, error, status } = await useAuthFetch(`/server/search`, {
+  method: 'POST', query: params, watch: [params], lazy: true
 })
+
+const paginationData = computed(() =>
+    servers.value || { currentPage: 1, totalPages: 7635 }
+);
 
 const formattedLatency = computed(() => {
   const ms = servers.value?.milliseconds || 0;
@@ -129,45 +137,24 @@ const formattedLatency = computed(() => {
   }
 })
 
-async function updateRoute(page) {
+async function update() {
+  if (status === 'pending') return;
   await router.push({
     path: route.path,
     query: {
-      page: page || route.query.page,
-      query: query.value === '' ? null : query.value
+      query: query.value === '' ? undefined : query.value
     }
   });
 }
 
-async function update() {
-  try {
-    fetching.value = true;
-    let page = route.query.page || '1';
-    if (lastQuery.value !== query.value) {
-      lastQuery.value = query.value;
-      page = '1';
-    }
-
-    const response = await $axios.post('/server/search', null, {
-      params: {
-        page: page,
-        query: query.value
-      }
-    });
-
-    servers.value = response.data;
-    fetching.value = false;
-    error.value = null;
-    await updateRoute(response.data.currentPage);
-  } catch (err) {
-    fetching.value = false;
-    if (err.response) error.value = err;
-    handleAxiosError(err, toast);
-  }
-}
-
 async function openPage(page) {
-  await updateRoute(page);
-  await update();
+  if (status === 'pending') return;
+  await router.push({
+    path: route.path,
+    query: {
+      query: route.query.query,
+      page: page === 1 ? undefined : page
+    }
+  });
 }
 </script>

@@ -2,7 +2,7 @@
   <h2 class="text-2xl font-bold">Accounts</h2>
   <p class="text mt-1">User accounts on ServerOverflow</p>
   <div class="divider my-2"></div>
-  <div v-if="!accounts">
+  <div v-if="!accounts && status !== 'pending'">
     <div v-if="error" class="alert alert-error alert-soft">
       <span>Failed to fetch exclusions from the backend</span>
     </div>
@@ -22,7 +22,27 @@
       </tr>
       </thead>
       <tbody>
-      <tr class="whitespace-nowrap" v-for="account in accounts">
+      <tr v-if="!accounts && status === 'pending'" v-for="index in 10">
+        <td>
+          <div class="skeleton mask mask-squircle h-12 w-12"></div>
+        </td>
+        <td>
+          <div class="flex flex-col gap-2">
+            <div class="skeleton h-4 w-16"></div>
+            <div class="skeleton h-4 w-20"></div>
+          </div>
+        </td>
+        <td class="hidden md:table-cell">
+          <div class="skeleton h-4 w-25"></div>
+        </td>
+        <td>
+          <div class="skeleton h-4 w-25"></div>
+        </td>
+        <th class="w-full">
+          <div class="skeleton h-8 w-20 ml-auto"></div>
+        </th>
+      </tr>
+      <tr v-else class="whitespace-nowrap" v-for="account in accounts">
         <td>
           <div class="avatar">
             <div class="mask mask-squircle h-12 w-12">
@@ -66,7 +86,7 @@
 </template>
 
 <script setup>
-const { data: accounts, error, refresh } = await useAuthFetch(`/user/list`)
+const { data: accounts, error, refresh, status } = await useAuthFetch(`/user/list`, { lazy: true })
 const deleteDialog = useTemplateRef('deleteDialog');
 const editDialog = useTemplateRef('editDialog');
 </script>
