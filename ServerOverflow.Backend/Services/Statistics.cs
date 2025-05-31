@@ -109,6 +109,7 @@ public class Statistics : BackgroundService {
                     .Include(x => x.Ping.Version!.Protocol)
                     .Include(x => x.Ping.ModernForgeMods!.ModList)
                     .Include(x => x.Ping.LegacyForgeMods!.ModList)
+                    .Include(x => x.Fingerprint!.Active!.Software)
                     .Include(x => x.Ping.CleanDescription)
                     .Include(x => x.Port)
                     .Include(x => x.IP);
