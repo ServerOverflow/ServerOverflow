@@ -34,8 +34,8 @@
             <Icon name="fa6-solid:angle-down"/>
           </div>
           <ul class="menu dropdown-content bg-base-200 rounded-box mt-3 w-52 p-2 shadow">
-            <li :class="{ 'menu-active': route.path === '/account' } ">
-              <NuxtLink to="/wip">Account <Icon name="fa6-solid:user" class="ml-auto icon-2"/></NuxtLink>
+            <li :class="{ 'menu-active': route.path === '/profile/me' } ">
+              <NuxtLink to="/profile/me">Account <Icon name="fa6-solid:user" class="ml-auto icon-2"/></NuxtLink>
             </li>
             <li>
               <button @click="logout">Logout <Icon name="fa6-solid:right-from-bracket" class="ml-auto icon-sm"/></button>
@@ -87,7 +87,7 @@
             </button>
           </li>
           <li v-if="user">
-            <NuxtLink to="/wip" :class="{ 'menu-active': route.path === '/account' }">
+            <NuxtLink to="/profile/me" :class="{ 'menu-active': route.path === '/profile/me' }">
               {{ user.username }} <Icon name="fa6-solid:user" class="ml-auto icon-sm"/>
             </NuxtLink>
           </li>

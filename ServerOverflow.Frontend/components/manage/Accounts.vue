@@ -62,7 +62,7 @@
           {{ replace(account.permissions.join(", "), 'None') }}
         </td>
         <td>
-          <a class="link link-hover link-primary" @click="notImplemented">
+          <a class="link link-hover link-primary" :href="'/profile/' + account.id">
             <obf v-if="account.inviteeUsername === null">God himself</obf>
             <span v-else>{{ account.inviteeUsername }}</span>
           </a>

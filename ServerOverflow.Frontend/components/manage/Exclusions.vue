@@ -89,17 +89,15 @@
     </table>
     <Pagination :data="paginationData" :open-page="openPage" :scroll-to="scrollTarget"/>
   </div>
-  <ExclusionCreate ref="createDialog" :update="update"/>
-  <ExclusionDelete ref="deleteDialog" :update="update"/>
-  <ExclusionEdit ref="editDialog" :update="update"/>
+  <ExclusionCreate ref="createDialog" :update="refresh"/>
+  <ExclusionDelete ref="deleteDialog" :update="refresh"/>
+  <ExclusionEdit ref="editDialog" :update="refresh"/>
   <QueryDocs ref="queryDocs"/>
 </template>
 
 <script setup>
-const { $axios } = useNuxtApp();
 const router = useRouter();
 const route = useRoute();
-const toast = useToast();
 
 const scrollTarget = useTemplateRef('scrollTarget');
 const createDialog = useTemplateRef('createDialog');
@@ -112,7 +110,7 @@ const params = computed(() => ({
   query: route.query.query
 }))
 
-const { data: exclusions, error, status } = await useAuthFetch(`/exclusion/search`, {
+const { data: exclusions, error, status, refresh } = await useAuthFetch(`/exclusion/search`, {
   method: 'POST', query: params, watch: [params], lazy: true
 })
 

@@ -1,14 +1,21 @@
 <template>
   <FormKit type="form" :actions="false" @submit="submit" v-model="model" :disabled="disabled">
-    <FormKit type="text" name="username" label="Username" validation="required">
+    <FormKit type="text" name="name" label="Name" validation="required">
       <template #prefixIcon><Icon name="fa6-solid:user" class="icon-sm mr-2"/></template>
     </FormKit>
-    <FormKit type="text" name="badgeText" label="Badge text" validation="required">
-      <template #prefixIcon><Icon name="fa6-solid:id-badge" class="icon-sm mr-2"/></template>
-    </FormKit>
-    <FormKit type="password" name="newPassword" label="New password" help="Do not specify to keep password unchanged" v-if="!disabled">
-      <template #prefixIcon><Icon name="fa6-solid:key" class="icon-sm mr-2"/></template>
-    </FormKit>
+    <FormKit
+        v-if="props.showExpire"
+        type="radio"
+        name="expireIn"
+        label="Expire in"
+        :options="[
+          { label: '1 year', value: '31556952000' },
+          { label: '6 months', value: '15552000000' },
+          { label: '3 months', value: '7776000000' },
+          { label: '1 month', value: '2592000000' }
+        ]"
+        validation="required"
+    />
     <FormKit
         type="checkbox"
         label="Permissions"
@@ -21,7 +28,6 @@
           'ModifyAccounts': 'Modify accounts',
           'ModifyExclusions': 'Modify exclusions',
         }"
-        :disabled="!hasPermission('ModifyAccounts')"
     />
     <FormKit type="submit" :label="submitLabel || 'Submit'" class="w-full" v-if="!disabled"/>
   </FormKit>
@@ -29,14 +35,15 @@
 
 <script setup>
 const props = defineProps({
+  showExpire: Boolean,
   submitLabel: String,
   disabled: Boolean,
   submit: Function,
-  account: {}
+  apiKey: {}
 })
 
-const model = ref(props.account);
+const model = ref(props.apiKey);
 
 // HACK: you can't use v-model with props
-watch(() => props.account, () => model.value = props.account);
+watch(() => props.apiKey, () => model.value = props.apiKey);
 </script>
