@@ -15,11 +15,11 @@
     <div class="skeleton h-25 w-full"></div>
   </div>
   <Account v-if="account" :account="account"/>
-  <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+  <div v-if="!error" class="grid grid-cols-1 xl:grid-cols-2 gap-5">
     <div class="bg-base-300/40 shadow-xl p-4 mt-5">
       <h2 class="text-xl font-bold">Account info</h2>
       <div class="divider my-2"></div>
-      <AccountForm :submit="submit" submit-label="Save changes" :account="account"/>
+      <AccountForm :submit="submit" submit-label="Save changes" :account="account" :disabled="!account"/>
     </div>
     <div class="bg-base-300/40 shadow-xl p-4 mt-5">
       <h2 class="text-xl font-bold">API keys</h2>
