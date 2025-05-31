@@ -51,7 +51,9 @@
                   <img
                       class="w-full h-full object-contain"
                       :src="`${config.public.apiBase}server/${server.id}.png`"
-                      alt="Favicon"
+                      :style="{ background: 'url(/img/default.png)', backgroundSize: 'cover' }"
+                      onerror="this.src='/img/default.png';"
+                      loading="lazy"
                   />
                 </div>
               </div>
