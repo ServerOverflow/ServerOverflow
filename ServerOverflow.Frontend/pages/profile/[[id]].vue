@@ -11,11 +11,11 @@
       <Icon name="fa6-solid:angle-right"/>
     </button>
   </div>
-  <div v-if="!account && !error" v-for="index in 50">
-    <div class="skeleton h-40 w-full"></div>
+  <div v-if="!account && !error">
+    <div class="skeleton h-25 w-full"></div>
   </div>
   <Account v-if="account" :account="account"/>
-  <div v-if="account" class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
     <div class="bg-base-300/40 shadow-xl p-4 mt-5">
       <h2 class="text-xl font-bold">Account info</h2>
       <div class="divider my-2"></div>
