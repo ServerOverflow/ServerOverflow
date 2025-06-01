@@ -13,6 +13,54 @@ namespace ServerOverflow.Backend;
 /// </summary>
 public static class Query {
     /// <summary>
+    /// Generates a filter from a honeypot event entry query.
+    /// Throws an exception in case of a syntax error.
+    /// </summary>
+    /// <returns>BSON filter</returns>
+    public static FilterDefinition<HoneypotEvent> HoneypotEvent(string query)
+        => Generate<HoneypotEvent>(query, (op, reversed, content) => {
+            switch (op) {
+                case "type": {
+                    if (!int.TryParse(content, out var value)) {
+                        if (!Enum.TryParse<HoneypotEventType>(content, out var actionVal))
+                            throw new SyntaxErrorException(
+                                "Operator value must be an integer or HoneypotEventType enum string");
+                        value = (int)actionVal;
+                    }
+                    
+                    var type = (HoneypotEventType)value;
+                    return reversed
+                        ? Builders<HoneypotEvent>.Filter.Ne(x => x.Type, type)
+                        : Builders<HoneypotEvent>.Filter.Eq(x => x.Type, type);
+                }
+                case "timestamp": {
+                    if (reversed) throw new SyntaxErrorException("Comparison operators do not allow reversing");
+                    if (content.Length < 2) throw new SyntaxErrorException("At least 2 characters are required");
+                    var operation = '=';
+                    if (content[0] is '>' or '<' or '=') {
+                        operation = content[0];
+                        content = content[1..];
+                    }
+
+                    if (!DateTime.TryParse(content, out var date))
+                        if (long.TryParse(content, out var value))
+                            date = DateTimeOffset.FromUnixTimeSeconds(value).Date;
+
+                    return operation switch {
+                        '>' => Builders<HoneypotEvent>.Filter.Gt(x => x.Timestamp, date),
+                        '<' => Builders<HoneypotEvent>.Filter.Lt(x => x.Timestamp, date),
+                        _ => Builders<HoneypotEvent>.Filter.Eq(x => x.Timestamp, date)
+                    };
+                }
+                default: {
+                    return reversed
+                        ? Builders<HoneypotEvent>.Filter.Ne(op, content)
+                        : Builders<HoneypotEvent>.Filter.Eq(op, content);
+                }
+            }
+        }, x => x.Description) & Builders<HoneypotEvent>.Filter.Ne(x => x.Id, ObjectId.Empty);
+    
+    /// <summary>
     /// Generates a filter from a log entry query.
     /// Throws an exception in case of a syntax error.
     /// </summary>

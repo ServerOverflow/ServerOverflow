@@ -20,6 +20,7 @@
           'SearchAccounts': 'Search accounts',
           'ModifyAccounts': 'Modify accounts',
           'ModifyExclusions': 'Modify exclusions',
+          'HoneypotEvents': 'Honeypot events',
         }"
         :disabled="!hasPermission('ModifyAccounts')"
     />

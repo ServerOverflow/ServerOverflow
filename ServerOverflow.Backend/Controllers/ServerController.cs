@@ -55,6 +55,52 @@ public class ServerController : ControllerBase {
     }
     
     /// <summary>
+    /// Joins the server and refreshes the join result
+    /// </summary>
+    /// <remarks>Search Servers permission is required</remarks>
+    /// <response code="401">Invalid API key or cookie</response>
+    /// <response code="403">User does not have required permission</response>
+    /// <response code="404">Server with specified ID does not exist</response>
+    /// <response code="200">Successfully joined the server</response>
+    /// <param name="id">Server ID</param>
+    [HttpPatch] [Route("{id}")]
+    [ProducesResponseType(typeof(ValidationProblem), 401)]
+    [ProducesResponseType(typeof(ValidationProblem), 403)]
+    [ProducesResponseType(typeof(ValidationProblem), 404)]
+    [ProducesResponseType(typeof(Server), 200)]
+    public async Task<IActionResult> Refresh(string id) {
+        var account = await HttpContext.GetAccount();
+        if (account == null)
+            return ValidationProblem(
+                title: "Invalid API key or cookie",
+                detail: "Failed to retrieve API key or account",
+                statusCode: 401);
+        
+        if (!account.HasPermission(Permission.SearchServers))
+            return ValidationProblem(
+                title: "Required permission was not granted", 
+                detail: "Retrieving servers requires Search Servers permission",
+                statusCode: 403);
+
+        var target = await Server.Get(id);
+        if (target == null)
+            return ValidationProblem(
+                title: "Failed to retrieve server", 
+                detail: "Server with specified ID does not exist",
+                statusCode: 404);
+        
+        var result = await MinecraftBot.Join(target);
+        result.LastSeen ??= target.JoinResult?.LastSeen;
+        result.Whitelist ??= target.JoinResult?.Whitelist;
+        result.OnlineMode ??= target.JoinResult?.OnlineMode;
+        result.OnlineTimestamp ??= target.JoinResult?.OnlineTimestamp;
+        target.JoinResult = result;
+        await target.Update();
+        
+        return Ok(target);
+    }
+    
+    /// <summary>
     /// Retrieves a server's favicon
     /// </summary>
     /// <response code="200">Successfully retrieved the favicon</response>

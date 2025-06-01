@@ -157,5 +157,10 @@ public enum Permission {
     /// <summary>
     /// Allows modifying the scanner exclusion list
     /// </summary>
-    ModifyExclusions = 5
+    ModifyExclusions = 5,
+    
+    /// <summary>
+    /// Allows reporting honeypot events
+    /// </summary>
+    HoneypotEvents = 6,
 }

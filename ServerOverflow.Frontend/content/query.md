@@ -27,6 +27,11 @@ ServerOverflow queries support operators, which work like this:
 - `timestamp (>integer)` - unix timestamp of the performed action
 - `!default (string)` - matches any arbitrary action attribute
 
+### Honeypot events
+- `type (-string/integer)` - name of the event type or it's ID
+- `timestamp (>integer)` - unix timestamp of the performed action
+- `!default (string)` - matches any arbitrary field (e.g. sourceIp)
+
 ### Exclusions
 - `ip (-string)` - IP address or range included in the exclusion
 

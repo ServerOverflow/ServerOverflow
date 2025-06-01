@@ -8,6 +8,7 @@ namespace ServerOverflow.Shared.Storage;
 /// MongoDB database controller
 /// </summary>
 public static class Database {
+    private static IMongoCollection<HoneypotEvent>? _honeypotEvents;
     private static IMongoCollection<Invitation>? _invitations;
     private static IMongoCollection<Exclusion>? _exclusions;
     private static IMongoCollection<LogEntry>? _auditLogs;
@@ -17,6 +18,17 @@ public static class Database {
     private static IMongoCollection<Server>? _servers;
     private static IMongoCollection<Player>? _players;
     private static IMongoCollection<BadIP>? _badIPs;
+    
+    /// <summary>
+    /// API keys database collection
+    /// </summary>
+    public static IMongoCollection<HoneypotEvent> HoneypotEvents {
+        get {
+            if (_honeypotEvents == null)
+                throw new InvalidOperationException("Call Initialize first");
+            return _honeypotEvents;
+        }
+    }
     
     /// <summary>
     /// API keys database collection
@@ -131,6 +143,7 @@ public static class Database {
         Log.Information("Connecting to MongoDB database");
         var client = new MongoClient(uri);
         var database = client.GetDatabase("server-overflow");
+        _honeypotEvents = database.GetCollection<HoneypotEvent>("honeypot_events");
         _invitations = database.GetCollection<Invitation>("invitations");
         _exclusions = database.GetCollection<Exclusion>("exclusions");
         _auditLogs = database.GetCollection<LogEntry>("audit_logs");

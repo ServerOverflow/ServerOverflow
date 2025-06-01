@@ -9,6 +9,12 @@
           </NuxtLink>
         </li>
         <li>
+          <NuxtLink class="font-semibold gap-3" :class="{ 'menu-active': tab === 'honeypot' }" to="/manage/honeypot">
+            <Icon name="fa6-solid:cloud-bolt" class="icon-md" />
+            Honeypot logs
+          </NuxtLink>
+        </li>
+        <li>
           <NuxtLink class="font-semibold gap-3" :class="{ 'menu-active': tab === 'exclusions' }" to="/manage/exclusions">
             <Icon name="fa6-solid:list" class="icon-md" />
             Exclusions
@@ -37,6 +43,7 @@
     <div class="flex-1 overflow-auto w-full pt-0 px-8 xl:px-0 xl:py-16">
       <ManageInvitations v-if="tab === 'invitations'" />
       <ManageExclusions v-if="tab === 'exclusions'" />
+      <ManageHoneypot v-if="tab === 'honeypot'" />
       <ManageAccounts v-if="tab === 'accounts'" />
       <ManageProfiles v-if="tab === 'profiles'" />
       <ManageAudit v-if="tab === 'audit'" />
