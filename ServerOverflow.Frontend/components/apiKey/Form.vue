@@ -27,6 +27,7 @@
           'SearchAccounts': 'Search accounts',
           'ModifyAccounts': 'Modify accounts',
           'ModifyExclusions': 'Modify exclusions',
+          'HoneypotEvents': 'Honeypot events'
         }"
     />
     <FormKit type="submit" :label="submitLabel || 'Submit'" class="w-full" v-if="!disabled"/>
