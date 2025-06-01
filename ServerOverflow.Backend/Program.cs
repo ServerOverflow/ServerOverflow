@@ -1,4 +1,4 @@
-using System.Reflection;
+using System.Drawing;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi.Models;
@@ -24,6 +24,9 @@ builder.Configuration.AddEnvironmentVariables();
 Database.Initialize(
     builder.Configuration["MONGO_URI"]
     ?? "mongodb://127.0.0.1:27017?maxPoolSize=5000");
+Webhook.Initialize(
+    builder.Configuration["WEBHOOK_URL"]
+    ?? "https://clients3.google.com/generate_204");
 
 var accounts = await Database.Accounts.EstimatedCount();
 var invites = await Database.Invitations.EstimatedCount();

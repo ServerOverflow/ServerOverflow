@@ -1,9 +1,16 @@
 using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using System.Reflection;
+using MaxMind.GeoIP2;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using MineProtocol;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Serilog;
 using ServerOverflow.Backend.Models;
+using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
 
 namespace ServerOverflow.Backend.Controllers;
@@ -72,6 +79,55 @@ public class HoneypotController : ControllerBase {
         honeypotEvent.Timestamp = DateTime.UtcNow;
         honeypotEvent.Description = honeypotEvent.ToString();
         await Database.HoneypotEvents.InsertOneAsync(honeypotEvent);
+
+        try {
+            var ass = Assembly.GetExecutingAssembly();
+            await using var cityStream = ass.GetManifestResourceStream("GeoLite2-City.mmdb");
+            await using var asnStream = ass.GetManifestResourceStream("GeoLite2-ASN.mmdb");
+            using var cityDb = new DatabaseReader(cityStream!);
+            using var asnDb = new DatabaseReader(asnStream!);
+
+            var city = cityDb.City(honeypotEvent.SourceIp);
+            var asn = asnDb.Asn(honeypotEvent.SourceIp);
+            
+            
+            var webhook = new Webhook {
+                Embeds = [
+                    new Embed {
+                        Title = honeypotEvent.Type switch {
+                            HoneypotEventType.Joined =>
+                                $"{honeypotEvent.Username} joined from {honeypotEvent.SourceIp}:{honeypotEvent.SourcePort}",
+                            HoneypotEventType.Left =>
+                                $"{honeypotEvent.Username} left from {honeypotEvent.SourceIp}:{honeypotEvent.SourcePort}",
+                            _ => $"Server list ping from {honeypotEvent.SourceIp}:{honeypotEvent.SourcePort}"
+                        },
+                        Color = honeypotEvent.Type switch {
+                            HoneypotEventType.Joined => Color.LimeGreen,
+                            HoneypotEventType.Left => Color.IndianRed,
+                            _ => Color.LightSeaGreen
+                        },
+                        Fields = [
+                            new Field("ASN", asn.AutonomousSystemOrganization ?? $"AS{asn.AutonomousSystemNumber}", true),
+                            new Field("City", city.City.Name ?? "Unknown", true),
+                            new Field("Country", new RegionInfo(city.Country.IsoCode ?? "ZW").EnglishName, true),
+                            new Field("Version", Resources.Protocol.TryGetValue(honeypotEvent.Protocol, out var version) ? version : "Unknown", true),
+                            new Field("Operating system", honeypotEvent.OperatingSystem, true),
+                            new Field("Protocol", honeypotEvent.Protocol.ToString(), true),
+                            new Field("p0f signature", honeypotEvent.Signature)
+                        ],
+                        Footer = new Footer("95.141.241.193:25565"),
+                        Timestamp = DateTime.Now
+                    }
+                ]
+            };
+
+            if (honeypotEvent.Uuid != null)
+                webhook.Embeds[0].Fields!.Add(new Field("Player UUID", $"[{honeypotEvent.Uuid}](https://namemc.com/{honeypotEvent.Uuid})"));
+        
+            await webhook.Send();
+        } catch (Exception e) {
+            Log.Error("Failed to send webhook: {0}", e);
+        }
         
         return Ok(honeypotEvent);
     }
