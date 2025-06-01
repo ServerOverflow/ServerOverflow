@@ -55,6 +55,11 @@ public class Statistics : BackgroundService {
     public static readonly Gauge Errors = Metrics.CreateGauge("so_bot_errors", "Servers per join error", "message", "type");
     
     /// <summary>
+    /// Honeypot events (pinged, joined, left)
+    /// </summary>
+    public static readonly Gauge Honeypot = Metrics.CreateGauge("so_honeypot_events", "Honeypot events", "type");
+    
+    /// <summary>
     /// Runs the main service loop
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken token) {

@@ -10,6 +10,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Serilog;
 using ServerOverflow.Backend.Models;
+using ServerOverflow.Backend.Services;
 using ServerOverflow.Shared;
 using ServerOverflow.Shared.Storage;
 
@@ -74,11 +75,18 @@ public class HoneypotController : ControllerBase {
                 title: "Required permission was not granted", 
                 detail: "Reporting honeypot events required Honeypot Events permission",
                 statusCode: 403);
-
+        
         honeypotEvent.Id = ObjectId.GenerateNewId();
         honeypotEvent.Timestamp = DateTime.UtcNow;
         honeypotEvent.Description = honeypotEvent.ToString();
         await Database.HoneypotEvents.InsertOneAsync(honeypotEvent);
+        
+        Statistics.Honeypot.WithLabels(
+            honeypotEvent.Type switch { 
+                HoneypotEventType.Joined => "joined", 
+                HoneypotEventType.Left => "left", 
+                _ => "pinged" 
+            }).Inc();
 
         try {
             var ass = Assembly.GetExecutingAssembly();
