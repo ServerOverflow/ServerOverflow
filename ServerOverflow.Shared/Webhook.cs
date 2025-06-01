@@ -28,7 +28,9 @@ public class Webhook {
         if (WebhookUrl == null)
             throw new InvalidOperationException("Call Initialize first");
         using var client = new HttpClient();
-        await client.PostAsync(WebhookUrl, JsonContent.Create(this));
+        var resp = await client.PostAsync(WebhookUrl, JsonContent.Create(this));
+        if (!resp.IsSuccessStatusCode)
+            throw new Exception(await resp.Content.ReadAsStringAsync());
     }
     
     /// <summary>
