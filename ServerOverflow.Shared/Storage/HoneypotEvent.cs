@@ -31,11 +31,6 @@ public class HoneypotEvent {
     public string OperatingSystem { get; set; } = "";
     
     /// <summary>
-    /// Signature detected via p0f
-    /// </summary>
-    public string Signature { get; set; } = "";
-    
-    /// <summary>
     /// Protocol version used by the perpetrator
     /// </summary>
     public int Protocol { get; set; }

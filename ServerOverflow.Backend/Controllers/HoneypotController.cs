@@ -98,7 +98,6 @@ public class HoneypotController : ControllerBase {
             var city = cityDb.City(honeypotEvent.SourceIp);
             var asn = asnDb.Asn(honeypotEvent.SourceIp);
             
-            
             var webhook = new Webhook {
                 Embeds = [
                     new Embed {
@@ -120,8 +119,7 @@ public class HoneypotController : ControllerBase {
                             new Field("Country", new RegionInfo(city.Country.IsoCode ?? "ZW").EnglishName, true),
                             new Field("Version", Resources.Protocol.TryGetValue(honeypotEvent.Protocol, out var version) ? version : "Unknown", true),
                             new Field("Operating system", honeypotEvent.OperatingSystem, true),
-                            new Field("Protocol", honeypotEvent.Protocol.ToString(), true),
-                            new Field("p0f signature", honeypotEvent.Signature)
+                            new Field("Protocol", honeypotEvent.Protocol.ToString(), true)
                         ],
                         Footer = new Footer("95.141.241.193:25565"),
                         Timestamp = DateTime.Now
