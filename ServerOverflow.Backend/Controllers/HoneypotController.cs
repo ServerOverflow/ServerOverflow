@@ -73,7 +73,7 @@ public class HoneypotController : ControllerBase {
         if (!account.HasPermission(Permission.HoneypotEvents))
             return ValidationProblem(
                 title: "Required permission was not granted", 
-                detail: "Reporting honeypot events required Honeypot Events permission",
+                detail: "Reporting honeypot events requires Honeypot Events permission",
                 statusCode: 403);
         
         honeypotEvent.Id = ObjectId.GenerateNewId();
