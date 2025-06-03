@@ -46,6 +46,16 @@ public class HoneypotEvent {
     public int SourcePort { get; set; }
     
     /// <summary>
+    /// Virtual host IP address
+    /// </summary>
+    public string HostDomain { get; set; } = "";
+    
+    /// <summary>
+    /// Virtual host port
+    /// </summary>
+    public int HostPort { get; set; }
+    
+    /// <summary>
     /// IP address of the honeypot server
     /// </summary>
     public string TargetIp { get; set; } = "";

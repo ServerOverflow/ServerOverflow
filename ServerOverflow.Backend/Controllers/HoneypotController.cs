@@ -98,6 +98,9 @@ public class HoneypotController : ControllerBase {
             var city = cityDb.City(honeypotEvent.SourceIp);
             var asn = asnDb.Asn(honeypotEvent.SourceIp);
             
+            var location = new RegionInfo(city.Country.IsoCode ?? "ZW").EnglishName;
+            if (city.City.Name != null) location = $"{city.City.Name}, {location}";
+            
             var webhook = new Webhook {
                 Embeds = [
                     new Embed {
@@ -115,10 +118,10 @@ public class HoneypotController : ControllerBase {
                         },
                         Fields = [
                             new Field("ASN", asn.AutonomousSystemOrganization ?? $"AS{asn.AutonomousSystemNumber}", true),
-                            new Field("City", city.City.Name ?? "Unknown", true),
-                            new Field("Country", new RegionInfo(city.Country.IsoCode ?? "ZW").EnglishName, true),
+                            new Field("Location", location, true),
                             new Field("Version", Resources.Protocol.TryGetValue(honeypotEvent.Protocol, out var version) ? version : "Unknown", true),
                             new Field("Operating system", honeypotEvent.OperatingSystem, true),
+                            new Field("Hostname", $"{honeypotEvent.HostDomain}:{honeypotEvent.HostPort}", true),
                             new Field("Protocol", honeypotEvent.Protocol.ToString(), true)
                         ],
                         Footer = new Footer("95.141.241.193:25565"),
